@@ -1,0 +1,117 @@
+{
+  "@@locale": "mn",
+
+  "appTitle": "Жижиглэн Худалдааны Систем",
+  "@appTitle": {
+    "description": "Аппын нэр"
+  },
+
+  "quickSale": "Түргэн борлуулалт",
+  "@quickSale": {
+    "description": "Quick sale feature name"
+  },
+
+  "dashboard": "Хяналтын самбар",
+  "inventory": "Бараа материал",
+  "product": "Бараа",
+  "products": "Бараанууд",
+  "quantity": "Тоо хэмжээ",
+  "price": "Үнэ",
+  "sellPrice": "Борлуулах үнэ",
+  "costPrice": "Өртөг",
+  "totalAmount": "Нийт дүн",
+
+  "lowStock": "Бага үлдэгдэл",
+  "@lowStock": {
+    "description": "Low stock alert"
+  },
+
+  "alert": "Сэрэмжлүүлэг",
+  "alerts": "Сэрэмжлүүлгүүд",
+  "shift": "Ээлж",
+  "seller": "Худалдагч",
+  "sellers": "Худалдагчид",
+  "owner": "Эзэмшигч",
+
+  "syncStatus": "Синк байдал",
+  "offline": "Офлайн горим",
+  "online": "Онлайн",
+  "lastSync": "Сүүлийн синк",
+  "syncing": "Синк хийж байна...",
+  "syncComplete": "Синк дууслаа",
+  "syncFailed": "Синк амжилтгүй",
+
+  "login": "Нэвтрэх",
+  "logout": "Гарах",
+  "phoneNumber": "Утасны дугаар",
+  "otp": "Нэг удаагийн код",
+  "verifyOTP": "Кодоо баталгаажуулах",
+  "sendOTP": "Код илгээх",
+
+  "add": "Нэмэх",
+  "edit": "Засах",
+  "delete": "Устгах",
+  "save": "Хадгалах",
+  "cancel": "Цуцлах",
+  "confirm": "Баталгаажуулах",
+  "search": "Хайх",
+  "filter": "Шүүх",
+
+  "addProduct": "Бараа нэмэх",
+  "editProduct": "Бараа засах",
+  "productName": "Барааны нэр",
+  "productCode": "Барааны код",
+  "unit": "Хэмжих нэгж",
+  "initialQuantity": "Анхны тоо хэмжээ",
+  "currentStock": "Одоогийн үлдэгдэл",
+  "lowStockThreshold": "Бага үлдэгдлийн босго",
+
+  "recordSale": "Борлуулалт бүртгэх",
+  "selectProduct": "Бараа сонгох",
+  "confirmSale": "Борлуулалт баталгаажуулах",
+  "saleRecorded": "Борлуулалт бүртгэгдлээ",
+  "saleFailed": "Борлуулалт амжилтгүй",
+
+  "openShift": "Ээлж эхлүүлэх",
+  "closeShift": "Ээлж хаах",
+  "shiftReport": "Ээлжийн тайлан",
+  "shiftOpened": "Ээлж эхэллээ",
+  "shiftClosed": "Ээлж хаагдлаа",
+
+  "dailySales": "Өнөөдрийн борлуулалт",
+  "totalSales": "Нийт борлуулалт",
+  "topProducts": "Шилдэг бараанууд",
+  "sellerPerformance": "Худалдагчийн үр дүн",
+
+  "auditLog": "Өөрчлөлтийн түүх",
+  "viewHistory": "Түүх харах",
+  "actor": "Хэрэглэгч",
+  "action": "Үйлдэл",
+  "timestamp": "Огноо, цаг",
+  "reason": "Шалтгаан",
+
+  "settings": "Тохиргоо",
+  "profile": "Профайл",
+  "storeName": "Дэлгүүрийн нэр",
+  "currency": "Валют",
+  "timezone": "Цагийн бүс",
+
+  "onboarding": "Эхлэл",
+  "welcome": "Тавтай морил",
+  "getStarted": "Эхлэх",
+  "setupStore": "Дэлгүүр тохируулах",
+  "addFirstProducts": "Эхний бараанууд нэмэх",
+  "inviteSellers": "Худалдагч урих",
+
+  "error": "Алдаа",
+  "success": "Амжилттай",
+  "warning": "Анхааруулга",
+  "info": "Мэдээлэл",
+
+  "noData": "Өгөгдөл байхгүй",
+  "loading": "Ачаалж байна...",
+  "retry": "Дахин оролдох",
+
+  "yes": "Тийм",
+  "no": "Үгүй"
+}

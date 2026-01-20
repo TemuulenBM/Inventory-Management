@@ -1,0 +1,117 @@
+{
+  "@@locale": "en",
+
+  "appTitle": "Retail Control Platform",
+  "@appTitle": {
+    "description": "Application title"
+  },
+
+  "quickSale": "Quick Sale",
+  "@quickSale": {
+    "description": "Quick sale feature name"
+  },
+
+  "dashboard": "Dashboard",
+  "inventory": "Inventory",
+  "product": "Product",
+  "products": "Products",
+  "quantity": "Quantity",
+  "price": "Price",
+  "sellPrice": "Sell Price",
+  "costPrice": "Cost Price",
+  "totalAmount": "Total Amount",
+
+  "lowStock": "Low Stock",
+  "@lowStock": {
+    "description": "Low stock alert"
+  },
+
+  "alert": "Alert",
+  "alerts": "Alerts",
+  "shift": "Shift",
+  "seller": "Seller",
+  "sellers": "Sellers",
+  "owner": "Owner",
+
+  "syncStatus": "Sync Status",
+  "offline": "Offline Mode",
+  "online": "Online",
+  "lastSync": "Last Sync",
+  "syncing": "Syncing...",
+  "syncComplete": "Sync Complete",
+  "syncFailed": "Sync Failed",
+
+  "login": "Login",
+  "logout": "Logout",
+  "phoneNumber": "Phone Number",
+  "otp": "One-Time Password",
+  "verifyOTP": "Verify OTP",
+  "sendOTP": "Send OTP",
+
+  "add": "Add",
+  "edit": "Edit",
+  "delete": "Delete",
+  "save": "Save",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "search": "Search",
+  "filter": "Filter",
+
+  "addProduct": "Add Product",
+  "editProduct": "Edit Product",
+  "productName": "Product Name",
+  "productCode": "Product Code",
+  "unit": "Unit",
+  "initialQuantity": "Initial Quantity",
+  "currentStock": "Current Stock",
+  "lowStockThreshold": "Low Stock Threshold",
+
+  "recordSale": "Record Sale",
+  "selectProduct": "Select Product",
+  "confirmSale": "Confirm Sale",
+  "saleRecorded": "Sale Recorded",
+  "saleFailed": "Sale Failed",
+
+  "openShift": "Open Shift",
+  "closeShift": "Close Shift",
+  "shiftReport": "Shift Report",
+  "shiftOpened": "Shift Opened",
+  "shiftClosed": "Shift Closed",
+
+  "dailySales": "Daily Sales",
+  "totalSales": "Total Sales",
+  "topProducts": "Top Products",
+  "sellerPerformance": "Seller Performance",
+
+  "auditLog": "Audit Log",
+  "viewHistory": "View History",
+  "actor": "Actor",
+  "action": "Action",
+  "timestamp": "Timestamp",
+  "reason": "Reason",
+
+  "settings": "Settings",
+  "profile": "Profile",
+  "storeName": "Store Name",
+  "currency": "Currency",
+  "timezone": "Timezone",
+
+  "onboarding": "Onboarding",
+  "welcome": "Welcome",
+  "getStarted": "Get Started",
+  "setupStore": "Setup Store",
+  "addFirstProducts": "Add First Products",
+  "inviteSellers": "Invite Sellers",
+
+  "error": "Error",
+  "success": "Success",
+  "warning": "Warning",
+  "info": "Info",
+
+  "noData": "No Data",
+  "loading": "Loading...",
+  "retry": "Retry",
+
+  "yes": "Yes",
+  "no": "No"
+}
