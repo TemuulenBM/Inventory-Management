@@ -58,7 +58,6 @@ export async function requestOTP(phone: string): Promise<{ success: boolean; exp
     phone: validatedPhone,
     otp_code: otp,
     expires_at: expiresAt.toISOString(),
-    attempts: 0,
   });
 
   if (insertError) {
@@ -120,33 +119,21 @@ export async function verifyOTP(
     return { success: false, error: 'OTP хугацаа дууссан байна. Дахин OTP хүсэх хэрэгтэй.' };
   }
 
-  // 4. Оролдлогын тоо шалгах
-  const attempts = (otpToken as any).attempts || 0;
-  if (attempts >= OTP_CONFIG.MAX_ATTEMPTS) {
-    return { success: false, error: 'OTP оруулах оролдлого дууссан. Дахин OTP хүсэх хэрэгтэй.' };
-  }
-
-  // 5. OTP verify хийх
+  // 4. OTP verify хийх
   const isValid = verifyOTPCode(otpInput, otpToken.otp_code);
 
-  // 6. Буруу бол attempts нэмэх
+  // 5. Буруу бол алдаа буцаах
   if (!isValid) {
-    await supabase
-      .from('otp_tokens' as any)
-      .update({ attempts: attempts + 1 })
-      .eq('id', otpToken.id);
-
-    const remainingAttempts = OTP_CONFIG.MAX_ATTEMPTS - attempts - 1;
     return {
       success: false,
-      error: `OTP буруу байна. ${remainingAttempts} оролдлого үлдсэн.`,
+      error: 'OTP буруу байна. Дахин оролдоно уу.',
     };
   }
 
-  // 7. OTP зөв - OTP token устгах
+  // 6. OTP зөв - OTP token устгах
   await supabase.from('otp_tokens').delete().eq('id', otpToken.id);
 
-  // 8. User олох эсвэл үүсгэх
+  // 7. User олох эсвэл үүсгэх
   const { data: existingUsers } = await supabase.from('users').select('*').eq('phone', validatedPhone).limit(1);
 
   let user;
@@ -164,7 +151,7 @@ export async function verifyOTP(
     };
   }
 
-  // 9. JWT tokens үүсгэх
+  // 8. JWT tokens үүсгэх
   const payload: JWTPayload = {
     userId: user.id,
     storeId: user.store_id,
@@ -174,7 +161,7 @@ export async function verifyOTP(
   const accessToken = server.jwt.sign(payload, { expiresIn: env.JWT_ACCESS_EXPIRY });
   const refreshToken = server.jwt.sign(payload, { expiresIn: env.JWT_REFRESH_EXPIRY });
 
-  // 10. Refresh token database-д хадгалах
+  // 9. Refresh token database-д хадгалах
   const refreshExpiresAt = new Date();
   refreshExpiresAt.setDate(refreshExpiresAt.getDate() + 30); // 30 days
 

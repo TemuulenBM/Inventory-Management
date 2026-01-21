@@ -36,13 +36,8 @@ async function rateLimitPluginFn(server: FastifyInstance) {
     },
   });
 
-  // Health check endpoint-д rate limiting хэрэггүй
-  server.addHook('onRequest', async (request: any, reply: any) => {
-    if (request.url === '/health') {
-      reply.hijack();
-      return;
-    }
-  });
+  // Note: Health check endpoint-д rate limiting skip хийхийг allowList ашиглана
+  // allowList нь rate-limit config-д нэмэгдэнэ
 
   server.log.info(`✓ Rate limit plugin registered (${env.RATE_LIMIT_MAX} req/min)`);
 }

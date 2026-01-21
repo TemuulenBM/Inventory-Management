@@ -238,21 +238,21 @@ curl http://localhost:3000/auth/me \
 ### Checklist
 
 #### 4.1 Product Module
-- [ ] **GET /stores/:id/products** - Бараа жагсаалт (pagination, search, filter)
-- [ ] **GET /stores/:id/products/:productId** - Бараа дэлгэрэнгүй
-- [ ] **POST /stores/:id/products** - Бараа нэмэх
-- [ ] **PUT /stores/:id/products/:productId** - Бараа засах
-- [ ] **DELETE /stores/:id/products/:productId** - Бараа устгах (soft)
-- [ ] **POST /stores/:id/products/bulk** - Олон бараа нэмэх
+- [x] **GET /stores/:storeId/products** - Бараа жагсаалт (pagination, search, filter)
+- [x] **GET /stores/:storeId/products/:productId** - Бараа дэлгэрэнгүй
+- [x] **POST /stores/:storeId/products** - Бараа нэмэх
+- [x] **PUT /stores/:storeId/products/:productId** - Бараа засах
+- [x] **DELETE /stores/:storeId/products/:productId** - Бараа устгах (soft delete)
+- [x] **POST /stores/:storeId/products/bulk** - Олон бараа нэмэх
 
 #### 4.2 Inventory Module (Event Sourcing)
-- [ ] **GET /stores/:id/inventory-events** - Event түүх
-- [ ] **POST /stores/:id/inventory-events** - Manual adjustment
-- [ ] **GET /stores/:id/stock-levels** - Бүх барааны үлдэгдэл
-- [ ] **GET /stores/:id/products/:productId/stock-history** - Нэг барааны түүх
+- [x] **GET /stores/:storeId/inventory-events** - Event түүх
+- [x] **POST /stores/:storeId/inventory-events** - Manual adjustment
+- [x] **GET /stores/:storeId/stock-levels** - Бүх барааны үлдэгдэл
+- [x] **GET /stores/:storeId/products/:productId/stock-history** - Нэг барааны түүх
 
 #### 4.3 Stock Calculation
-- [ ] Event sourcing logic: `current_stock = SUM(qty_change)`
+- [x] Event sourcing logic: `current_stock = SUM(qty_change)` (product_stock_levels view)
 - [ ] Low stock check trigger
 - [ ] Negative stock alert trigger
 
@@ -464,4 +464,4 @@ curl http://localhost:3000/auth/me \
 
 ---
 
-*Сүүлд шинэчлэгдсэн: 2026-01-20*
+*Сүүлд шинэчлэгдсэн: 2026-01-21*

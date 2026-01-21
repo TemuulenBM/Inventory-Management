@@ -18,11 +18,12 @@ export async function getProducts(storeId: string, query: ProductQueryParams) {
   const { page, limit, search, unit, lowStock } = query;
   const offset = (page - 1) * limit;
 
-  // product_stock_levels view ашиглана (current_stock, is_low_stock багтсан)
+  // Products table-аас шууд query хийнэ (is_deleted filter дэмжих)
   let queryBuilder = supabase
-    .from('product_stock_levels' as any)
+    .from('products')
     .select('*', { count: 'exact' })
-    .eq('store_id', storeId);
+    .eq('store_id', storeId)
+    .eq('is_deleted', false);
 
   // Search filter (name эсвэл SKU)
   if (search) {
@@ -32,11 +33,6 @@ export async function getProducts(storeId: string, query: ProductQueryParams) {
   // Unit filter
   if (unit) {
     queryBuilder = queryBuilder.eq('unit', unit);
-  }
-
-  // Low stock filter
-  if (lowStock) {
-    queryBuilder = queryBuilder.eq('is_low_stock', true);
   }
 
   // Pagination + sorting
@@ -51,8 +47,29 @@ export async function getProducts(storeId: string, query: ProductQueryParams) {
     return { success: false as const, error: 'Барааны жагсаалт авахад алдаа гарлаа' };
   }
 
-  const productList: ProductWithStock[] = (products || []).map((p: any) => ({
-    id: p.product_id,
+  // Product ID-уудаар stock level авах
+  const productIds = (products || []).map((p) => p.id);
+  let stockMap: Record<string, { currentStock: number; isLowStock: boolean }> = {};
+
+  if (productIds.length > 0) {
+    const { data: stockLevels } = await supabase
+      .from('product_stock_levels' as any)
+      .select('product_id, current_stock, is_low_stock')
+      .in('product_id', productIds);
+
+    if (stockLevels) {
+      stockMap = stockLevels.reduce((acc: Record<string, { currentStock: number; isLowStock: boolean }>, s: any) => {
+        acc[s.product_id] = {
+          currentStock: s.current_stock || 0,
+          isLowStock: s.is_low_stock || false,
+        };
+        return acc;
+      }, {});
+    }
+  }
+
+  let productList: ProductWithStock[] = (products || []).map((p: any) => ({
+    id: p.id,
     storeId: p.store_id,
     name: p.name,
     sku: p.sku,
@@ -60,10 +77,15 @@ export async function getProducts(storeId: string, query: ProductQueryParams) {
     costPrice: p.cost_price,
     sellPrice: p.sell_price,
     lowStockThreshold: p.low_stock_threshold,
-    currentStock: p.current_stock || 0,
-    isLowStock: p.is_low_stock || false,
+    currentStock: stockMap[p.id]?.currentStock || 0,
+    isLowStock: stockMap[p.id]?.isLowStock || false,
     createdAt: p.created_at,
   }));
+
+  // Low stock filter (stock мэдээлэл авсны дараа filter хийнэ)
+  if (lowStock) {
+    productList = productList.filter((p) => p.isLowStock);
+  }
 
   const total = count || 0;
   const totalPages = Math.ceil(total / limit);
@@ -88,30 +110,40 @@ export async function getProducts(storeId: string, query: ProductQueryParams) {
  * @returns Бараа + stock level
  */
 export async function getProduct(productId: string, storeId: string) {
-  // product_stock_levels view ашиглана
+  // Products table-аас бараа авах (is_deleted filter)
   const { data: product, error } = await supabase
-    .from('product_stock_levels' as any)
+    .from('products')
     .select('*')
-    .eq('product_id', productId)
+    .eq('id', productId)
     .eq('store_id', storeId)
+    .eq('is_deleted', false)
     .single();
 
   if (error || !product) {
     return { success: false as const, error: 'Бараа олдсонгүй' };
   }
 
+  // Stock level авах
+  const { data: stockLevel } = await supabase
+    .from('product_stock_levels' as any)
+    .select('current_stock, is_low_stock')
+    .eq('product_id', productId)
+    .single();
+
+  const stockData = stockLevel as { current_stock?: number | null; is_low_stock?: boolean | null } | null;
+
   const productWithStock: ProductWithStock = {
-    id: product.product_id,
+    id: product.id,
     storeId: product.store_id,
     name: product.name,
     sku: product.sku,
     unit: product.unit,
-    costPrice: product.cost_price,
+    costPrice: product.cost_price ?? 0,
     sellPrice: product.sell_price,
     lowStockThreshold: product.low_stock_threshold,
-    currentStock: product.current_stock || 0,
-    isLowStock: product.is_low_stock || false,
-    createdAt: product.created_at,
+    currentStock: stockData?.current_stock ?? 0,
+    isLowStock: stockData?.is_low_stock ?? false,
+    createdAt: product.created_at ?? new Date().toISOString(),
   };
 
   return {
@@ -148,11 +180,11 @@ export async function createProduct(storeId: string, data: CreateProductBody) {
     .insert({
       store_id: storeId,
       name: data.name,
-      sku: data.sku || null,
+      sku: data.sku ?? '',
       unit: data.unit,
       cost_price: data.costPrice,
       sell_price: data.sellPrice,
-      low_stock_threshold: data.lowStockThreshold || null,
+      low_stock_threshold: data.lowStockThreshold ?? null,
     })
     .select()
     .single();
@@ -172,10 +204,10 @@ export async function createProduct(storeId: string, data: CreateProductBody) {
       name: product.name,
       sku: product.sku,
       unit: product.unit,
-      costPrice: product.cost_price,
+      costPrice: product.cost_price ?? 0,
       sellPrice: product.sell_price,
       lowStockThreshold: product.low_stock_threshold,
-      createdAt: product.created_at,
+      createdAt: product.created_at ?? new Date().toISOString(),
     },
   };
 }
@@ -233,25 +265,39 @@ export async function updateProduct(productId: string, storeId: string, data: Up
       name: product.name,
       sku: product.sku,
       unit: product.unit,
-      costPrice: product.cost_price,
+      costPrice: product.cost_price ?? 0,
       sellPrice: product.sell_price,
       lowStockThreshold: product.low_stock_threshold,
-      createdAt: product.created_at,
+      createdAt: product.created_at ?? new Date().toISOString(),
     },
   };
 }
 
 /**
- * Бараа устгах (hard delete - production дээр soft delete хийх)
+ * Бараа устгах (soft delete - is_deleted = true)
  *
  * @param productId - Product ID
  * @param storeId - Store ID
  * @returns Амжилттай бол { success: true }
  */
 export async function deleteProduct(productId: string, storeId: string) {
+  // Эхлээд бараа байгаа эсэхийг шалгах
+  const { data: existing } = await supabase
+    .from('products')
+    .select('id')
+    .eq('id', productId)
+    .eq('store_id', storeId)
+    .eq('is_deleted', false)
+    .single();
+
+  if (!existing) {
+    return { success: false as const, error: 'Бараа олдсонгүй' };
+  }
+
+  // Soft delete хийх
   const { error } = await supabase
     .from('products')
-    .delete()
+    .update({ is_deleted: true })
     .eq('id', productId)
     .eq('store_id', storeId);
 
@@ -260,7 +306,7 @@ export async function deleteProduct(productId: string, storeId: string) {
     return { success: false as const, error: 'Бараа устгахад алдаа гарлаа' };
   }
 
-  console.log(`🗑️  Product deleted: ${productId}`);
+  console.log(`🗑️  Product soft deleted: ${productId}`);
   return { success: true as const };
 }
 
@@ -291,11 +337,11 @@ export async function bulkCreateProducts(storeId: string, products: CreateProduc
   const productsData = products.map((p) => ({
     store_id: storeId,
     name: p.name,
-    sku: p.sku || null,
+    sku: p.sku ?? '',
     unit: p.unit,
     cost_price: p.costPrice,
     sell_price: p.sellPrice,
-    low_stock_threshold: p.lowStockThreshold || null,
+    low_stock_threshold: p.lowStockThreshold ?? null,
   }));
 
   const { data: created, error } = await supabase.from('products').insert(productsData).select();
@@ -313,10 +359,10 @@ export async function bulkCreateProducts(storeId: string, products: CreateProduc
     name: p.name,
     sku: p.sku,
     unit: p.unit,
-    costPrice: p.cost_price,
+    costPrice: p.cost_price ?? 0,
     sellPrice: p.sell_price,
     lowStockThreshold: p.low_stock_threshold,
-    createdAt: p.created_at,
+    createdAt: p.created_at ?? new Date().toISOString(),
   }));
 
   return {
