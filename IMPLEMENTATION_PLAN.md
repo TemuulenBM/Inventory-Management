@@ -139,16 +139,19 @@ npm run db:test
 - [x] **GET /auth/me** - Current user
 
 #### 2.4 Auth Middleware
-- [ ] `authenticate` - JWT шалгах
-- [ ] `authorize(['owner', 'manager'])` - Role шалгах
-- [ ] `requireStore` - Store-д хамаарах эсэх
+- [x] `authenticate` - JWT шалгах (jwt.ts plugin-д байна)
+- [x] `authorize(['owner', 'manager'])` - Role-based access control
+- [x] `requireStore` - Store ownership validation
+- [x] `requireAuth` - Combined helper middleware
+- [x] `optionalAuth` - Optional authentication
+- [x] TypeScript type definitions (`types/fastify.d.ts`)
 
 ### Deliverables
 - ✅ Backend server ажиллаж байгаа (localhost:3000)
 - ✅ Core plugins бүгд ажиллаж байгаа (CORS, Helmet, JWT, Rate Limiting, Error Handler)
 - ✅ Health check endpoint: `GET /health`
 - ✅ Auth endpoints (2.3 - дууссан)
-- ⏳ Auth middleware (2.4 - дараагийн хэсэг)
+- ✅ Auth middleware (2.4 - дууссан)
 
 **Үүссэн файлууд:**
 ```
@@ -167,10 +170,13 @@ backend/src/
 ├── utils/
 │   ├── phone.ts                   # Phone validation utility
 │   └── otp.ts                     # OTP generator utility
+├── types/
+│   └── fastify.d.ts               # Fastify type extensions
 └── modules/auth/
     ├── auth.schema.ts             # Zod validation schemas
     ├── auth.service.ts            # Auth business logic
-    └── auth.routes.ts             # Auth endpoints
+    ├── auth.routes.ts             # Auth endpoints
+    └── auth.middleware.ts         # Auth middleware (authorize, requireStore, etc.)
 ```
 
 **Тест:**

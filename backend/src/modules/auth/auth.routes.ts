@@ -152,7 +152,7 @@ export async function authRoutes(server: FastifyInstance) {
   }>(
     '/auth/logout',
     {
-      onRequest: [(server as any).authenticate], // JWT required
+      onRequest: [server.authenticate], // JWT required
     },
     async (request: any, reply: FastifyReply) => {
       // 1. Request validation
@@ -196,7 +196,7 @@ export async function authRoutes(server: FastifyInstance) {
   }>(
     '/auth/me',
     {
-      onRequest: [(server as any).authenticate], // JWT required
+      onRequest: [server.authenticate], // JWT required
     },
     async (request: any, reply: FastifyReply) => {
       const user = request.user as JWTPayload;
