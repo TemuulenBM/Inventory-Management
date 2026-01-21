@@ -123,20 +123,20 @@ npm run db:test
 - [x] Request logger (Pino) - Built into Fastify server config
 
 #### 2.3 Auth Module
-- [ ] **POST /auth/otp/request** - OTP илгээх
-  - [ ] Phone number validation (Mongolian format)
-  - [ ] Rate limit: 3 OTP/5 min
-  - [ ] OTP generate (6 digit)
-  - [ ] OTP хадгалах (5 min expiry)
-  - [ ] SMS илгээх (mock for now)
-- [ ] **POST /auth/otp/verify** - OTP баталгаажуулах
-  - [ ] OTP шалгах
-  - [ ] User үүсгэх/олох
-  - [ ] JWT access token (1 цаг)
-  - [ ] JWT refresh token (30 хоног)
-- [ ] **POST /auth/refresh** - Token шинэчлэх
-- [ ] **POST /auth/logout** - Гарах
-- [ ] **GET /auth/me** - Current user
+- [x] **POST /auth/otp/request** - OTP илгээх
+  - [x] Phone number validation (Mongolian format)
+  - [x] Rate limit: 3 OTP/5 min
+  - [x] OTP generate (6 digit)
+  - [x] OTP хадгалах (5 min expiry)
+  - [x] SMS илгээх (mock for now)
+- [x] **POST /auth/otp/verify** - OTP баталгаажуулах
+  - [x] OTP шалгах
+  - [x] User үүсгэх/олох
+  - [x] JWT access token (1 цаг)
+  - [x] JWT refresh token (30 хоног)
+- [x] **POST /auth/refresh** - Token шинэчлэх
+- [x] **POST /auth/logout** - Гарах
+- [x] **GET /auth/me** - Current user
 
 #### 2.4 Auth Middleware
 - [ ] `authenticate` - JWT шалгах
@@ -147,7 +147,7 @@ npm run db:test
 - ✅ Backend server ажиллаж байгаа (localhost:3000)
 - ✅ Core plugins бүгд ажиллаж байгаа (CORS, Helmet, JWT, Rate Limiting, Error Handler)
 - ✅ Health check endpoint: `GET /health`
-- ⏳ Auth endpoints (2.3 - дараагийн хэсэг)
+- ✅ Auth endpoints (2.3 - дууссан)
 - ⏳ Auth middleware (2.4 - дараагийн хэсэг)
 
 **Үүссэн файлууд:**
@@ -161,9 +161,16 @@ backend/src/
 │   ├── rate-limit.ts              # Rate limiting (100 req/min)
 │   ├── jwt.ts                     # JWT authentication
 │   └── error-handler.ts           # Global error handler
-└── config/
-    ├── env.ts                     # Environment configuration
-    └── supabase.ts                # Supabase client + types
+├── config/
+│   ├── env.ts                     # Environment configuration
+│   └── supabase.ts                # Supabase client + types
+├── utils/
+│   ├── phone.ts                   # Phone validation utility
+│   └── otp.ts                     # OTP generator utility
+└── modules/auth/
+    ├── auth.schema.ts             # Zod validation schemas
+    ├── auth.service.ts            # Auth business logic
+    └── auth.routes.ts             # Auth endpoints
 ```
 
 **Тест:**
@@ -173,6 +180,20 @@ npm run dev
 
 # Health check
 curl http://localhost:3000/health
+
+# OTP хүсэх
+curl -X POST http://localhost:3000/auth/otp/request \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "+97699119911"}'
+
+# OTP verify (console-аас OTP код харах)
+curl -X POST http://localhost:3000/auth/otp/verify \
+  -H "Content-Type: application/json" \
+  -d '{"phone": "+97699119911", "otp": "123456"}'
+
+# Current user мэдээлэл (JWT token шаардлагатай)
+curl http://localhost:3000/auth/me \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
 ```
 
 ---

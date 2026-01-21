@@ -8,6 +8,7 @@
 import Fastify from 'fastify';
 import { env } from './config/env.js';
 import { registerPlugins } from './plugins/index.js';
+import { authRoutes } from './modules/auth/auth.routes.js';
 
 // Fastify instance үүсгэх
 const server = Fastify({
@@ -38,7 +39,8 @@ async function start() {
     // Register plugins
     await registerPlugins(server);
 
-    // TODO: Register routes
+    // Register routes
+    await server.register(authRoutes);
 
     // Health check endpoint
     server.get('/health', async () => {
