@@ -268,27 +268,49 @@ curl http://localhost:3000/auth/me \
 ### Checklist
 
 #### 5.1 Shift Module
-- [ ] **POST /stores/:id/shifts/open** - Ээлж нээх
-- [ ] **POST /stores/:id/shifts/close** - Ээлж хаах
-- [ ] **GET /stores/:id/shifts** - Ээлжийн түүх
-- [ ] **GET /stores/:id/shifts/:shiftId** - Ээлж дэлгэрэнгүй
-- [ ] **GET /stores/:id/shifts/active** - Идэвхтэй ээлж
+- [x] **POST /stores/:id/shifts/open** - Ээлж нээх
+- [x] **POST /stores/:id/shifts/close** - Ээлж хаах
+- [x] **GET /stores/:id/shifts** - Ээлжийн түүх
+- [x] **GET /stores/:id/shifts/:shiftId** - Ээлж дэлгэрэнгүй
+- [x] **GET /stores/:id/shifts/active** - Идэвхтэй ээлж
 
 #### 5.2 Sales Module
-- [ ] **POST /stores/:id/sales** - Борлуулалт бүртгэх
-- [ ] **GET /stores/:id/sales** - Борлуулалтын түүх
-- [ ] **GET /stores/:id/sales/:saleId** - Борлуулалт дэлгэрэнгүй
-- [ ] **POST /stores/:id/sales/:saleId/void** - Борлуулалт цуцлах
+- [x] **POST /stores/:id/sales** - Борлуулалт бүртгэх
+- [x] **GET /stores/:id/sales** - Борлуулалтын түүх
+- [x] **GET /stores/:id/sales/:saleId** - Борлуулалт дэлгэрэнгүй
+- [x] **POST /stores/:id/sales/:saleId/void** - Борлуулалт цуцлах
 
 #### 5.3 Sales Reports
-- [ ] **GET /stores/:id/reports/daily** - Өдрийн тайлан
-- [ ] **GET /stores/:id/reports/top-products** - Шилдэг бараа
-- [ ] **GET /stores/:id/reports/seller-performance** - Худалдагчийн үзүүлэлт
+- [x] **GET /stores/:id/reports/daily** - Өдрийн тайлан
+- [x] **GET /stores/:id/reports/top-products** - Шилдэг бараа
+- [x] **GET /stores/:id/reports/seller-performance** - Худалдагчийн үзүүлэлт
 
 ### Deliverables
 - ✅ Shift management ажиллаж байгаа
 - ✅ Sales бүртгэл + inventory update ажиллаж байгаа
 - ✅ Reports ажиллаж байгаа
+
+**Үүссэн файлууд:**
+```
+backend/src/modules/
+├── shift/
+│   ├── shift.schema.ts         # Shift validation schemas
+│   ├── shift.service.ts        # Shift business logic
+│   └── shift.routes.ts         # Shift endpoints (5 routes)
+├── sales/
+│   ├── sales.schema.ts         # Sales validation schemas
+│   ├── sales.service.ts        # Sales business logic (with inventory events)
+│   └── sales.routes.ts         # Sales endpoints (4 routes)
+└── reports/
+    ├── reports.schema.ts       # Reports validation schemas
+    ├── reports.service.ts      # Reports business logic
+    └── reports.routes.ts       # Reports endpoints (3 routes)
+```
+
+**Тэмдэглэл:**
+- Sales модуль нь inventory events-тэй холбогдож, борлуулалт үүсгэх үед автоматаар SALE event үүсгэнэ
+- Void sale функц нь RETURN event үүсгэж, stock-ыг буцаана
+- Reports модуль нь өдөр, төлбөрийн хэлбэр, цаг зэргээр задарсан тайлан өгнө
 
 ---
 

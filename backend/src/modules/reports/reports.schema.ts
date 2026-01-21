@@ -1,0 +1,89 @@
+/**
+ * Reports Module Schemas
+ *
+ * Zod validation schemas for reports:
+ * - Daily report
+ * - Top products report
+ * - Seller performance report
+ */
+
+import { z } from 'zod';
+
+/**
+ * GET /stores/:storeId/reports/daily
+ * Өдрийн тайлан
+ */
+export const dailyReportQuerySchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(), // YYYY-MM-DD format
+});
+
+export type DailyReportQueryParams = z.infer<typeof dailyReportQuerySchema>;
+
+export type DailyReportResponse = {
+  success: true;
+  report: {
+    date: string;
+    total_sales: number;
+    total_sales_count: number;
+    total_items_sold: number;
+    payment_methods: Array<{
+      method: string;
+      amount: number;
+      count: number;
+    }>;
+    hourly_breakdown: Array<{
+      hour: number;
+      sales: number;
+      count: number;
+    }>;
+  };
+};
+
+/**
+ * GET /stores/:storeId/reports/top-products
+ * Шилдэг барааны тайлан
+ */
+export const topProductsQuerySchema = z.object({
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  limit: z.coerce.number().min(1).max(100).default(10),
+});
+
+export type TopProductsQueryParams = z.infer<typeof topProductsQuerySchema>;
+
+export type TopProductsResponse = {
+  success: true;
+  products: Array<{
+    product_id: string;
+    product_name: string;
+    product_sku: string;
+    total_quantity: number;
+    total_revenue: number;
+    sales_count: number;
+  }>;
+};
+
+/**
+ * GET /stores/:storeId/reports/seller-performance
+ * Худалдагчийн үзүүлэлт
+ */
+export const sellerPerformanceQuerySchema = z.object({
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  seller_id: z.string().uuid().optional(),
+});
+
+export type SellerPerformanceQueryParams = z.infer<typeof sellerPerformanceQuerySchema>;
+
+export type SellerPerformanceResponse = {
+  success: true;
+  sellers: Array<{
+    seller_id: string;
+    seller_name: string;
+    total_sales: number;
+    total_sales_count: number;
+    total_items_sold: number;
+    average_sale: number;
+    shifts_count: number;
+  }>;
+};
