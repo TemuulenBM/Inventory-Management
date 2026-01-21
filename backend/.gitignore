@@ -42,3 +42,5 @@ prisma/migrations/*.sql
 # Temporary files
 tmp/
 temp/
+
+/src/generated/prisma

@@ -33,40 +33,57 @@ Sprint 8:    Flutter App (Features) + Launch
 
 # 🗄️ PHASE 1: DATABASE (Sprint 1)
 
-## Sprint 1: Prisma + Supabase Integration (2 долоо хоног)
+## Sprint 1: Supabase JS Client Integration (2 долоо хоног)
 
 ### Checklist
 
 #### 1.1 Supabase Connection Setup
-- [ ] Supabase Dashboard-аас connection string авах
-- [ ] `backend/.env` файлд `DATABASE_URL` тохируулах
-- [ ] Connection test хийх
+- [x] Supabase Dashboard-аас connection string авах
+- [x] `backend/.env` файлд Supabase credentials тохируулах
+- [x] Connection test хийх
 
-#### 1.2 Prisma Schema (Supabase DB-тэй sync)
-- [ ] `npx prisma db pull` - Supabase schema-г татах
-- [ ] `backend/prisma/schema.prisma` шалгах, засах
-- [ ] Models баталгаажуулах:
-  - [ ] `Store` - дэлгүүр
-  - [ ] `User` - хэрэглэгч (owner, manager, seller)
-  - [ ] `Product` - бараа
-  - [ ] `InventoryEvent` - үлдэгдлийн event
-  - [ ] `Sale` - борлуулалт
-  - [ ] `SaleItem` - борлуулалтын бараа
-  - [ ] `Shift` - ээлж
-  - [ ] `Alert` - сэрэмжлүүлэг
-  - [ ] `OtpToken` - OTP код
-  - [ ] `RefreshToken` - JWT refresh token
-- [ ] `npx prisma generate` - Client үүсгэх
+#### 1.2 Supabase JS Client Setup
+- [x] `@supabase/supabase-js` суулгах
+- [x] `supabase gen types` - TypeScript types генерэйт хийх
+- [x] Type-safe Supabase client wrapper үүсгэх (`src/config/supabase.ts`)
+- [x] Environment config файл үүсгэх (`src/config/env.ts`)
+- [x] Models type exports:
+  - [x] `Store` - дэлгүүр
+  - [x] `User` - хэрэглэгч (owner, manager, seller)
+  - [x] `Product` - бараа
+  - [x] `InventoryEvent` - үлдэгдлийн event
+  - [x] `Sale` - борлуулалт
+  - [x] `SaleItem` - борлуулалтын бараа
+  - [x] `Shift` - ээлж
+  - [x] `Alert` - сэрэмжлүүлэг
+  - [x] `OtpToken` - OTP код
+  - [x] `RefreshToken` - JWT refresh token (schema-д үүсгэх хэрэгтэй)
 
 #### 1.3 Seed Data (Optional)
-- [ ] `prisma/seed.ts` файл үүсгэх
-- [ ] Test store, user, products үүсгэх
-- [ ] `npx prisma db seed` ажиллуулах
+- [x] `src/scripts/seed.ts` файл үүсгэх
+- [x] Test store, user, products үүсгэх
+- [x] `npm run db:seed` ажиллуулах
 
 ### Deliverables
-- ✅ Prisma Supabase-тай холбогдсон
-- ✅ Prisma schema sync хийгдсэн
-- ✅ Prisma Client generate хийгдсэн
+- ✅ Supabase JS Client суулгагдсан
+- ✅ Database types генерэйт хийгдсэн
+- ✅ Type-safe Supabase client бэлэн
+- ✅ Connection тест амжилттай
+- ✅ Test өгөгдөл үүссэн (1 store, 3 users, 10 products, inventory events)
+
+**Тэмдэглэл:** Prisma-ийн оронд Supabase JS Client ашиглах болсон - үнэгүй, REST API-р ажилладаг, RLS дэмждэг.
+
+**Seed Data:**
+```bash
+# Database өгөгдөл үүсгэх
+npm run db:seed
+
+# Database types шинэчлэх
+npm run db:types
+
+# Connection тест хийх
+npm run db:test
+```
 
 ---
 
