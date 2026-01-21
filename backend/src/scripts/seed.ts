@@ -50,10 +50,10 @@ async function clearDatabase() {
     'users',
     'stores',
     'otp_tokens',
-  ];
+  ] as const;
 
   for (const table of tables) {
-    const { error } = await supabase.from(table).delete().neq('id', '00000000-0000-0000-0000-000000000000');
+    const { error } = await supabase.from(table as any).delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
     if (error && !error.message.includes('not found')) {
       log(`   ⚠️  Error clearing ${table}: ${error.message}`, 'red');

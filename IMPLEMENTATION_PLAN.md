@@ -94,40 +94,33 @@ npm run db:test
 ### Checklist
 
 #### 2.1 Project Setup
-- [ ] `/backend` folder бүтэц үүсгэх
-- [ ] `package.json` dependencies:
+- [x] `/backend` folder бүтэц үүсгэх
+- [x] `package.json` dependencies:
   ```
-  fastify, @fastify/cors, @fastify/helmet, @fastify/jwt, @fastify/rate-limit
-  @prisma/client, bcrypt, zod, pino
+  fastify@5.2.0, @fastify/cors@11.2.0, @fastify/helmet@13.0.2,
+  @fastify/jwt@10.0.0, @fastify/rate-limit@10.3.0
+  @supabase/supabase-js@2.91.0, bcrypt, zod, pino, fastify-plugin
   ```
-- [ ] TypeScript config (`tsconfig.json`)
-- [ ] ESLint + Prettier config
-- [ ] Folder structure:
+- [x] TypeScript config (`tsconfig.json`)
+- [x] ESLint + Prettier config
+- [x] Folder structure:
   ```
   backend/src/
-  ├── config/          # Environment, constants
+  ├── config/          # Environment, Supabase client
   ├── plugins/         # Fastify plugins
-  ├── modules/
-  │   ├── auth/
-  │   ├── stores/
-  │   ├── users/
-  │   ├── products/
-  │   ├── sales/
-  │   ├── inventory/
-  │   ├── shifts/
-  │   └── alerts/
-  ├── middleware/      # Auth, validation
-  ├── utils/           # Helpers
+  ├── modules/         # Feature modules
+  ├── scripts/         # Seed scripts
+  ├── types/           # Database types
   └── server.ts        # Entry point
   ```
 
 #### 2.2 Core Plugins
-- [ ] CORS plugin
-- [ ] Helmet (security headers)
-- [ ] Rate limiting (100 req/min)
-- [ ] JWT plugin
-- [ ] Error handler
-- [ ] Request logger (Pino)
+- [x] CORS plugin (`src/plugins/cors.ts`)
+- [x] Helmet (security headers) (`src/plugins/helmet.ts`)
+- [x] Rate limiting (100 req/min) (`src/plugins/rate-limit.ts`)
+- [x] JWT plugin (`src/plugins/jwt.ts`)
+- [x] Error handler (`src/plugins/error-handler.ts`)
+- [x] Request logger (Pino) - Built into Fastify server config
 
 #### 2.3 Auth Module
 - [ ] **POST /auth/otp/request** - OTP илгээх
@@ -152,8 +145,35 @@ npm run db:test
 
 ### Deliverables
 - ✅ Backend server ажиллаж байгаа (localhost:3000)
-- ✅ Auth endpoints бүгд ажиллаж байгаа
-- ✅ JWT authentication бэлэн
+- ✅ Core plugins бүгд ажиллаж байгаа (CORS, Helmet, JWT, Rate Limiting, Error Handler)
+- ✅ Health check endpoint: `GET /health`
+- ⏳ Auth endpoints (2.3 - дараагийн хэсэг)
+- ⏳ Auth middleware (2.4 - дараагийн хэсэг)
+
+**Үүссэн файлууд:**
+```
+backend/src/
+├── server.ts                      # Fastify server entry point
+├── plugins/
+│   ├── index.ts                   # Plugin registry
+│   ├── cors.ts                    # CORS configuration
+│   ├── helmet.ts                  # Security headers
+│   ├── rate-limit.ts              # Rate limiting (100 req/min)
+│   ├── jwt.ts                     # JWT authentication
+│   └── error-handler.ts           # Global error handler
+└── config/
+    ├── env.ts                     # Environment configuration
+    └── supabase.ts                # Supabase client + types
+```
+
+**Тест:**
+```bash
+# Server эхлүүлэх
+npm run dev
+
+# Health check
+curl http://localhost:3000/health
+```
 
 ---
 

@@ -49,7 +49,7 @@ async function testSupabaseConnection() {
     ];
 
     for (const table of tables) {
-      const { data, error } = await supabase.from(table).select('id').limit(1);
+      const { data, error } = await supabase.from(table as any).select('id').limit(1);
 
       if (error) {
         console.log(`   ⚠️  ${table}: ${error.message}`);

@@ -88,6 +88,7 @@ export type OtpToken = Tables['otp_tokens']['Row'];
 export type OtpTokenInsert = Tables['otp_tokens']['Insert'];
 export type OtpTokenUpdate = Tables['otp_tokens']['Update'];
 
-export type RefreshToken = Tables['refresh_tokens']['Row'];
-export type RefreshTokenInsert = Tables['refresh_tokens']['Insert'];
-export type RefreshTokenUpdate = Tables['refresh_tokens']['Update'];
+// RefreshToken table schema-д хараахан үүсээгүй байна
+// export type RefreshToken = Tables['refresh_tokens']['Row'];
+// export type RefreshTokenInsert = Tables['refresh_tokens']['Insert'];
+// export type RefreshTokenUpdate = Tables['refresh_tokens']['Update'];
