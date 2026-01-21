@@ -209,22 +209,22 @@ curl http://localhost:3000/auth/me \
 ### Checklist
 
 #### 3.1 Store Module
-- [ ] **POST /stores** - Store үүсгэх (owner only)
-- [ ] **GET /stores/:id** - Store мэдээлэл
-- [ ] **PUT /stores/:id** - Store засах
-- [ ] **GET /stores/:id/stats** - Store статистик
+- [x] **POST /stores** - Store үүсгэх
+- [x] **GET /stores/:id** - Store мэдээлэл
+- [x] **PUT /stores/:id** - Store засах (owner only)
+- [x] **GET /stores/:id/stats** - Store статистик (owner, manager)
 
 #### 3.2 User Module
-- [ ] **GET /stores/:id/users** - Store-ийн хэрэглэгчид
-- [ ] **POST /stores/:id/users** - Seller/Manager нэмэх
-- [ ] **PUT /stores/:id/users/:userId** - User засах
-- [ ] **DELETE /stores/:id/users/:userId** - User устгах (soft)
-- [ ] **PUT /stores/:id/users/:userId/role** - Role солих
+- [x] **GET /stores/:storeId/users** - Store-ийн хэрэглэгчид (owner, manager)
+- [x] **POST /stores/:storeId/users** - Seller/Manager нэмэх (owner only)
+- [x] **PUT /stores/:storeId/users/:userId** - User засах (owner, manager)
+- [x] **DELETE /stores/:storeId/users/:userId** - User устгах (owner only)
+- [x] **PUT /stores/:storeId/users/:userId/role** - Role солих (owner only)
 
 #### 3.3 Authorization Rules
-- [ ] Owner: бүх эрх
-- [ ] Manager: seller удирдах, тайлан харах
-- [ ] Seller: зөвхөн борлуулалт, өөрийн ээлж
+- [x] Owner: бүх эрх (create store, update store, manage users, change roles)
+- [x] Manager: seller удирдах, тайлан харах (view users, edit users, view stats)
+- [x] Seller: зөвхөн борлуулалт, өөрийн ээлж (store/user endpoints-д хандах эрхгүй)
 
 ### Deliverables
 - ✅ Store CRUD ажиллаж байгаа
