@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html class="light" lang="mn"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Quick Sale Select</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c2755b",
+                        "background-light": "#fbfaf9",
+                        "background-dark": "#1d2025",
+                        "brand-teal": "#00878F", 
+                    },
+                    fontFamily: {
+                        "display": ["Epilogue", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "1.75rem", "full": "9999px"},
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(194, 117, 91, 0.1)',
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hiding for horizontal scroll */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#181311] dark:text-gray-100 min-h-screen relative pb-24 overflow-x-hidden selection:bg-primary/20">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-40 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm pt-safe-top">
+<div class="px-5 pt-4 pb-2 flex items-center justify-between">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5 mb-0.5">
+<div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Synced</span>
+</div>
+<h1 class="text-2xl font-extrabold tracking-tight text-[#181311] dark:text-white leading-tight">
+                    Хурдан борлуулалт
+                </h1>
+</div>
+<button class="flex items-center justify-center w-12 h-12 rounded-2xl bg-white dark:bg-gray-800 text-[#181311] dark:text-white shadow-sm border border-gray-100 dark:border-gray-700 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">barcode_scanner</span>
+</button>
+</div>
+<!-- Search Bar -->
+<div class="px-5 py-2">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[#87685e] group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full pl-12 pr-4 py-3.5 bg-white/60 dark:bg-gray-800/60 border border-transparent focus:border-primary/30 rounded-2xl text-base placeholder-[#87685e]/70 text-[#181311] dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/10 transition-all backdrop-blur-md shadow-sm" placeholder="Бараа хайх, код уншуулах..." type="text"/>
+</div>
+</div>
+<!-- Categories -->
+<div class="flex gap-3 px-5 py-3 overflow-x-auto hide-scrollbar w-full snap-x">
+<button class="snap-start shrink-0 h-10 px-5 rounded-xl bg-primary text-white font-medium text-sm shadow-soft shadow-primary/30 flex items-center justify-center transition-transform active:scale-95">
+                Бүгд
+            </button>
+<button class="snap-start shrink-0 h-10 px-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium text-sm flex items-center justify-center whitespace-nowrap active:bg-gray-50 dark:active:bg-gray-700 transition-colors">
+                Хүнс
+            </button>
+<button class="snap-start shrink-0 h-10 px-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium text-sm flex items-center justify-center whitespace-nowrap active:bg-gray-50 dark:active:bg-gray-700 transition-colors">
+                Ундаа
+            </button>
+<button class="snap-start shrink-0 h-10 px-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium text-sm flex items-center justify-center whitespace-nowrap active:bg-gray-50 dark:active:bg-gray-700 transition-colors">
+                Гэр ахуй
+            </button>
+<button class="snap-start shrink-0 h-10 px-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium text-sm flex items-center justify-center whitespace-nowrap active:bg-gray-50 dark:active:bg-gray-700 transition-colors">
+                Гоо сайхан
+            </button>
+</div>
+<!-- Tabs: Favs vs Recent -->
+<div class="px-5 pt-1 pb-4">
+<div class="flex p-1 bg-[#f0ecea] dark:bg-gray-800 rounded-xl relative w-full max-w-sm">
+<!-- Active Indicator BG -->
+<div class="absolute left-1 top-1 bottom-1 w-[calc(50%-4px)] bg-white dark:bg-gray-700 rounded-lg shadow-sm transition-all duration-300 ease-out transform translate-x-0"></div>
+<button class="relative flex-1 py-1.5 text-sm font-bold text-[#181311] dark:text-white z-10 text-center">
+                    Онцлох
+                </button>
+<button class="relative flex-1 py-1.5 text-sm font-medium text-[#87685e] dark:text-gray-400 z-10 text-center hover:text-[#181311] dark:hover:text-white transition-colors">
+                    Сүүлд
+                </button>
+</div>
+</div>
+</header>
+<!-- Product Grid -->
+<main class="px-5 pb-24">
+<div class="grid grid-cols-2 gap-4 auto-rows-fr">
+<!-- Card 1 -->
+<div class="group relative flex flex-col bg-white dark:bg-[#25282e] rounded-2xl overflow-hidden shadow-[0_4px_24px_-6px_rgba(0,0,0,0.06)] hover:shadow-lg transition-all duration-300 border border-white/50 dark:border-gray-700">
+<div class="absolute top-3 right-3 z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
+<div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+<span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">12ш</span>
+</div>
+<div class="aspect-[4/3] w-full bg-gray-100 dark:bg-gray-800 relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Fresh loaf of artisan bread on wooden table" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCADFVrOftwBb62w6Q6ZpoID6UeblIWGKNzr8AC7ITmpbvMsOzSD9kod4_95xHywTCRYbd0VujC-pD4wsznIYOvYn2ulx9HtRKNiLO5_vZgDyKmVk7B1CGul_VCSX4zf8He6zzVblikDzgwqHA-6M-mdmAD9RMHOCSVeXhQ1HWfJkLlC7nrjgDivUTIawfC5KGXx3aDlyw_9B_RZrX8c891Eu1BCmNcHdf8Afmma8pL_Nv6CdaL70PD1I-0URLpmqDcwZga62ZXk5Wd');">
+</div>
+<!-- Gradient overlay for text readability if needed -->
+<div class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+</div>
+<div class="p-3 flex flex-col flex-grow">
+<h3 class="text-[15px] font-medium text-[#181311] dark:text-gray-100 leading-tight mb-1 line-clamp-2">Талх Атар (Өдөр тутмын)</h3>
+<div class="mt-auto flex items-end justify-between">
+<p class="text-lg font-extrabold text-[#2C2C2C] dark:text-white tracking-tight">2,400<span class="text-xs align-top ml-0.5">₮</span></p>
+<button class="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group relative flex flex-col bg-white dark:bg-[#25282e] rounded-2xl overflow-hidden shadow-[0_4px_24px_-6px_rgba(0,0,0,0.06)] hover:shadow-lg transition-all duration-300 border border-white/50 dark:border-gray-700">
+<div class="absolute top-3 right-3 z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
+<div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+<span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">Хангалттай</span>
+</div>
+<div class="aspect-[4/3] w-full bg-gray-100 dark:bg-gray-800 relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Glass bottle of fresh milk on blue background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDwGZ2h3UEyMoJnvw6UnwnDtXx-QDBYhIZQavoKwBB-iNq7QQAqKeAcxPIAEU0rOL8PGz1J6QrEovgTtR1CdJXL5o7iZtizJM14_cw1tgeKknzrk-bt0e0LgPSOzh1m6zXepnvSdbzVQOdkHbSvPllFCFG5X-p2kxsWO3VBu2FLJC9UODF205verOGsyl7KlOH3UQa0q2NVd3IGA2GBsNK7-PEsggG7QS3HgT1l52g4EN-u51ICxzftYQmhkrZBXoq4VeWV6C2FXonu');">
+</div>
+</div>
+<div class="p-3 flex flex-col flex-grow">
+<h3 class="text-[15px] font-medium text-[#181311] dark:text-gray-100 leading-tight mb-1 line-clamp-2">Сүү (Миний Монгол)</h3>
+<div class="mt-auto flex items-end justify-between">
+<p class="text-lg font-extrabold text-[#2C2C2C] dark:text-white tracking-tight">3,200<span class="text-xs align-top ml-0.5">₮</span></p>
+<button class="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group relative flex flex-col bg-white dark:bg-[#25282e] rounded-2xl overflow-hidden shadow-[0_4px_24px_-6px_rgba(0,0,0,0.06)] hover:shadow-lg transition-all duration-300 border border-white/50 dark:border-gray-700">
+<div class="absolute top-3 right-3 z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
+<div class="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
+<span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">5ш</span>
+</div>
+<div class="aspect-[4/3] w-full bg-gray-100 dark:bg-gray-800 relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Coca cola bottle with condensation drops" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDXQX_LmsA9kAFPAGBf1Cpen2DEKbg_Cs-XVNVjPkUT-QRr6YewuAX3VAHKclvwL9gJ-ZLR1wi-N42mrpD85jd-awQmoFUCm7TZMMN9LWiJlR-kweAE37_YNAtYZrfhBQ3wl6620ginoOJsJX9Io8XDVEbvrWwjY9a5f3tPnRNluzEjD--esdbe0FuBQxwuvIzZogyHPmcHUPCCB0nyr1Nus2HE4wQJy409BGTz-scY3F9nO4-LFcPZ1ys2bi4nOkNO0CC3YXLUqWYF');">
+</div>
+</div>
+<div class="p-3 flex flex-col flex-grow">
+<h3 class="text-[15px] font-medium text-[#181311] dark:text-gray-100 leading-tight mb-1 line-clamp-2">Кока Кола 500мл</h3>
+<div class="mt-auto flex items-end justify-between">
+<p class="text-lg font-extrabold text-[#2C2C2C] dark:text-white tracking-tight">2,000<span class="text-xs align-top ml-0.5">₮</span></p>
+<button class="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="group relative flex flex-col bg-white dark:bg-[#25282e] rounded-2xl overflow-hidden shadow-[0_4px_24px_-6px_rgba(0,0,0,0.06)] hover:shadow-lg transition-all duration-300 border border-white/50 dark:border-gray-700">
+<div class="absolute top-3 right-3 z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
+<div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+<span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">20ш</span>
+</div>
+<div class="aspect-[4/3] w-full bg-gray-100 dark:bg-gray-800 relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Chocolate ice cream scoop in a cone" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBmBK9kn89RnQ_QmPk7G1pgftu_Yh8fYVL4umBx_FNfaW4TEnxAF8-Vv6rkOEOAzhIgahhode9as7p6U3LYJaslhvoruzNgceM8P58zktIbUONqaucqTHqva3HudS8FPyR5ktJMBAU6glQbmFvO_qxax9hOQZnQI4VcwdJH8xO91C-3DnlAwSF0nJt9b6g48LjKNZFqLzhtjO2_7s_X9WT6luz60Bcr9gWtArv2PsjrZDjj1nlRCDM0H7jHlU-xI_5Ui1RrBc2VEWt6');">
+</div>
+</div>
+<div class="p-3 flex flex-col flex-grow">
+<h3 class="text-[15px] font-medium text-[#181311] dark:text-gray-100 leading-tight mb-1 line-clamp-2">Зайрмаг (Шоколадтай)</h3>
+<div class="mt-auto flex items-end justify-between">
+<p class="text-lg font-extrabold text-[#2C2C2C] dark:text-white tracking-tight">1,500<span class="text-xs align-top ml-0.5">₮</span></p>
+<button class="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="group relative flex flex-col bg-white dark:bg-[#25282e] rounded-2xl overflow-hidden shadow-[0_4px_24px_-6px_rgba(0,0,0,0.06)] hover:shadow-lg transition-all duration-300 border border-white/50 dark:border-gray-700">
+<div class="absolute top-3 right-3 z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
+<div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+<span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">50+</span>
+</div>
+<div class="aspect-[4/3] w-full bg-gray-100 dark:bg-gray-800 relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Orange fruit on vibrant background" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAyWx0nXgD5pnTV92Zu7MuZktuh3CjXEbwFvab5r58qdRwFDcGfp4p1Lx0ivW0YzEVlTKxziReNskO8MzjX0uNhyUTNkAE4ivIjDKGIR43qTFxxAEGa6ZevHmz1byPDJVH72hYTxuelYibN6Q0f7EzsK-WkcLfeUTmr1W84hLEPfgBi7n2q5QpnsXDUXFafWm6USD3eW7SRHlxmo2xM_SzHy9r0lQ3dbs2X5rcxv_EJ3D4DihYekfmbC2kIWdBmnCjw8O0ZvNR94MZD');">
+</div>
+</div>
+<div class="p-3 flex flex-col flex-grow">
+<h3 class="text-[15px] font-medium text-[#181311] dark:text-gray-100 leading-tight mb-1 line-clamp-2">Жүрж (Кг)</h3>
+<div class="mt-auto flex items-end justify-between">
+<p class="text-lg font-extrabold text-[#2C2C2C] dark:text-white tracking-tight">8,500<span class="text-xs align-top ml-0.5">₮</span></p>
+<button class="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="group relative flex flex-col bg-white dark:bg-[#25282e] rounded-2xl overflow-hidden shadow-[0_4px_24px_-6px_rgba(0,0,0,0.06)] hover:shadow-lg transition-all duration-300 border border-white/50 dark:border-gray-700">
+<div class="absolute top-3 right-3 z-10 bg-white/90 dark:bg-gray-800/90 backdrop-blur rounded-full px-2 py-1 flex items-center gap-1 shadow-sm">
+<div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+<span class="text-[10px] font-bold text-gray-600 dark:text-gray-300">2ш</span>
+</div>
+<div class="aspect-[4/3] w-full bg-gray-100 dark:bg-gray-800 relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Box of high quality facial tissues" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBgWmC3iDvwU8elRiJUavbAXTg8PFFMEIaGvPVw1GwcYkXlwHemqXddJZaQW94BvxMl6TdRc2hWp-IxLj36-7l7S2FBseWOWinrHWcEdKEgagQyLnfFEjJO5MtUpJ6EHb0yPYvXvYWhRIfpgASiCGw-RhazNX-JB8OVWUXM-sLEnFW2NnlkAW0tr0PAX--J3-ITBhtrwTsSryCBvJRWnhye9vOB7cLs-iySlP4hKvKIg_0NyNyIP7sVqE3clk9AfDxN6WVyV63tipEn');">
+</div>
+</div>
+<div class="p-3 flex flex-col flex-grow">
+<h3 class="text-[15px] font-medium text-[#181311] dark:text-gray-100 leading-tight mb-1 line-clamp-2">Салфетка 200ш</h3>
+<div class="mt-auto flex items-end justify-between">
+<p class="text-lg font-extrabold text-[#2C2C2C] dark:text-white tracking-tight">4,000<span class="text-xs align-top ml-0.5">₮</span></p>
+<button class="w-8 h-8 rounded-full bg-primary/10 hover:bg-primary text-primary hover:text-white flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Cart Bar (FAB) -->
+<div class="fixed bottom-6 left-5 right-5 z-50">
+<button class="w-full h-16 rounded-[20px] bg-brand-teal text-white shadow-[0_8px_30px_-6px_rgba(0,135,143,0.4)] flex items-center justify-between px-6 transition-transform active:scale-[0.98] glass-panel border-none ring-1 ring-white/20">
+<div class="flex items-center gap-3">
+<div class="relative">
+<span class="material-symbols-outlined text-2xl">shopping_cart</span>
+<span class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center shadow-sm">3</span>
+</div>
+<span class="font-bold text-lg tracking-wide">Сагсанд</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="h-8 w-[1px] bg-white/30"></div>
+<span class="text-xl font-extrabold tracking-tight">7,200<span class="text-sm font-bold ml-0.5">₮</span></span>
+</div>
+</button>
+</div>
+</body></html>

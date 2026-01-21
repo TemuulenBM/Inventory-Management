@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Auth Phone &amp; OTP - Mongolian Retail App</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,100..900;1,100..900&amp;family=Noto+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c2755b",
+                        "primary-hover": "#a8644d",
+                        "background-light": "#fbfaf9",
+                        "background-dark": "#1d2025",
+                        "surface-glass": "rgba(255, 255, 255, 0.4)",
+                    },
+                    fontFamily: {
+                        "display": ["Epilogue", "sans-serif"],
+                        "sans": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "2xl": "1.5rem", "full": "9999px"},
+                    boxShadow: {
+                        'soft': '0 20px 40px -15px rgba(194, 117, 91, 0.15)',
+                        'glow': '0 0 25px -5px rgba(194, 117, 91, 0.25)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>/* Custom Glass Effect */
+.glass-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0.3) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05)
+    }
+.dark .glass-card {
+    background: linear-gradient(145deg, rgba(30, 30, 35, 0.6) 0%, rgba(30, 30, 35, 0.3) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1)
+    }
+/* Checkbox customization */
+.custom-checkbox:checked {
+    background-color: #c2755b;
+    border-color: #c2755b;
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAO2IPbaWkbigmFcZkdUB0Hc2kW9iw261jbOeBM-pwAK3z_scqzF-WT0VfVHkPv8QyutdJgqbNsIUD_J9NBdEt5UlkvlslTSNoJWMx7jEuXCzCnH_VvuPLgWOo1NHJ4twfxUruQV1bZwWENps6QG2bkChOXEsMbLK67OB9gr1v0XK6BsoOag0wWvecouR4GaONMjQEYzQ3YrCrHB67pWRW3V1lgQDPm8b9q0ZnKS4m-hs1Ff9avyiTX7Luys6-lvacYtAQV7nTrTgPP)
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen relative overflow-x-hidden font-display selection:bg-primary/20 selection:text-primary text-[#181311]">
+<!-- Decorative Gradients -->
+<div class="fixed top-[-20%] right-[-10%] w-[500px] h-[500px] bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-[100px] pointer-events-none z-0" data-alt="Soft terracotta gradient blob top right"></div>
+<div class="fixed bottom-[-10%] left-[-20%] w-[400px] h-[400px] bg-gradient-to-tr from-orange-200/20 to-transparent rounded-full blur-[80px] pointer-events-none z-0" data-alt="Soft orange gradient blob bottom left"></div>
+<!-- Main Container -->
+<div class="relative z-10 flex flex-col min-h-screen max-w-md mx-auto px-6 py-4">
+<!-- Header -->
+<header class="flex items-center justify-between py-6">
+<div class="flex items-center gap-2">
+<div class="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-glow">
+<span class="material-symbols-outlined">inventory_2</span>
+</div>
+<!-- Optional Brand Name -->
+<!-- <span class="font-bold text-lg tracking-tight text-gray-800 dark:text-white">MongolStore</span> -->
+</div>
+<button class="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center text-gray-400 hover:text-primary transition-colors shadow-sm">
+<span class="material-symbols-outlined">help</span>
+</button>
+</header>
+<!-- Content Flow -->
+<main class="flex-1 flex flex-col justify-center pb-12">
+<!-- Headline Group -->
+<div class="mb-10 text-center">
+<h1 class="text-4xl font-extrabold text-[#181311] dark:text-white leading-[1.15] mb-3 tracking-tight">
+                    Тавтай <span class="text-primary">морил</span>
+</h1>
+<p class="text-gray-500 dark:text-gray-400 text-lg font-medium">
+                    Борлуулалтын системд нэвтрэх
+                </p>
+</div>
+<!-- PRIMARY STATE: Phone Input -->
+<div class="w-full space-y-6">
+<!-- Phone Field -->
+<div class="relative group">
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2.5 ml-1">
+                        Утасны дугаар
+                    </label>
+<div class="flex items-center w-full h-[72px] bg-white dark:bg-[#25282e] rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm focus-within:ring-4 focus-within:ring-primary/10 focus-within:border-primary transition-all duration-300 overflow-hidden">
+<!-- Prefix -->
+<div class="flex items-center justify-center h-full px-5 bg-gray-50 dark:bg-gray-800/50 border-r border-gray-100 dark:border-gray-700">
+<span class="text-xl font-bold text-gray-400 font-sans tracking-wide">+976</span>
+</div>
+<!-- Input -->
+<input autocomplete="tel" class="flex-1 h-full bg-transparent border-none text-2xl font-bold text-gray-900 dark:text-white placeholder:text-gray-300 focus:ring-0 px-5 tracking-widest font-sans" placeholder="8811 0000" type="tel"/>
+<!-- Status Indicator (Valid State) -->
+<div class="pr-5 hidden group-focus-within:block text-primary animate-pulse">
+<span class="material-symbols-outlined text-2xl">smartphone</span>
+</div>
+</div>
+</div>
+<!-- Glassy "Trust Device" Checkbox -->
+<label class="glass-card rounded-xl p-4 flex items-center gap-4 cursor-pointer hover:bg-white/50 transition-colors group">
+<div class="relative flex items-center justify-center">
+<input class="custom-checkbox appearance-none w-6 h-6 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-white/50 checked:bg-primary transition-all cursor-pointer" type="checkbox"/>
+</div>
+<div class="flex flex-col select-none">
+<span class="text-[#181311] dark:text-white font-semibold text-[15px] group-hover:text-primary transition-colors">Энэ төхөөрөмжид итгэх</span>
+<span class="text-gray-400 dark:text-gray-500 text-xs font-medium mt-0.5">Дараагийн удаа код нэхэхгүй</span>
+</div>
+</label>
+<!-- Action Button -->
+<button class="w-full h-16 bg-primary hover:bg-primary-hover active:scale-[0.98] text-white rounded-2xl text-lg font-bold shadow-soft transition-all duration-200 flex items-center justify-center gap-2 group">
+<span>Үргэлжлүүлэх</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+<!-- VISUAL DIVIDER: Just for demonstration of the 2nd state requested -->
+<div class="py-12 flex items-center justify-center opacity-30">
+<div class="h-px bg-gray-400 w-16"></div>
+<span class="mx-4 text-xs font-mono uppercase text-gray-500">OTP State Visual</span>
+<div class="h-px bg-gray-400 w-16"></div>
+</div>
+<!-- SECONDARY STATE: OTP Input (Visualized) -->
+<div class="w-full bg-white dark:bg-[#25282e] p-6 rounded-3xl border border-gray-100 dark:border-gray-800 shadow-xl shadow-gray-200/50 dark:shadow-none">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-bold text-lg text-gray-900 dark:text-white">Код оруулах</h3>
+<span class="text-sm font-medium text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">00:59</span>
+</div>
+<p class="text-sm text-gray-500 mb-6 leading-relaxed">
+                    Бид <span class="text-primary font-bold">9911 2233</span> дугаар руу 6 оронтой баталгаажуулах код илгээлээ.
+                </p>
+<!-- 6 Digit Inputs -->
+<fieldset class="flex gap-2 justify-between mb-6">
+<!-- Active Digit -->
+<input class="w-10 h-14 md:w-12 md:h-16 text-center text-xl font-bold bg-white dark:bg-gray-800 border-2 border-primary text-gray-900 dark:text-white rounded-xl focus:outline-none shadow-glow caret-primary" type="text" value="4"/>
+<!-- Filled Digit -->
+<input class="w-10 h-14 md:w-12 md:h-16 text-center text-xl font-bold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="-" type="text" value=""/>
+<input class="w-10 h-14 md:w-12 md:h-16 text-center text-xl font-bold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="-" type="text" value=""/>
+<input class="w-10 h-14 md:w-12 md:h-16 text-center text-xl font-bold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="-" type="text" value=""/>
+<input class="w-10 h-14 md:w-12 md:h-16 text-center text-xl font-bold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="-" type="text" value=""/>
+<input class="w-10 h-14 md:w-12 md:h-16 text-center text-xl font-bold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all" placeholder="-" type="text" value=""/>
+</fieldset>
+<div class="flex items-center justify-center">
+<button class="flex items-center gap-2 text-primary font-bold text-sm hover:underline decoration-2 underline-offset-4 transition-all">
+<span class="material-symbols-outlined text-lg">refresh</span>
+                        Дахин илгээх
+                    </button>
+</div>
+</div>
+</main>
+<!-- Footer Note -->
+<footer class="text-center py-4">
+<p class="text-xs text-gray-400 font-medium">
+                Mongolian Retail Solution © 2024
+            </p>
+</footer>
+</div>
+</body></html>

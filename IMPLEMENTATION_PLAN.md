@@ -253,13 +253,14 @@ curl http://localhost:3000/auth/me \
 
 #### 4.3 Stock Calculation
 - [x] Event sourcing logic: `current_stock = SUM(qty_change)` (product_stock_levels view)
-- [ ] Low stock check trigger
-- [ ] Negative stock alert trigger
+- [x] Low stock check trigger
+- [x] Negative stock alert trigger
 
 ### Deliverables
 - ✅ Product CRUD ажиллаж байгаа
 - ✅ Event sourcing inventory бэлэн
 - ✅ Stock calculation зөв ажиллаж байгаа
+- ✅ Low stock + Negative stock alerts автоматаар ажиллаж байгаа
 
 ---
 
@@ -319,29 +320,65 @@ backend/src/modules/
 ### Checklist
 
 #### 6.1 Alert Module
-- [ ] **GET /stores/:id/alerts** - Сэрэмжлүүлэг жагсаалт
-- [ ] **PUT /stores/:id/alerts/:alertId/resolve** - Шийдвэрлэсэн гэж тэмдэглэх
-- [ ] Alert triggers: low stock, negative inventory, suspicious activity
+- [x] **GET /stores/:id/alerts** - Сэрэмжлүүлэг жагсаалт
+- [x] **GET /stores/:id/alerts/:alertId** - Сэрэмжлүүлэг дэлгэрэнгүй
+- [x] **PUT /stores/:id/alerts/:alertId/resolve** - Шийдвэрлэсэн гэж тэмдэглэх
+- [x] Alert triggers: low stock, negative inventory (sales болон inventory events дээр автомат)
 
 #### 6.2 Sync Module (Offline-first)
-- [ ] **POST /sync** - Batch sync endpoint
-- [ ] **GET /stores/:id/changes** - Delta sync (`?since=timestamp`)
-- [ ] Conflict resolution: timestamp-based (last-writer-wins)
+- [x] **POST /sync** - Batch sync endpoint
+- [x] **GET /stores/:id/changes** - Delta sync (`?since=timestamp`)
+- [x] Conflict resolution: timestamp-based (last-writer-wins)
 
 #### 6.3 API Documentation
-- [ ] OpenAPI/Swagger spec
-- [ ] Postman collection
-- [ ] API versioning (/api/v1/)
+- [x] OpenAPI/Swagger spec (http://localhost:3000/docs)
+- [x] Postman collection (backend/postman_collection.json)
+- [ ] API versioning (/api/v1/) - Optional (эрэлт хэрэгцээнээс хамаарна)
 
 #### 6.4 Security & Performance
-- [ ] Input validation (Zod schemas)
-- [ ] Rate limiting per endpoint
-- [ ] Database indexes review
+- [x] Input validation (Zod schemas - бүх endpoints)
+- [x] Rate limiting per endpoint (100 req/min)
+- [x] Database indexes review (бүх шаардлагатай indexes байгаа)
 
 ### Deliverables
 - ✅ Alert system ажиллаж байгаа
 - ✅ Sync endpoint бэлэн
 - ✅ API documentation бэлэн
+
+**Үүссэн файлууд:**
+```
+backend/
+├── src/modules/
+│   ├── alerts/
+│   │   ├── alerts.schema.ts       # Alert validation schemas
+│   │   ├── alerts.service.ts      # Alert business logic + triggers
+│   │   └── alerts.routes.ts       # Alert endpoints (3 routes)
+│   └── sync/
+│       ├── sync.schema.ts         # Sync validation schemas
+│       ├── sync.service.ts        # Batch sync + delta sync logic
+│       └── sync.routes.ts         # Sync endpoints (2 routes)
+├── src/plugins/
+│   └── swagger.ts                 # OpenAPI/Swagger documentation
+├── postman_collection.json        # Postman collection (45+ requests)
+├── POSTMAN_GUIDE.md               # Postman usage guide
+├── API_SUMMARY.md                 # API documentation summary
+└── README.md                      # Backend README
+```
+
+**Alert Triggers:**
+- Sales болон Inventory Events үүсгэх үед автоматаар checkLowStock() болон checkNegativeStock() функцууд ажиллана
+- Duplicate alert үүсгэхгүй байх (resolved=false байгаа эсэхийг шалгана)
+
+**Sync Flow:**
+1. Mobile app offline mode-д үйлдэл хийнэ → local DB-д хадгална
+2. Online болоход POST /sync endpoint руу batch operations илгээнэ
+3. Server дээр нэг бүрчлэн process хийнэ (success/failed/conflict)
+4. Mobile app GET /stores/:id/changes endpoint-оор server-ийн шинэ өгөгдлүүдийг татна
+
+**Тэмдэглэл:**
+- Conflict resolution: last-write-wins (updated_at timestamp харьцуулна)
+- Swagger documentation: http://localhost:3000/docs
+- Бүх validation Zod schema-аар хийгдсэн
 
 ---
 

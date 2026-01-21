@@ -13,6 +13,7 @@ import type {
   InventoryEventInfo,
   StockLevelInfo,
 } from './inventory.schema.js';
+import { checkLowStock, checkNegativeStock } from '../alerts/alerts.service.js';
 
 /**
  * Inventory event-үүд авах (pagination, filter)
@@ -137,6 +138,14 @@ export async function createInventoryEvent(
 
   console.log(
     `📦 Inventory event: ${data.eventType} ${data.qtyChange > 0 ? '+' : ''}${data.qtyChange} for ${product.name}`
+  );
+
+  // Alert triggers - stock шалгах (background)
+  checkLowStock(storeId, data.productId).catch((err) =>
+    console.error('Low stock check failed:', err)
+  );
+  checkNegativeStock(storeId, data.productId).catch((err) =>
+    console.error('Negative stock check failed:', err)
   );
 
   return {

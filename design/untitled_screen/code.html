@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+
+<html class="light" lang="mn"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Inventory Events</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c2755b",
+                        "background-light": "#fbfaf9",
+                        "background-dark": "#1d2025",
+                        "card-light": "#ffffff",
+                        "card-dark": "#2a2d35",
+                        "text-main": "#181311",
+                        "text-secondary": "#87685e",
+                        "action-sale": "#00878F", 
+                    },
+                    fontFamily: {
+                        "display": ["Epilogue", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px" },
+                    boxShadow: {
+                        "soft": "0 4px 20px -2px rgba(194, 117, 91, 0.08)",
+                        "inner-soft": "inset 0 2px 4px 0 rgba(0, 0, 0, 0.02)",
+                        "float": "0 10px 40px -10px rgba(0,0,0,0.08)"
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Custom timeline dashed line */
+        .timeline-line {
+            background-image: linear-gradient(to bottom, #e2d8d5 50%, transparent 50%);
+            background-size: 2px 12px;
+            background-repeat: repeat-y;
+        }
+        .dark .timeline-line {
+            background-image: linear-gradient(to bottom, #4a4a4a 50%, transparent 50%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark text-text-main dark:text-gray-100 antialiased selection:bg-primary selection:text-white pb-24">
+<!-- Top App Bar -->
+<div class="sticky top-0 z-30 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-stone-100 dark:border-stone-800 transition-colors duration-300">
+<div class="flex items-center p-4 justify-between h-16">
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors active:scale-95 text-text-main dark:text-white">
+<span class="material-symbols-outlined text-[24px]">arrow_back</span>
+</button>
+<h1 class="text-text-main dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center truncate px-4">
+                Барааны хөдөлгөөн
+            </h1>
+<div class="flex size-10 items-center justify-center">
+<button class="flex items-center justify-center rounded-full p-2 text-primary hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-[24px]">cloud_done</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Sticky Filter Header -->
+<div class="sticky top-16 z-20 bg-background-light/85 dark:bg-background-dark/85 backdrop-blur-xl border-b border-stone-100 dark:border-stone-800 pb-3 pt-2 shadow-sm transition-colors duration-300">
+<div class="flex flex-col gap-3 px-4">
+<!-- Date Filter Trigger -->
+<div class="flex items-center justify-between">
+<button class="flex items-center gap-2 bg-white dark:bg-card-dark px-4 py-2 rounded-full shadow-sm border border-stone-100 dark:border-stone-700 active:bg-stone-50 dark:active:bg-stone-800 transition-all">
+<span class="material-symbols-outlined text-primary text-[20px]">calendar_today</span>
+<span class="text-sm font-bold text-text-main dark:text-white">Өнөөдөр, 10 Сар 24</span>
+<span class="material-symbols-outlined text-stone-400 text-[18px]">expand_more</span>
+</button>
+<span class="text-xs font-medium text-text-secondary dark:text-stone-400">Нийт: <span class="text-text-main dark:text-white font-bold">-4 ш</span></span>
+</div>
+<!-- Chips -->
+<div class="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+<button class="flex h-9 shrink-0 items-center justify-center px-5 rounded-full bg-primary text-white shadow-soft transition-transform active:scale-95">
+<span class="text-sm font-bold">Бүгд</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center px-5 rounded-full bg-white dark:bg-card-dark border border-stone-200 dark:border-stone-700 text-text-secondary dark:text-stone-300 transition-colors active:bg-stone-50 dark:active:bg-stone-800">
+<span class="text-sm font-medium">Борлуулалт</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center px-5 rounded-full bg-white dark:bg-card-dark border border-stone-200 dark:border-stone-700 text-text-secondary dark:text-stone-300 transition-colors active:bg-stone-50 dark:active:bg-stone-800">
+<span class="text-sm font-medium">Буцаалт</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center px-5 rounded-full bg-white dark:bg-card-dark border border-stone-200 dark:border-stone-700 text-text-secondary dark:text-stone-300 transition-colors active:bg-stone-50 dark:active:bg-stone-800">
+<span class="text-sm font-medium">Тооллого</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Timeline Content -->
+<div class="flex flex-col px-4 pt-6 pb-4">
+<!-- Timeline Item 1: Sale (Recent) -->
+<div class="relative grid grid-cols-[48px_1fr] group">
+<!-- Left Column: Avatar & Line -->
+<div class="flex flex-col items-center h-full">
+<div class="relative z-10">
+<img alt="Portrait of Bat-Erdene" class="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-background-dark shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnZ7Z8eOnKfjDCIlNqlJBDIEKi0Z6EY3ord-VkbjfxWTxU0rPEZpaRmgTck0zh7hTpUooW5GAjfyDtX4Brp2apdxS9E7_ZA2uF640kF-22GpMfh_hDmeIChBSlHOjj2utAuAlT0Kylkmdv3qhHyo4_eAJHcjf9046oYikASTKd7FiQWsbaPyC2VNOABQm5Kfo5iMr7oNp5fMS5bVbjVAtc_EguBwUNSw-JsKRL9jadJ_jzjuriBGSevnl1LBBHw6BjlJeHPNUonB7x"/>
+<div class="absolute -bottom-1 -right-1 bg-action-sale rounded-full p-[2px] border border-white dark:border-background-dark">
+<span class="material-symbols-outlined text-white text-[10px] block">shopping_cart</span>
+</div>
+</div>
+<div class="w-[2px] timeline-line h-full mt-2 bg-transparent opacity-40"></div>
+</div>
+<!-- Right Column: Card -->
+<div class="pb-8 pl-1">
+<div class="bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-float border border-stone-50 dark:border-stone-700/50">
+<div class="flex justify-between items-start mb-1">
+<div>
+<h3 class="text-text-main dark:text-white font-bold text-base">Борлуулалт</h3>
+<p class="text-xs text-text-secondary dark:text-stone-400 font-medium mt-0.5">14:35 • Bat-Erdene</p>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-action-sale font-bold text-lg">-2</span>
+<span class="text-[10px] text-action-sale bg-action-sale/10 px-1.5 py-0.5 rounded uppercase tracking-wider font-bold">Sold</span>
+</div>
+</div>
+<!-- No reason for normal sale, just clean whitespace -->
+</div>
+</div>
+</div>
+<!-- Timeline Item 2: Adjustment (Warning) -->
+<div class="relative grid grid-cols-[48px_1fr] group">
+<div class="flex flex-col items-center h-full">
+<div class="relative z-10">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center border-2 border-white dark:border-background-dark text-primary font-bold text-xs">
+                        MG
+                    </div>
+<div class="absolute -bottom-1 -right-1 bg-primary rounded-full p-[2px] border border-white dark:border-background-dark">
+<span class="material-symbols-outlined text-white text-[10px] block">edit_note</span>
+</div>
+</div>
+<div class="w-[2px] timeline-line h-full mt-2 bg-transparent opacity-40"></div>
+</div>
+<div class="pb-8 pl-1">
+<div class="bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-stone-100 dark:border-stone-800">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="text-text-main dark:text-white font-bold text-base">Тооллого</h3>
+<p class="text-xs text-text-secondary dark:text-stone-400 font-medium mt-0.5">09:00 • Manager</p>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-primary font-bold text-lg">-1</span>
+<span class="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded uppercase tracking-wider font-bold">Adj</span>
+</div>
+</div>
+<!-- Microcopy: Reason -->
+<div class="bg-stone-50 dark:bg-stone-800/50 rounded-lg p-3 mt-2 border border-stone-100 dark:border-stone-700/50">
+<p class="text-xs text-text-secondary dark:text-stone-400 leading-relaxed italic">
+<span class="font-bold not-italic text-primary block text-[10px] uppercase mb-1 tracking-wide">Өөрчлөлтийн тайлбар</span>
+                            Тээвэрлэлтийн явцад хайрцаг гэмтсэн тул актлав.
+                        </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Timeline Item 3: Return (Positive) -->
+<div class="relative grid grid-cols-[48px_1fr] group">
+<div class="flex flex-col items-center h-full">
+<div class="relative z-10">
+<img alt="Portrait of Saruul" class="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-background-dark shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkkuN5dzZ1w7VS1IYdZXyZZVRq_hHlaIwCYjEh833T79VMdM9lPaYc_0MuP1eSUxsqs_mp7JYEeJrGOEybYwAOU6-cLiRGnrf67c1Bw2iuzQL8zna7mj2TkXL50RaV1b0HHnyRh5wXpbfd6WwqrSwBOzmLk40ZiX7GJjnF-MeHcC5oFUlfoEyZyhMMyoGYmuj52EoKUL2ogVP3eVWbRt0nwaIv06UaYzUnBTnPBxLsIFG7rIBC0Em-d99PMHOt1r3-d25ht1gpJbcc"/>
+<div class="absolute -bottom-1 -right-1 bg-stone-600 rounded-full p-[2px] border border-white dark:border-background-dark">
+<span class="material-symbols-outlined text-white text-[10px] block">keyboard_return</span>
+</div>
+</div>
+<div class="w-[2px] timeline-line h-full mt-2 bg-transparent opacity-40"></div>
+</div>
+<div class="pb-8 pl-1">
+<div class="bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-stone-100 dark:border-stone-800 opacity-90">
+<div class="flex justify-between items-start mb-1">
+<div>
+<h3 class="text-text-main dark:text-white font-bold text-base">Буцаалт</h3>
+<p class="text-xs text-text-secondary dark:text-stone-400 font-medium mt-0.5">Өчигдөр • Saruul</p>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-primary font-bold text-lg">+1</span>
+</div>
+</div>
+<div class="mt-2 flex items-center gap-2">
+<span class="px-2 py-1 rounded bg-stone-100 dark:bg-stone-800 text-[10px] font-bold text-stone-500 uppercase">PO-23910</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Timeline Item 4: Initial Stock (Start) -->
+<div class="relative grid grid-cols-[48px_1fr] group">
+<div class="flex flex-col items-center h-full">
+<div class="relative z-10">
+<div class="w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center border-2 border-white dark:border-background-dark text-stone-500">
+<span class="material-symbols-outlined text-[20px]">inventory_2</span>
+</div>
+</div>
+<!-- No line after last item -->
+</div>
+<div class="pb-2 pl-1">
+<div class="bg-card-light dark:bg-card-dark rounded-xl p-4 shadow-sm border border-stone-100 dark:border-stone-800 opacity-70 hover:opacity-100 transition-opacity">
+<div class="flex justify-between items-start mb-1">
+<div>
+<h3 class="text-text-main dark:text-white font-bold text-base">Анхны үлдэгдэл</h3>
+<p class="text-xs text-text-secondary dark:text-stone-400 font-medium mt-0.5">2 хоногийн өмнө • Admin</p>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-stone-400 dark:text-stone-500 font-bold text-lg">+50</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 z-40 w-full bg-background-light dark:bg-background-dark border-t border-stone-100 dark:border-stone-800 pb-safe pt-2">
+<div class="flex justify-around items-end pb-4 px-2">
+<a class="flex flex-1 flex-col items-center gap-1 group" href="#">
+<div class="p-1 rounded-full group-hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-text-secondary dark:text-stone-400 group-hover:text-primary transition-colors text-[26px]">storefront</span>
+</div>
+<span class="text-[10px] font-medium text-text-secondary dark:text-stone-400 group-hover:text-primary">Нүүр</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 group" href="#">
+<div class="p-1 rounded-full group-hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-text-secondary dark:text-stone-400 group-hover:text-primary transition-colors text-[26px]">inventory</span>
+</div>
+<span class="text-[10px] font-medium text-text-secondary dark:text-stone-400 group-hover:text-primary">Бараа</span>
+</a>
+<!-- Active State -->
+<a class="flex flex-1 flex-col items-center gap-1 group" href="#">
+<div class="p-1 rounded-full bg-primary/10">
+<span class="material-symbols-outlined text-primary text-[26px] fill-current">history</span>
+</div>
+<span class="text-[10px] font-bold text-primary">Түүх</span>
+</a>
+<a class="flex flex-1 flex-col items-center gap-1 group" href="#">
+<div class="p-1 rounded-full group-hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-text-secondary dark:text-stone-400 group-hover:text-primary transition-colors text-[26px]">settings</span>
+</div>
+<span class="text-[10px] font-medium text-text-secondary dark:text-stone-400 group-hover:text-primary">Тохиргоо</span>
+</a>
+</div>
+</div>
+<!-- Manual Adjust FAB (Optional per brief, good for offline adjustments) -->
+<div class="fixed bottom-24 right-4 z-30">
+<button class="flex items-center justify-center w-14 h-14 bg-primary rounded-full shadow-lg shadow-primary/30 text-white hover:scale-105 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[28px]">add</span>
+</button>
+</div>
+</body></html>

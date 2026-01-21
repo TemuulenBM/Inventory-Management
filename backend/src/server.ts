@@ -16,6 +16,8 @@ import { inventoryRoutes } from './modules/inventory/inventory.routes.js';
 import { shiftRoutes } from './modules/shift/shift.routes.js';
 import { salesRoutes } from './modules/sales/sales.routes.js';
 import { reportsRoutes } from './modules/reports/reports.routes.js';
+import { alertsRoutes } from './modules/alerts/alerts.routes.js';
+import { syncRoutes } from './modules/sync/sync.routes.js';
 
 // Fastify instance үүсгэх
 const server = Fastify({
@@ -65,6 +67,8 @@ async function start() {
     await server.register(shiftRoutes);
     await server.register(salesRoutes);
     await server.register(reportsRoutes);
+    await server.register(alertsRoutes);
+    await server.register(syncRoutes);
 
     // Start listening
     await server.listen({

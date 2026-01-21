@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Shift Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,100..900;1,100..900&amp;family=Noto+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#c2755b",
+                "background-light": "#fbfaf9",
+                "background-dark": "#1d2025",
+              },
+              fontFamily: {
+                "display": ["Epilogue", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+              boxShadow: {
+                'soft': '0 4px 20px -2px rgba(0, 0, 0, 0.05)',
+                'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+              }
+            },
+          },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hiding for cleaner mobile look */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .dark .glass-panel {
+            background: rgba(29, 32, 37, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#181311] dark:text-white antialiased transition-colors duration-300">
+<div class="relative flex h-full min-h-screen w-full flex-col overflow-hidden max-w-md mx-auto shadow-2xl bg-background-light dark:bg-background-dark">
+<!-- Header -->
+<header class="sticky top-0 z-20 glass-panel px-4 py-4 flex items-center justify-between transition-all">
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[#181311] dark:text-white" style="font-size: 24px;">arrow_back</span>
+</button>
+<div>
+<h1 class="text-xl font-bold leading-none tracking-tight">Ээлж</h1>
+<p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">Батболд Г.</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<!-- Offline Indicator (Cloud check) -->
+<span class="material-symbols-outlined text-green-600 text-[20px]" title="Synced">cloud_done</span>
+<!-- Status Badge -->
+<div class="flex items-center gap-1.5 bg-green-100 dark:bg-green-900/30 px-3 py-1.5 rounded-full border border-green-200 dark:border-green-800">
+<div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+<span class="text-green-700 dark:text-green-400 text-xs font-bold uppercase tracking-wide">Идэвхтэй</span>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto px-4 pt-6 pb-32 scrollbar-hide space-y-6">
+<!-- Context Stats Grid -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Open Time -->
+<div class="bg-white dark:bg-[#252930] p-5 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800 flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-gray-900 dark:text-white text-5xl">schedule</span>
+</div>
+<div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+<span class="material-symbols-outlined text-[20px]">schedule</span>
+<span class="text-sm font-medium">Нээсэн цаг</span>
+</div>
+<p class="text-3xl font-bold tracking-tight text-[#181311] dark:text-white">09:00</p>
+</div>
+<!-- Starting Balance -->
+<div class="bg-white dark:bg-[#252930] p-5 rounded-2xl shadow-soft border border-gray-100 dark:border-gray-800 flex flex-col justify-between h-32 relative overflow-hidden group">
+<div class="absolute -bottom-4 -right-4 w-16 h-16 bg-primary/10 rounded-full blur-xl"></div>
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
+<span class="text-sm font-medium">Эхлэх үлдэгдэл</span>
+</div>
+<p class="text-2xl font-bold tracking-tight text-[#181311] dark:text-white truncate">₮100,000</p>
+</div>
+</div>
+<!-- Sales Hero Card -->
+<div class="relative w-full rounded-3xl bg-white dark:bg-[#252930] shadow-lg border border-gray-100 dark:border-gray-800 overflow-hidden">
+<!-- Decorative background elements -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#00878F]/10 to-transparent rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+<div class="p-6 relative z-10">
+<div class="flex justify-between items-start mb-2">
+<div>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium uppercase tracking-wider mb-1">Нийт борлуулалт</p>
+<!-- Using the specific Teal color requested for the main sales figure -->
+<h2 class="text-4xl font-extrabold tracking-tight text-[#00878F] dark:text-[#4CD1D9]">
+                                ₮450,500
+                            </h2>
+</div>
+<div class="bg-[#00878F]/10 dark:bg-[#00878F]/20 p-2 rounded-xl">
+<span class="material-symbols-outlined text-[#00878F] dark:text-[#4CD1D9]" style="font-size: 28px;">trending_up</span>
+</div>
+</div>
+<div class="mt-8 grid grid-cols-2 gap-4">
+<!-- Cash Split -->
+<div class="bg-[#f8f9fa] dark:bg-white/5 p-4 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-sm">payments</span>
+<span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Бэлэн</span>
+</div>
+<p class="text-lg font-bold text-gray-900 dark:text-white">₮150,500</p>
+<div class="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full mt-2 overflow-hidden">
+<div class="bg-gray-500 h-full rounded-full" style="width: 35%"></div>
+</div>
+</div>
+<!-- Card Split -->
+<div class="bg-[#f8f9fa] dark:bg-white/5 p-4 rounded-xl border border-dashed border-gray-200 dark:border-gray-700">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400 text-sm">credit_card</span>
+<span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase">Карт</span>
+</div>
+<p class="text-lg font-bold text-gray-900 dark:text-white">₮300,000</p>
+<div class="w-full bg-gray-200 dark:bg-gray-700 h-1.5 rounded-full mt-2 overflow-hidden">
+<div class="bg-[#00878F] h-full rounded-full" style="width: 65%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Transactions List -->
+<div>
+<div class="flex items-center justify-between px-1 mb-4">
+<h3 class="text-lg font-bold text-[#181311] dark:text-white">Сүүлийн гүйлгээнүүд</h3>
+<button class="text-xs font-bold text-primary hover:text-primary/80 uppercase tracking-wide">Бүгд</button>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Transaction Item 1 -->
+<div class="bg-white dark:bg-[#252930] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
+<span class="material-symbols-outlined text-xl">shopping_bag</span>
+</div>
+<div>
+<p class="text-sm font-bold text-gray-900 dark:text-gray-100">Coca Cola 0.5L</p>
+<p class="text-xs text-gray-500 dark:text-gray-400">10:42 • Бэлэн</p>
+</div>
+</div>
+<span class="font-bold text-gray-900 dark:text-white">+₮2,500</span>
+</div>
+<!-- Transaction Item 2 -->
+<div class="bg-white dark:bg-[#252930] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+<span class="material-symbols-outlined text-xl">shopping_cart</span>
+</div>
+<div>
+<p class="text-sm font-bold text-gray-900 dark:text-gray-100">Талх, Сүү</p>
+<p class="text-xs text-gray-500 dark:text-gray-400">10:35 • Карт</p>
+</div>
+</div>
+<span class="font-bold text-gray-900 dark:text-white">+₮6,800</span>
+</div>
+<!-- Transaction Item 3 -->
+<div class="bg-white dark:bg-[#252930] p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
+<span class="material-symbols-outlined text-xl">shopping_bag</span>
+</div>
+<div>
+<p class="text-sm font-bold text-gray-900 dark:text-gray-100">Зайрмаг</p>
+<p class="text-xs text-gray-500 dark:text-gray-400">10:15 • Бэлэн</p>
+</div>
+</div>
+<span class="font-bold text-gray-900 dark:text-white">+₮1,500</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Sticky Bottom Action -->
+<div class="fixed bottom-0 left-0 right-0 z-30 max-w-md mx-auto">
+<!-- Gradient fade above the bar -->
+<div class="h-8 w-full bg-gradient-to-t from-background-light dark:from-background-dark to-transparent"></div>
+<div class="glass-panel p-4 pb-8 border-t border-gray-200/50 dark:border-gray-700/50">
+<button class="w-full flex items-center justify-center gap-2 py-4 rounded-xl shadow-lg transition-transform active:scale-[0.98] group relative overflow-hidden" style="background-color: #00878F;">
+<!-- Button shine effect -->
+<div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+<span class="material-symbols-outlined text-white">lock</span>
+<span class="text-white text-base font-bold tracking-wide">Ээлж хаах</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

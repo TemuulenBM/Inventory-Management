@@ -89,7 +89,7 @@ export function authorize(allowedRoles: Array<'owner' | 'manager' | 'seller'>) {
 export function requireStore() {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     const authRequest = request as AuthRequest;
-    const params = request.params as { storeId?: string };
+    const params = request.params as { storeId?: string; id?: string };
 
     // User JWT-аас ирсэн эсэхийг шалгах
     if (!authRequest.user) {
@@ -100,8 +100,11 @@ export function requireStore() {
       });
     }
 
+    // storeId эсвэл id parameter-ийг авах (routes-үүд :storeId эсвэл :id ашигладаг)
+    const storeIdFromParams = params.storeId || params.id;
+
     // storeId parameter байгаа эсэхийг шалгах
-    if (!params.storeId) {
+    if (!storeIdFromParams) {
       return reply.status(400).send({
         statusCode: 400,
         error: 'Bad Request',
@@ -110,7 +113,7 @@ export function requireStore() {
     }
 
     // User-ийн store ID-тэй таарч байгаа эсэхийг шалгах
-    if (authRequest.user.storeId !== params.storeId) {
+    if (authRequest.user.storeId !== storeIdFromParams) {
       return reply.status(403).send({
         statusCode: 403,
         error: 'Forbidden',

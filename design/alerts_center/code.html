@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="light" lang="mn"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Alerts Center</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c2755b",
+                        "primary-dark": "#a85f47",
+                        "background-light": "#fbfaf9",
+                        "background-dark": "#1d2025",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#2c2f36",
+                        "text-main-light": "#181311",
+                        "text-main-dark": "#f0ecea",
+                        "text-sub-light": "#87685e",
+                        "text-sub-dark": "#a0908a",
+                        // Severity Colors from Plan
+                        "warning": "#E0A63B",
+                        "danger": "#AF4D4D",
+                        "action-teal": "#00878F",
+                    },
+                    fontFamily: {
+                        "display": ["Epilogue", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "2xl": "2rem", "full": "9999px"},
+                    boxShadow: {
+                        'soft': '0 4px 20px -2px rgba(194, 117, 91, 0.1)',
+                        'card': '0 2px 12px rgba(0, 0, 0, 0.04)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-text-main-light dark:text-text-main-dark font-display antialiased transition-colors duration-200">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden pb-24">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-50 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md px-4 py-3">
+<div class="flex items-center justify-between">
+<button class="flex size-10 items-center justify-center rounded-full bg-white dark:bg-surface-dark shadow-sm text-text-main-light dark:text-text-main-dark transition-transform hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="text-xl font-extrabold tracking-tight">Анхааруулга</h1>
+<button class="flex size-10 items-center justify-center rounded-full bg-white dark:bg-surface-dark shadow-sm text-text-main-light dark:text-text-main-dark transition-transform hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+<!-- Quick Stats Summary -->
+<div class="mt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+<div class="flex items-center gap-2 rounded-xl bg-danger/10 px-3 py-1.5 border border-danger/20">
+<span class="material-symbols-outlined text-danger text-[18px]">error</span>
+<span class="text-xs font-bold text-danger">3 Сөрөг</span>
+</div>
+<div class="flex items-center gap-2 rounded-xl bg-warning/10 px-3 py-1.5 border border-warning/20">
+<span class="material-symbols-outlined text-warning text-[18px]">warning</span>
+<span class="text-xs font-bold text-warning-700 dark:text-warning">5 Бага үлдэгдэл</span>
+</div>
+</div>
+</header>
+<!-- Tabs Navigation -->
+<div class="px-4 mt-2">
+<div class="flex w-full items-center rounded-xl bg-white dark:bg-surface-dark p-1 shadow-sm border border-gray-100 dark:border-gray-800">
+<button class="flex-1 rounded-lg bg-primary py-2.5 text-center text-sm font-bold text-white shadow-md transition-all">
+                    Бүгд
+                </button>
+<button class="flex-1 rounded-lg py-2.5 text-center text-sm font-medium text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all">
+                    Бага
+                </button>
+<button class="flex-1 rounded-lg py-2.5 text-center text-sm font-medium text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all">
+                    Сөрөг
+                </button>
+<button class="flex-1 rounded-lg py-2.5 text-center text-sm font-medium text-text-sub-light dark:text-text-sub-dark hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all">
+                    Сэжигтэй
+                </button>
+</div>
+</div>
+<!-- Content Area -->
+<main class="flex flex-col gap-4 p-4">
+<!-- Card: Negative Stock (High Priority) -->
+<div class="group relative overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark shadow-card transition-all hover:shadow-soft border border-transparent hover:border-danger/30">
+<!-- Severity Indicator Strip -->
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-danger"></div>
+<div class="p-4 pl-5">
+<div class="flex justify-between items-start gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-[18px] text-danger">trending_down</span>
+<span class="text-xs font-bold uppercase tracking-wider text-danger">Сөрөг үлдэгдэл</span>
+</div>
+<h3 class="text-lg font-bold leading-tight text-text-main-light dark:text-text-main-dark">Alpen Gold Chocolate</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mt-1 font-medium">SKU: 87654321</p>
+<div class="mt-3 flex items-baseline gap-1">
+<span class="text-3xl font-extrabold text-danger">-4</span>
+<span class="text-sm font-medium text-text-sub-light dark:text-text-sub-dark">ширхэг</span>
+</div>
+</div>
+<div class="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 shadow-inner">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Dark chocolate bar packaging close up" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC2A2PkBUevOrBka7-TTpr_a4XGFvUT3OiZSaurBVHRzbNWCy1UozAOt0ozirk1MbMvufqCNX_h_pC_1HAAa94qGmKJ2Tr7O309cRSpBIk3Is5oulY449cGk-19muyfP2Tm3AnhC0-kamGj4SW0mQFLepI4A_e7xPFeQvNoZnl5MrY8qFWTmmddK9EfxiRIDmOvJvcY9mbd2aGsLjSzf6Jb75z02ssVOl0nJVMGw3Z0dFvavBs6RGfa_8ODxYCWFmIIrKKCDtQcMKBc');"></div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+<button class="flex items-center gap-2 rounded-xl bg-background-light dark:bg-background-dark px-4 py-2.5 text-sm font-bold text-text-main-light dark:text-text-main-dark hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[20px]">inventory_2</span>
+                            Тооллого хийх
+                        </button>
+</div>
+</div>
+</div>
+<!-- Card: Suspicious (Medium/High Priority) -->
+<div class="group relative overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark shadow-card transition-all hover:shadow-soft border border-transparent hover:border-orange-400/30">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-500"></div>
+<div class="p-4 pl-5">
+<div class="flex justify-between items-start gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-[18px] text-orange-500">policy</span>
+<span class="text-xs font-bold uppercase tracking-wider text-orange-500">Сэжигтэй гүйлгээ</span>
+</div>
+<h3 class="text-lg font-bold leading-tight text-text-main-light dark:text-text-main-dark">Goyo Cashmere Scarf</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mt-1 font-medium">Буцаалт: 2 удаа (1 цагт)</p>
+<div class="mt-3 flex items-center gap-2">
+<span class="inline-flex items-center rounded-lg bg-orange-100 dark:bg-orange-900/30 px-2 py-1 text-xs font-bold text-orange-700 dark:text-orange-400">
+                                    Шалгах шаардлагатай
+                                </span>
+</div>
+</div>
+<div class="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 shadow-inner">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Soft beige cashmere scarf folded texture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAPgeGpeDtsg4T8nHFsMVlJbNHRyDd4dsoZ1cS1F_s5nrKqacaWDG-hmP-gjVdD85q36O0AtW00NPwq1CnL6Qijo-osb2dmZI5ARdwe9sslOI_zxoJj-sm4hO9yFJk3EcEoUR3XONU09RKCTW5FpNTr0ZTGPra-dhXeC7WAdWzn3fqccdvdB7PR7kVoyupxioa5qWIQI4DWklnpS0JvDOzOAnZWhwEgkZOqwvOgbesgJS_mP5gbc3XiMBvV0CpcSMiaPz-ofqp3iBtJ');"></div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end">
+<button class="flex items-center gap-2 rounded-xl bg-background-light dark:bg-background-dark px-4 py-2.5 text-sm font-bold text-text-main-light dark:text-text-main-dark hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[20px]">search</span>
+                            Дэлгэрэнгүй
+                        </button>
+</div>
+</div>
+</div>
+<!-- Card: Low Stock (Warning) -->
+<div class="group relative overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark shadow-card transition-all hover:shadow-soft border border-transparent hover:border-warning/30">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-warning"></div>
+<div class="p-4 pl-5">
+<div class="flex justify-between items-start gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-[18px] text-warning">hourglass_bottom</span>
+<span class="text-xs font-bold uppercase tracking-wider text-warning">Бага үлдэгдэл</span>
+</div>
+<h3 class="text-lg font-bold leading-tight text-text-main-light dark:text-text-main-dark">Coca Cola 500ml</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mt-1 font-medium">SKU: 12345678</p>
+<div class="mt-3 flex items-baseline gap-1">
+<span class="text-3xl font-extrabold text-warning">2</span>
+<span class="text-sm font-medium text-text-sub-light dark:text-text-sub-dark">ширхэг үлдлээ</span>
+</div>
+</div>
+<div class="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 shadow-inner">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Coca cola bottle with condensation drops" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBXNiRi7t9tBnMiPlFEA_UDYHZ4fZkEvZlTxU3MZjv8RqYT4Raq2uWLhN9yjETLNdC03Baq940Z9KcSt8DnMRfBPc5t0YeuFs5TqtOBxQtjytnGzX5D2WNSScmiOdqfTSSzOtEUHvjGJRupkwuXB9pQnWjUDJFQj7Ag3z4BIkOefrwrCUJoKX1BdHMpmVmcloXERFbBg-k3L1p-06wY16F0BiUlPjSXT51-Awko5IhvtUPEaUGbqixXwcuurSEReqSSdJTy7mD40f_m');"></div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
+<button class="flex items-center gap-2 rounded-xl bg-action-teal px-5 py-2.5 text-sm font-bold text-white hover:bg-action-teal/90 shadow-lg shadow-action-teal/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+                            Захиалах
+                        </button>
+</div>
+</div>
+</div>
+<!-- Card: Low Stock (Another item) -->
+<div class="group relative overflow-hidden rounded-2xl bg-surface-light dark:bg-surface-dark shadow-card transition-all hover:shadow-soft border border-transparent hover:border-warning/30">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-warning"></div>
+<div class="p-4 pl-5">
+<div class="flex justify-between items-start gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-[18px] text-warning">hourglass_bottom</span>
+<span class="text-xs font-bold uppercase tracking-wider text-warning">Бага үлдэгдэл</span>
+</div>
+<h3 class="text-lg font-bold leading-tight text-text-main-light dark:text-text-main-dark">Süü Milk 1L</h3>
+<p class="text-xs text-text-sub-light dark:text-text-sub-dark mt-1 font-medium">SKU: 55992211</p>
+<div class="mt-3 flex items-baseline gap-1">
+<span class="text-3xl font-extrabold text-warning">5</span>
+<span class="text-sm font-medium text-text-sub-light dark:text-text-sub-dark">ширхэг үлдлээ</span>
+</div>
+</div>
+<div class="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800 shadow-inner">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Carton of fresh milk on wooden table" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD_Lg1008Uhh_RTzON_dIeOsmGjifPr7i9jZHSxRPsSWsgzdr27vqPoZJfbAs1_Z9owjyLtqveLeipexG6nFcBCpMLzal7RfTIHv_PVvm1xhmMAcjmr0wJ_0N2_2wHF_OY3KJuQQHq_OaR_hr5X0rmbjZaLWub2027PNW8JjmaVepWZ6lxTTLg6lq4i1bK4zwtKVVwlD8S04OplWCMww-GSu02sUS4Ziq7hZw3OK-FAQeYYDaWgc9tKrIxYpiShGtcYBLY6hPsXBhDP');"></div>
+</div>
+</div>
+<div class="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-end gap-2">
+<button class="flex items-center gap-2 rounded-xl bg-action-teal px-5 py-2.5 text-sm font-bold text-white hover:bg-action-teal/90 shadow-lg shadow-action-teal/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]">add_shopping_cart</span>
+                            Захиалах
+                        </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button for Filters/Sorting -->
+<button class="fixed bottom-24 right-4 z-40 flex size-14 items-center justify-center rounded-full bg-surface-light dark:bg-surface-dark shadow-xl ring-1 ring-black/5 dark:ring-white/10 transition-transform active:scale-90">
+<span class="material-symbols-outlined text-primary text-[28px]">sort</span>
+</button>
+<!-- Bottom Navigation Bar (Mockup) -->
+<nav class="fixed bottom-0 left-0 right-0 z-50 rounded-t-3xl bg-surface-light dark:bg-surface-dark px-6 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] border-t border-gray-100 dark:border-gray-800">
+<div class="flex items-center justify-between">
+<a class="flex flex-col items-center gap-1 opacity-60 hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined text-[24px]">inventory_2</span>
+<span class="text-[10px] font-bold">Бараа</span>
+</a>
+<a class="flex flex-col items-center gap-1 opacity-60 hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined text-[24px]">point_of_sale</span>
+<span class="text-[10px] font-bold">Борлуулалт</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<div class="rounded-full bg-primary/10 px-4 py-1">
+<span class="material-symbols-outlined text-[24px]">notifications_active</span>
+</div>
+<span class="text-[10px] font-bold">Мэдэгдэл</span>
+</a>
+<a class="flex flex-col items-center gap-1 opacity-60 hover:opacity-100 transition-opacity" href="#">
+<span class="material-symbols-outlined text-[24px]">person</span>
+<span class="text-[10px] font-bold">Профайл</span>
+</a>
+</div>
+</nav>
+</div>
+</body></html>

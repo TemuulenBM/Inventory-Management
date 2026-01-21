@@ -10,6 +10,7 @@
 
 import { supabase } from '../../config/supabase.js';
 import type { CreateSaleBody, SalesQueryParams } from './sales.schema.js';
+import { checkLowStock, checkNegativeStock } from '../alerts/alerts.service.js';
 
 type ServiceResult<T> =
   | { success: true } & T
@@ -110,7 +111,17 @@ export async function createSale(
     // 6. Materialized view-г шинэчлэх
     await supabase.rpc('refresh_product_stock_levels');
 
-    // 7. Response format
+    // 7. Alert triggers - stock шалгах (background)
+    for (const item of data.items) {
+      checkLowStock(storeId, item.product_id).catch((err) =>
+        console.error('Low stock check failed:', err)
+      );
+      checkNegativeStock(storeId, item.product_id).catch((err) =>
+        console.error('Negative stock check failed:', err)
+      );
+    }
+
+    // 8. Response format
     const itemsWithNames = saleItems.map((item: any) => {
       const product = products.find((p) => p.id === item.product_id);
       return {
@@ -331,6 +342,16 @@ export async function voidSale(
 
     // 5. Materialized view шинэчлэх
     await supabase.rpc('refresh_product_stock_levels');
+
+    // 6. Alert triggers - return хийсний дараа stock шалгах
+    for (const item of saleItems) {
+      checkLowStock(storeId, item.product_id).catch((err) =>
+        console.error('Low stock check failed:', err)
+      );
+      checkNegativeStock(storeId, item.product_id).catch((err) =>
+        console.error('Negative stock check failed:', err)
+      );
+    }
 
     return {
       success: true,

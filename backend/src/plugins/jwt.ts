@@ -47,7 +47,7 @@ async function jwtPluginFn(server: FastifyInstance) {
       try {
         await request.jwtVerify();
       } catch (error) {
-        reply.status(401).send({
+        return reply.status(401).send({
           statusCode: 401,
           error: 'Unauthorized',
           message: 'Invalid or expired token',

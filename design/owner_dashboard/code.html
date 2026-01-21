@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html class="light" lang="mn"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Owner Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#c2755b",
+              "background-light": "#FBF8F6", 
+              "background-dark": "#1d2025",
+              "action-sale": "#00878F",
+              "sales-text": "#C96F53",
+              "success-mute": "#3D7A6E",
+              "text-main": "#181311",
+              "text-secondary": "#87685e",
+            },
+            fontFamily: {
+              "display": ["Epilogue", "sans-serif"]
+            },
+            borderRadius: {
+                "DEFAULT": "0.5rem", 
+                "lg": "1rem", 
+                "xl": "1.5rem", 
+                "2xl": "2rem",
+                "full": "9999px"
+            },
+            boxShadow: {
+                "glass": "0 8px 32px 0 rgba(31, 38, 135, 0.05)",
+                "soft": "0 10px 40px -10px rgba(0,0,0,0.05)"
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light text-text-main font-display antialiased min-h-screen relative overflow-x-hidden selection:bg-primary/20">
+<!-- Top Navigation / Header -->
+<header class="pt-14 px-6 pb-4 flex justify-between items-start z-20 relative">
+<div class="flex flex-col gap-1">
+<p class="text-text-secondary text-sm font-medium tracking-wide">10:42 AM</p>
+<h1 class="text-text-main text-3xl font-extrabold leading-[1.1]">Сайн байна уу,<br/>Дэлгүүр</h1>
+</div>
+<div class="flex flex-col items-end gap-1.5 mt-1">
+<div class="bg-[#E6F0EE] border border-[#3D7A6E]/10 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm transition-all hover:shadow-md cursor-pointer">
+<span class="material-symbols-outlined text-[18px] text-[#3D7A6E] font-bold">cloud_done</span>
+<span class="text-xs font-bold text-[#3D7A6E] tracking-wide uppercase">Synced</span>
+</div>
+<p class="text-[10px] text-text-secondary/70 font-medium pr-1">Last sync: 2 min ago</p>
+</div>
+</header>
+<main class="flex flex-col gap-6 pb-32">
+<!-- Hero Card: Today's Sales -->
+<section class="px-5">
+<div class="relative bg-white rounded-2xl p-6 shadow-soft overflow-hidden border border-white/60 group">
+<!-- Decorative background elements -->
+<div class="absolute -right-12 -top-12 w-48 h-48 bg-[#C96F53]/5 rounded-full blur-3xl transition-transform duration-700 group-hover:scale-110"></div>
+<div class="absolute -left-12 -bottom-12 w-32 h-32 bg-[#FEEBC8]/20 rounded-full blur-2xl"></div>
+<div class="relative z-10 flex flex-col h-full justify-between min-h-[160px]">
+<div class="flex justify-between items-start w-full">
+<div class="flex items-center gap-2">
+<span class="w-1 h-4 bg-sales-text rounded-full"></span>
+<h3 class="text-text-secondary text-sm font-bold uppercase tracking-wider">Өнөөдрийн борлуулалт</h3>
+</div>
+<div class="bg-[#EBF5EC] text-[#2E7D32] text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span>
+                            +12%
+                        </div>
+</div>
+<div class="mt-4">
+<p class="text-sales-text text-[36px] font-extrabold tracking-tight leading-none">₮ 1,250,400</p>
+<p class="text-text-secondary/60 text-xs mt-1 font-medium pl-1">Өчигдөр: ₮ 1,115,000</p>
+</div>
+<!-- Sparkline Graphic -->
+<div class="mt-6 h-16 w-full relative">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 300 60">
+<defs>
+<lineargradient id="sparkGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#C96F53" stop-opacity="0.15"></stop>
+<stop offset="100%" stop-color="#C96F53" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0 45 Q 30 50, 60 35 T 120 30 T 180 40 T 240 15 T 300 25" fill="none" stroke="#C96F53" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"></path>
+<path d="M0 45 Q 30 50, 60 35 T 120 30 T 180 40 T 240 15 T 300 25 V 60 H 0 Z" fill="url(#sparkGradient)" stroke="none"></path>
+<!-- Highlight Point -->
+<circle cx="240" cy="15" fill="#fff" r="4" stroke="#C96F53" stroke-width="3"></circle>
+</svg>
+</div>
+</div>
+</div>
+</section>
+<!-- Low Stock Alerts -->
+<section class="px-5">
+<div class="flex items-center justify-between mb-4 px-1">
+<h3 class="text-text-main text-xl font-bold">Бага үлдэгдэлтэй</h3>
+<button class="text-sales-text text-xs font-bold flex items-center gap-1 bg-[#FFF4E5] px-3 py-1.5 rounded-full border border-[#FFE0B2]">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+                    3 анхааруулга
+                </button>
+</div>
+<div class="flex flex-col gap-3">
+<!-- Item 1 -->
+<div class="bg-white p-4 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] border border-[#f0ecea] flex items-center justify-between transition-transform active:scale-[0.98]">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-[#FFF4E5] flex items-center justify-center text-[#F57C00] shrink-0">
+<span class="material-symbols-outlined">bakery_dining</span>
+</div>
+<div>
+<p class="text-text-main font-bold text-base leading-tight">Талх Атар</p>
+<p class="text-text-secondary text-xs font-medium mt-0.5">Талх, нарийн боов</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<p class="text-[#D32F2F] font-bold text-sm bg-[#FFEBEE] px-2 py-0.5 rounded-md">2 үлдсэн</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-white p-4 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.02)] border border-[#f0ecea] flex items-center justify-between transition-transform active:scale-[0.98]">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-[#E3F2FD] flex items-center justify-center text-[#1976D2] shrink-0">
+<span class="material-symbols-outlined">water_drop</span>
+</div>
+<div>
+<p class="text-text-main font-bold text-base leading-tight">Сүү 1Л</p>
+<p class="text-text-secondary text-xs font-medium mt-0.5">Сүү, сүүн бүтээгдэхүүн</p>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<p class="text-[#F57C00] font-bold text-sm bg-[#FFF3E0] px-2 py-0.5 rounded-md">4 үлдсэн</p>
+</div>
+</div>
+</div>
+<div class="mt-2 text-center">
+<button class="text-text-secondary text-sm font-medium flex items-center justify-center gap-1 mx-auto hover:text-primary transition-colors py-2">
+                    Бүгдийг харах
+                    <span class="material-symbols-outlined text-[16px]">expand_more</span>
+</button>
+</div>
+</section>
+<!-- Top Products -->
+<section class="pl-5 mb-4">
+<h3 class="text-text-main text-xl font-bold mb-4 pr-5">Шилдэг бүтээгдэхүүн</h3>
+<div class="flex overflow-x-auto gap-4 pb-4 pr-5 hide-scrollbar snap-x snap-mandatory">
+<!-- Card 1 -->
+<div class="snap-start shrink-0 w-[140px] bg-white rounded-xl p-3 border border-[#f0ecea] shadow-sm flex flex-col gap-3">
+<div class="aspect-square w-full rounded-lg bg-gray-100 overflow-hidden relative">
+<div class="absolute top-2 left-2 bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-0.5 rounded">#1</div>
+<img alt="Cola" class="w-full h-full object-cover mix-blend-multiply" data-alt="Coca cola bottle with condensation" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAKJ4MWkGQZUDTgY-ov68c9GRXCPvfKBuieO9UrDYODFw_SB1hDELFsFE-0ZGZmtcizPn4xWobXkQVyvC0WRNzBFeS9Mq8iKvyEx_0ZfGa17cRammfQbl-YDZ258xAt9ZXAj8ZV8XNHnlznWxkQNlNiPGUzLqTPT5ScOZO6U6-rBXsG0xmcvqwYacEGmuyVj0lLcNu6XnpMBetqoZ93DeuyGBvautOSWVDBn5FhhhY6hXxcfgkILXk-ougzJfMFJ_THEmNslZEjxhnz"/>
+</div>
+<div>
+<p class="text-text-main font-bold text-sm truncate">Coca Cola 500ml</p>
+<p class="text-sales-text text-xs font-bold mt-1">128 зарагдсан</p>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="snap-start shrink-0 w-[140px] bg-white rounded-xl p-3 border border-[#f0ecea] shadow-sm flex flex-col gap-3">
+<div class="aspect-square w-full rounded-lg bg-gray-100 overflow-hidden relative">
+<div class="absolute top-2 left-2 bg-gray-200 text-black text-[10px] font-bold px-1.5 py-0.5 rounded">#2</div>
+<img alt="Rice" class="w-full h-full object-cover mix-blend-multiply" data-alt="White rice in a bowl texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbP8We5tpQ8epkeQcaUPOPa83b3dlmZz3l8bHM0ssqldBDsATnxJ2w23bxhHKAuoqEHi1neHa1_ZaWLX8L3CyezBdvKAPwHMp2Q77p_gcWgO4Pvd0TgPP4wRmWiJP9_WQ_7GQ53GwwqV1Avn06u1oGdx-b6R8mPBopuHiYHkz00GZja31Qjo8XwrnFzpIsJuvdHevW2u7KmkkbWjOca0W4w6wZmMGpl7CKzZnErsh3M91EijM-H05NgtM0-J61tx97b8VjIyUQdZ-1"/>
+</div>
+<div>
+<p class="text-text-main font-bold text-sm truncate">Цагаан будаа</p>
+<p class="text-sales-text text-xs font-bold mt-1">94 зарагдсан</p>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="snap-start shrink-0 w-[140px] bg-white rounded-xl p-3 border border-[#f0ecea] shadow-sm flex flex-col gap-3">
+<div class="aspect-square w-full rounded-lg bg-gray-100 overflow-hidden relative">
+<div class="absolute top-2 left-2 bg-[#cd7f32]/20 text-[#8d5524] text-[10px] font-bold px-1.5 py-0.5 rounded">#3</div>
+<img alt="Flour" class="w-full h-full object-cover mix-blend-multiply" data-alt="Flour texture background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1fHFyAzNaBv4cK_kFxoYWLCXn87bPn-ME01XrnXnvD6wq5tPJpYfnKGsUJER_mD_RCECTqfdJ90VN09pJU-Ke2hkTrjQx8O733DzOVgtBS0aWlEOXjgvE0NtUBWJG27gEu-ILVBwFu9FGEQFhbRofUdsbVbEIMM8cLW63biu1mGtCtAQ07V1WO0V7FLDvbSBwU8sXjCivqeYrR6BO2MsNYHWJQcq_WjuvyAMc0lKdMyQZJQNXxseEmfJDXSouggqztDgy-nWqxbOc"/>
+</div>
+<div>
+<p class="text-text-main font-bold text-sm truncate">Дээд гурил 1кг</p>
+<p class="text-sales-text text-xs font-bold mt-1">82 зарагдсан</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Button Area -->
+<div class="fixed bottom-6 left-0 right-0 px-5 z-40">
+<button class="w-full bg-action-sale hover:bg-[#007077] text-white rounded-[20px] py-4 shadow-[0_20px_40px_-12px_rgba(0,135,143,0.4)] flex items-center justify-center gap-2 active:scale-[0.98] transition-all group glass-panel border border-white/20 relative overflow-hidden">
+<!-- Shimmer effect -->
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+<div class="bg-white/20 rounded-full p-1">
+<span class="material-symbols-outlined text-[24px]">add</span>
+</div>
+<span class="text-lg font-bold tracking-wide">Шинэ борлуулалт</span>
+</button>
+</div>
+<!-- Bottom safe area gradient for scroll fade -->
+<div class="fixed bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background-light to-transparent z-30 pointer-events-none"></div>
+</body></html>

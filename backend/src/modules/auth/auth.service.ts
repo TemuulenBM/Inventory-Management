@@ -100,11 +100,12 @@ export async function verifyOTP(
     return { success: false, error: 'Утасны дугаар буруу байна.' };
   }
 
-  // 2. OTP олох (сүүлийн, expire аагүй, attempt < 3)
+  // 2. OTP олох (сүүлийн, expire аагүй, verified=false)
   const { data: otpTokens, error: fetchError } = await supabase
     .from('otp_tokens')
     .select('*')
     .eq('phone', validatedPhone)
+    .eq('verified', false)
     .order('created_at', { ascending: false })
     .limit(1);
 
@@ -130,8 +131,11 @@ export async function verifyOTP(
     };
   }
 
-  // 6. OTP зөв - OTP token устгах
-  await supabase.from('otp_tokens').delete().eq('id', otpToken.id);
+  // 6. OTP зөв - verified=true болгож тэмдэглэх (устгахгүй - audit trail)
+  await supabase
+    .from('otp_tokens')
+    .update({ verified: true })
+    .eq('id', otpToken.id);
 
   // 7. User олох эсвэл үүсгэх
   const { data: existingUsers } = await supabase.from('users').select('*').eq('phone', validatedPhone).limit(1);
@@ -310,4 +314,25 @@ async function sendOTPSMS(phone: string, otp: string): Promise<void> {
   // - Twilio API call
   // - MessageBird API call
   // - SMS gateway integration
+}
+
+/**
+ * Хуучин OTP tokens устгах (cleanup)
+ *
+ * 24+ цагийн өмнөх verified эсвэл expired OTP-г устгана.
+ * Энэ функц периодоор ажиллах ёстой (cron job, scheduled task).
+ */
+export async function cleanupOldOTPs(): Promise<void> {
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  const { error } = await supabase
+    .from('otp_tokens')
+    .delete()
+    .lt('created_at', twentyFourHoursAgo.toISOString());
+
+  if (error) {
+    console.error('OTP cleanup error:', error);
+  } else {
+    console.log('✓ Old OTP tokens cleaned up (24h+)');
+  }
 }

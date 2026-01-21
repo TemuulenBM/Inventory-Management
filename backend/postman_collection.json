@@ -1,0 +1,1018 @@
+{
+  "info": {
+    "name": "Local Retail Control Platform API",
+    "description": "Offline-first retail inventory and sales management system API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "retail-control-api"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "store_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Request OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Check OTP in console logs (development mode)"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+97699119911\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/otp/request",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "otp", "request"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.success && response.accessToken) {",
+                  "  pm.collectionVariables.set('access_token', response.accessToken);",
+                  "  pm.collectionVariables.set('refresh_token', response.refreshToken);",
+                  "  pm.collectionVariables.set('store_id', response.user.storeId);",
+                  "  pm.collectionVariables.set('user_id', response.user.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+97699119911\",\n  \"otp\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/otp/verify",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "otp", "verify"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.success && response.accessToken) {",
+                  "  pm.collectionVariables.set('access_token', response.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Stores",
+      "item": [
+        {
+          "name": "Create Store",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.success && response.store) {",
+                  "  pm.collectionVariables.set('store_id', response.store.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Миний дэлгүүр\",\n  \"location\": \"Улаанбаатар\",\n  \"timezone\": \"Asia/Ulaanbaatar\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores",
+              "host": ["{{base_url}}"],
+              "path": ["stores"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Store",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Store",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Миний дэлгүүр (шинэчлэгдсэн)\",\n  \"location\": \"Улаанбаатар, Сүхбаатар дүүрэг\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Store Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/stats",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "stats"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Болд\",\n  \"phone\": \"+97699887766\",\n  \"role\": \"seller\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Болд (шинэчлэгдсэн)\",\n  \"phone\": \"+97699887766\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "users", "{{user_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"manager\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/users/{{user_id}}/role",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "users", "{{user_id}}", "role"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "users", "{{user_id}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "List Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/products?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "products"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "lowStock",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "products", "{{product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response.success && response.product) {",
+                  "  pm.collectionVariables.set('product_id', response.product.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Coca Cola 1.5L\",\n  \"sku\": \"COCA-1.5L\",\n  \"unit\": \"ширхэг\",\n  \"sellPrice\": 2500,\n  \"costPrice\": 1800,\n  \"lowStockThreshold\": 10,\n  \"note\": \"Кока кола 1.5 литр\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/products",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Coca Cola 1.5L (шинэ)\",\n  \"sellPrice\": 2700,\n  \"lowStockThreshold\": 15\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "products", "{{product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/products/{{product_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "products", "{{product_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Bulk Create Products",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"products\": [\n    {\n      \"name\": \"Pepsi 1.5L\",\n      \"sku\": \"PEPSI-1.5L\",\n      \"unit\": \"ширхэг\",\n      \"sellPrice\": 2500,\n      \"costPrice\": 1800,\n      \"lowStockThreshold\": 10\n    },\n    {\n      \"name\": \"Sprite 1.5L\",\n      \"sku\": \"SPRITE-1.5L\",\n      \"unit\": \"ширхэг\",\n      \"sellPrice\": 2500,\n      \"costPrice\": 1800,\n      \"lowStockThreshold\": 10\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/products/bulk",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "products", "bulk"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "List Inventory Events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/inventory-events?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "inventory-events"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "productId",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "eventType",
+                  "value": "SALE",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Inventory Event",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{product_id}}\",\n  \"eventType\": \"INITIAL\",\n  \"qtyChange\": 100,\n  \"reason\": \"Анхны үлдэгдэл\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/inventory-events",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "inventory-events"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Stock Levels",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/stock-levels",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "stock-levels"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product Stock History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/products/{{product_id}}/stock-history?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "products", "{{product_id}}", "stock-history"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Shifts",
+      "item": [
+        {
+          "name": "Open Shift",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"openBalance\": 50000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/shifts/open",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "shifts", "open"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Active Shift",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/shifts/active",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "shifts", "active"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Close Shift",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"closeBalance\": 150000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/shifts/close",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "shifts", "close"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Shifts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/shifts?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "shifts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Shift Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/shifts/:shiftId",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "shifts", ":shiftId"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sales",
+      "item": [
+        {
+          "name": "Create Sale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"items\": [\n    {\n      \"product_id\": \"{{product_id}}\",\n      \"quantity\": 2,\n      \"unit_price\": 2500\n    }\n  ],\n  \"payment_method\": \"cash\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/sales",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "sales"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Sales",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/sales?limit=20&offset=0",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "sales"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "payment_method",
+                  "value": "cash",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Sale Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/sales/:saleId",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "sales", ":saleId"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Void Sale",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/sales/:saleId/void",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "sales", ":saleId", "void"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Daily Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/reports/daily?date=2026-01-21",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "reports", "daily"],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-01-21"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Top Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/reports/top-products?from=2026-01-01&to=2026-01-31&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "reports", "top-products"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-01-31"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Seller Performance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/reports/seller-performance?from=2026-01-01&to=2026-01-31",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "reports", "seller-performance"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "to",
+                  "value": "2026-01-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Alerts",
+      "item": [
+        {
+          "name": "List Alerts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/alerts?limit=20&offset=0&resolved=false",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "alerts"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "resolved",
+                  "value": "false"
+                },
+                {
+                  "key": "alert_type",
+                  "value": "low_stock",
+                  "disabled": true
+                },
+                {
+                  "key": "level",
+                  "value": "warning",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Alert Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/alerts/:alertId",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "alerts", ":alertId"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Resolve Alert",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/alerts/:alertId/resolve",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "alerts", ":alertId", "resolve"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sync",
+      "item": [
+        {
+          "name": "Batch Sync",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"device_id\": \"mobile-device-123\",\n  \"operations\": [\n    {\n      \"operation_type\": \"create_sale\",\n      \"client_id\": \"client-sale-001\",\n      \"client_timestamp\": \"2026-01-21T10:00:00Z\",\n      \"data\": {\n        \"items\": [\n          {\n            \"product_id\": \"{{product_id}}\",\n            \"quantity\": 1,\n            \"unit_price\": 2500\n          }\n        ],\n        \"payment_method\": \"cash\"\n      }\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/sync",
+              "host": ["{{base_url}}"],
+              "path": ["sync"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Changes (Delta Sync)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/stores/{{store_id}}/changes?since=2026-01-21T00:00:00Z&limit=100",
+              "host": ["{{base_url}}"],
+              "path": ["stores", "{{store_id}}", "changes"],
+              "query": [
+                {
+                  "key": "since",
+                  "value": "2026-01-21T00:00:00Z"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
