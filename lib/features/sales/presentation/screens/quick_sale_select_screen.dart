@@ -5,6 +5,10 @@ import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
+import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
+import 'package:retail_control_platform/features/sales/presentation/providers/cart_provider.dart';
+import 'package:retail_control_platform/features/inventory/domain/product_with_stock.dart';
+import 'package:retail_control_platform/features/sales/domain/cart_item.dart';
 
 /// Quick Sale - Product Selection Screen
 /// Дизайн: design/quick_sale_select/screen.png
@@ -30,6 +34,12 @@ class _QuickSaleSelectScreenState
 
   @override
   Widget build(BuildContext context) {
+    // Provider-уудаас дата авах
+    final productsAsync = ref.watch(productListProvider());
+    final cartItems = ref.watch(cartNotifierProvider);
+    final cartCount = ref.watch(cartItemCountProvider);
+    final cartTotal = ref.watch(cartTotalProvider);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
@@ -46,7 +56,7 @@ class _QuickSaleSelectScreenState
                 AppSpacing.verticalXS,
 
                 // Category pills
-                _buildCategoryPills(),
+                _buildCategoryPills(productsAsync),
                 AppSpacing.verticalXS,
 
                 // Tabs (Онцлох/Сүүлд)
@@ -55,18 +65,37 @@ class _QuickSaleSelectScreenState
 
                 // Product grid
                 Expanded(
-                  child: _buildProductGrid(),
+                  child: productsAsync.when(
+                    data: (products) => _buildProductGrid(products, cartItems),
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                          const SizedBox(height: 16),
+                          Text('Алдаа: $e', textAlign: TextAlign.center),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: () => ref.invalidate(productListProvider()),
+                            child: const Text('Дахин оролдох'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
 
             // Bottom cart summary (if cart has items)
-            Positioned(
-              bottom: 16,
-              left: 16,
-              right: 16,
-              child: _buildCartSummary(),
-            ),
+            if (cartCount > 0)
+              Positioned(
+                bottom: 16,
+                left: 16,
+                right: 16,
+                child: _buildCartSummary(cartCount, cartTotal),
+              ),
           ],
         ),
       ),
@@ -222,8 +251,18 @@ class _QuickSaleSelectScreenState
     );
   }
 
-  Widget _buildCategoryPills() {
-    final categories = ['Бүгд', 'Хүнс', 'Ундаа', 'Гэр ахуй', 'Гоо сайхан'];
+  Widget _buildCategoryPills(AsyncValue<List<ProductWithStock>> productsAsync) {
+    // Products-аас unique categories гаргах
+    final categories = productsAsync.whenOrNull(
+      data: (products) {
+        final cats = products
+            .map((p) => p.category ?? 'Бусад')
+            .toSet()
+            .toList();
+        cats.sort();
+        return ['Бүгд', ...cats];
+      },
+    ) ?? ['Бүгд', 'Хүнс', 'Ундаа', 'Гэр ахуй'];
 
     return SizedBox(
       height: 40,
@@ -339,46 +378,33 @@ class _QuickSaleSelectScreenState
     );
   }
 
-  Widget _buildProductGrid() {
-    // Mock products data
-    final products = [
-      {
-        'name': 'Талх Атар (Өдөр тутмын)',
-        'price': '2,400',
-        'stock': 12,
-        'color': const Color(0xFFFFE4CC),
-      },
-      {
-        'name': 'Сүү ІЛ 1л',
-        'price': '3,200',
-        'stock': 8,
-        'color': const Color(0xFFCDE7F0),
-      },
-      {
-        'name': 'Coca Cola 500мл',
-        'price': '2,000',
-        'stock': 24,
-        'color': const Color(0xFFFFD4CC),
-      },
-      {
-        'name': 'Зөгийн бал',
-        'price': '15,000',
-        'stock': 5,
-        'color': const Color(0xFFFFF0CC),
-      },
-      {
-        'name': 'Жүрж Импорт',
-        'price': '8,600',
-        'stock': 15,
-        'color': const Color(0xFFFFE5CC),
-      },
-      {
-        'name': 'Сүү Ундаа 200мл',
-        'price': '4,000',
-        'stock': 18,
-        'color': const Color(0xFFD4E4FF),
-      },
-    ];
+  Widget _buildProductGrid(List<ProductWithStock> products, List<CartItem> cartItems) {
+    // Category filter
+    final filtered = _selectedCategory == 'Бүгд'
+        ? products
+        : products.where((p) => p.category == _selectedCategory).toList();
+
+    // Search filter
+    final searchText = _searchController.text.toLowerCase();
+    final searchFiltered = searchText.isEmpty
+        ? filtered
+        : filtered.where((p) => p.name.toLowerCase().contains(searchText)).toList();
+
+    if (searchFiltered.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[300]),
+            const SizedBox(height: 16),
+            Text(
+              products.isEmpty ? 'Бараа байхгүй байна' : 'Бараа олдсонгүй',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
 
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
@@ -388,32 +414,29 @@ class _QuickSaleSelectScreenState
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
-      itemCount: products.length,
+      itemCount: searchFiltered.length,
       itemBuilder: (context, index) {
-        final product = products[index];
-        return _buildProductCard(
-          name: product['name'] as String,
-          price: product['price'] as String,
-          stock: product['stock'] as int,
-          bgColor: product['color'] as Color,
-        );
+        final product = searchFiltered[index];
+        final inCart = cartItems.any((item) => item.product.id == product.id);
+        return _buildProductCard(product: product, inCart: inCart);
       },
     );
   }
 
   Widget _buildProductCard({
-    required String name,
-    required String price,
-    required int stock,
-    required Color bgColor,
+    required ProductWithStock product,
+    required bool inCart,
   }) {
+    // Барааны өнгө (category-аас хамаарч)
+    final bgColor = _getProductColor(product.category);
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: AppRadius.radiusXL,
         border: Border.all(
-          color: Colors.white.withOpacity(0.5),
-          width: 1,
+          color: inCart ? AppColors.primary : Colors.white.withOpacity(0.5),
+          width: inCart ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -471,14 +494,16 @@ class _QuickSaleSelectScreenState
                       Container(
                         width: 6,
                         height: 6,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF10B981),
+                        decoration: BoxDecoration(
+                          color: product.isLowStock
+                              ? Colors.orange
+                              : const Color(0xFF10B981),
                           shape: BoxShape.circle,
                         ),
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '${stock}ш',
+                        '${product.stockQuantity}ш',
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -503,7 +528,7 @@ class _QuickSaleSelectScreenState
                   // Product name
                   Flexible(
                     child: Text(
-                      name,
+                      product.name,
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -519,42 +544,34 @@ class _QuickSaleSelectScreenState
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      RichText(
-                        text: TextSpan(
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textMainLight,
-                            fontFamily: 'Epilogue',
-                          ),
-                          children: [
-                            TextSpan(text: price),
-                            const TextSpan(
-                              text: '₮',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
+                      Text(
+                        '${product.sellPrice.toStringAsFixed(0)}₮',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textMainLight,
+                          fontFamily: 'Epilogue',
                         ),
                       ),
                       Material(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: inCart
+                            ? AppColors.primary
+                            : AppColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         child: InkWell(
                           onTap: () {
                             // Add to cart
+                            ref.read(cartNotifierProvider.notifier).addProduct(product);
                           },
                           borderRadius: BorderRadius.circular(20),
                           child: Container(
                             width: 32,
                             height: 32,
                             alignment: Alignment.center,
-                            child: const Icon(
+                            child: Icon(
                               Icons.add,
                               size: 18,
-                              color: AppColors.primary,
+                              color: inCart ? Colors.white : AppColors.primary,
                             ),
                           ),
                         ),
@@ -570,14 +587,23 @@ class _QuickSaleSelectScreenState
     );
   }
 
-  Widget _buildCartSummary() {
-    // Mock cart data (will be replaced with actual cart provider)
-    final cartItemCount = 0;
-
-    if (cartItemCount == 0) {
-      return const SizedBox.shrink();
+  /// Категориас хамаарч өнгө буцаах
+  Color _getProductColor(String? category) {
+    switch (category) {
+      case 'Хүнс':
+        return const Color(0xFFFFE4CC);
+      case 'Ундаа':
+        return const Color(0xFFCDE7F0);
+      case 'Гэр ахуй':
+        return const Color(0xFFFFF0CC);
+      case 'Гоо сайхан':
+        return const Color(0xFFFFD4CC);
+      default:
+        return const Color(0xFFD4E4FF);
     }
+  }
 
+  Widget _buildCartSummary(int cartCount, double cartTotal) {
     return Material(
       color: const Color(0xFF00878F),
       borderRadius: AppRadius.radiusXL,
@@ -612,7 +638,7 @@ class _QuickSaleSelectScreenState
                         shape: BoxShape.circle,
                       ),
                       child: Text(
-                        '$cartItemCount',
+                        '$cartCount',
                         style: const TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -638,9 +664,9 @@ class _QuickSaleSelectScreenState
               ),
 
               // Total amount
-              const Text(
-                '7,200₮',
-                style: TextStyle(
+              Text(
+                '${cartTotal.toStringAsFixed(0)}₮',
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: Colors.white,
