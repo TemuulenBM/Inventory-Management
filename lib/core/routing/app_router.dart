@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:retail_control_platform/core/routing/placeholder_screens.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
+import 'package:retail_control_platform/core/widgets/layout/main_shell.dart';
 import 'package:retail_control_platform/features/auth/presentation/screens/phone_auth_screen.dart';
 import 'package:retail_control_platform/features/auth/presentation/screens/otp_screen.dart';
 import 'package:retail_control_platform/features/onboarding/presentation/screens/splash_screen.dart';
@@ -51,79 +52,98 @@ final GoRouter appRouter = GoRouter(
       },
     ),
 
-    // ===== MAIN APP =====
-    GoRoute(
-      path: RouteNames.dashboard,
-      name: 'dashboard',
-      builder: (context, state) => const DashboardScreen(),
-    ),
+    // ===== MAIN APP with Bottom Navigation =====
+    ShellRoute(
+      builder: (context, state, child) {
+        // currentIndex тооцоолох (route-аас хамаарч)
+        final location = state.uri.path;
+        int index = 0;
+        if (location.startsWith('/sales')) {
+          index = 1;
+        } else if (location.startsWith('/inventory') ||
+            location.startsWith('/product')) {
+          index = 2;
+        } else if (location.startsWith('/settings')) {
+          index = 3;
+        }
 
-    // ===== SALES =====
-    GoRoute(
-      path: RouteNames.quickSaleSelect,
-      name: 'quick-sale-select',
-      builder: (context, state) => const QuickSaleSelectScreen(),
-    ),
-    GoRoute(
-      path: RouteNames.quickSaleCart,
-      name: 'quick-sale-cart',
-      builder: (context, state) => const CartScreen(),
-    ),
-
-    // ===== INVENTORY =====
-    GoRoute(
-      path: RouteNames.inventory,
-      name: 'inventory',
-      builder: (context, state) => const ProductsListScreen(),
-    ),
-    GoRoute(
-      path: RouteNames.addProduct,
-      name: 'add-product',
-      builder: (context, state) => const ProductFormScreen(productId: 'new'),
-    ),
-    GoRoute(
-      path: RouteNames.editProduct,
-      name: 'edit-product',
-      builder: (context, state) {
-        final productId = state.pathParameters['id'] ?? '';
-        return ProductFormScreen(productId: productId);
+        return MainShell(currentIndex: index, child: child);
       },
-    ),
-    GoRoute(
-      path: RouteNames.productDetail,
-      name: 'product-detail',
-      builder: (context, state) {
-        final productId = state.pathParameters['id'] ?? '';
-        return ProductDetailScreen(productId: productId);
-      },
-    ),
-
-    // ===== ALERTS =====
-    GoRoute(
-      path: RouteNames.alerts,
-      name: 'alerts',
-      builder: (context, state) => const AlertsCenterScreen(),
-    ),
-
-    // ===== SHIFTS =====
-    GoRoute(
-      path: RouteNames.shifts,
-      name: 'shifts',
-      builder: (context, state) => const ShiftManagementScreen(),
-    ),
-
-    // ===== SYNC =====
-    GoRoute(
-      path: RouteNames.syncConflicts,
-      name: 'sync-conflicts',
-      builder: (context, state) => const SyncConflictsScreen(),
-    ),
-
-    // ===== SETTINGS =====
-    GoRoute(
-      path: RouteNames.settings,
-      name: 'settings',
-      builder: (context, state) => const SettingsScreen(),
+      routes: [
+        // Dashboard
+        GoRoute(
+          path: RouteNames.dashboard,
+          name: 'dashboard',
+          builder: (context, state) => const DashboardScreen(),
+        ),
+        // Quick Sale
+        GoRoute(
+          path: RouteNames.quickSaleSelect,
+          name: 'quick-sale-select',
+          builder: (context, state) => const QuickSaleSelectScreen(),
+        ),
+        // Cart (sub-route of sales)
+        GoRoute(
+          path: RouteNames.quickSaleCart,
+          name: 'quick-sale-cart',
+          builder: (context, state) => const CartScreen(),
+        ),
+        // Inventory
+        GoRoute(
+          path: RouteNames.inventory,
+          name: 'inventory',
+          builder: (context, state) => const ProductsListScreen(),
+        ),
+        // Product Detail
+        GoRoute(
+          path: RouteNames.productDetail,
+          name: 'product-detail',
+          builder: (context, state) {
+            final productId = state.pathParameters['id'] ?? '';
+            return ProductDetailScreen(productId: productId);
+          },
+        ),
+        // Add Product
+        GoRoute(
+          path: RouteNames.addProduct,
+          name: 'add-product',
+          builder: (context, state) =>
+              const ProductFormScreen(productId: 'new'),
+        ),
+        // Edit Product
+        GoRoute(
+          path: RouteNames.editProduct,
+          name: 'edit-product',
+          builder: (context, state) {
+            final productId = state.pathParameters['id'] ?? '';
+            return ProductFormScreen(productId: productId);
+          },
+        ),
+        // Settings
+        GoRoute(
+          path: RouteNames.settings,
+          name: 'settings',
+          builder: (context, state) => const SettingsScreen(),
+        ),
+        // Alerts
+        GoRoute(
+          path: RouteNames.alerts,
+          name: 'alerts',
+          builder: (context, state) => const AlertsCenterScreen(),
+        ),
+        // Shifts
+        GoRoute(
+          path: RouteNames.shifts,
+          name: 'shifts',
+          builder: (context, state) => const ShiftManagementScreen(),
+        ),
+        // Sync
+        GoRoute(
+          path: RouteNames.syncConflicts,
+          name: 'sync-conflicts',
+          builder: (context, state) => const SyncConflictsScreen(),
+        ),
+      ],
     ),
   ],
 

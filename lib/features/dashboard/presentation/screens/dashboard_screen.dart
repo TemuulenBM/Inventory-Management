@@ -43,7 +43,7 @@ class DashboardScreen extends ConsumerWidget {
                     AppSpacing.verticalLG,
 
                     // Low Stock Alerts
-                    _buildLowStockSection(ref),
+                    _buildLowStockSection(context, ref),
                     AppSpacing.verticalLG,
 
                     // Top Products (динамик)
@@ -567,7 +567,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLowStockSection(WidgetRef ref) {
+  Widget _buildLowStockSection(BuildContext context, WidgetRef ref) {
     final storeId = ref.watch(storeIdProvider);
     if (storeId == null) {
       return const SizedBox.shrink();
@@ -657,7 +657,7 @@ class DashboardScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: TextButton(
                   onPressed: () {
-                    // Navigate to alerts
+                    context.push('/alerts');
                   },
                   style: TextButton.styleFrom(
                     padding: EdgeInsets.zero,
