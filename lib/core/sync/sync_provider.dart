@@ -46,11 +46,13 @@ class SyncNotifier extends _$SyncNotifier {
     );
   }
 
-  /// Интернэт холболтыг шалгах
   Future<void> _checkConnectivity() async {
-    // connectivity_plus 5.x дээр checkConnectivity() нь дан ConnectivityResult буцаана
-    final result = await Connectivity().checkConnectivity();
-    _updateOnlineStatus(result);
+    final List<ConnectivityResult> results = await Connectivity().checkConnectivity();
+    if (results.isNotEmpty) {
+      _updateOnlineStatus(results.first);
+    } else {
+      _updateOnlineStatus(ConnectivityResult.none);
+    }
   }
 
   void _updateOnlineStatus(ConnectivityResult result) {
@@ -146,11 +148,15 @@ class SyncNotifier extends _$SyncNotifier {
   }
 }
 
-/// Интернэт холболтын өөрчлөлтийг сонсох stream provider
+/// Connectivity stream provider
 @riverpod
 Stream<ConnectivityResult> connectivityStream(ConnectivityStreamRef ref) {
-  // connectivity_plus 5.x дээр onConnectivityChanged нь Stream<ConnectivityResult> буцаана
-  return Connectivity().onConnectivityChanged;
+  return Connectivity().onConnectivityChanged.map((results) {
+    if (results is List<ConnectivityResult>) {
+      return results.isNotEmpty ? results.first : ConnectivityResult.none;
+    }
+    return results as ConnectivityResult;
+  });
 }
 
 /// Is online (convenience provider)

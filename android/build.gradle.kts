@@ -1,4 +1,9 @@
-// repositories тохиргоо settings.gradle.kts руу зөөсөн (Gradle 8+ шаардлага)
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
 
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
