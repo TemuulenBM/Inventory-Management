@@ -278,7 +278,7 @@ class SyncQueueManager {
               actorId: data['actor_id'],
               shiftId: Value(data['shift_id']),
               reason: Value(data['reason']),
-              timestamp: Value(DateTime.tryParse(data['timestamp'] ?? '')),
+              timestamp: Value(DateTime.tryParse(data['timestamp'] ?? '') ?? DateTime.now()),
             ),
           );
     } catch (e) {
@@ -294,7 +294,7 @@ class SyncQueueManager {
               id: data['id'],
               storeId: data['store_id'],
               sellerId: data['seller_id'],
-              openedAt: Value(DateTime.tryParse(data['opened_at'] ?? '')),
+              openedAt: Value(DateTime.tryParse(data['opened_at'] ?? '') ?? DateTime.now()),
               closedAt: Value(DateTime.tryParse(data['closed_at'] ?? '')),
               openBalance: Value((data['open_balance'] as num?)?.toDouble()),
               closeBalance: Value((data['close_balance'] as num?)?.toDouble()),
