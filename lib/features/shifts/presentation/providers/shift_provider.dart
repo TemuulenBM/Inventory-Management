@@ -1,25 +1,36 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:retail_control_platform/core/database/app_database.dart';
-import 'package:retail_control_platform/features/shifts/domain/shift_model.dart';
+import 'package:retail_control_platform/core/providers/store_provider.dart';
+import 'package:retail_control_platform/core/services/shift_service.dart';
+import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
+import 'package:retail_control_platform/features/shifts/domain/shift_model.dart';
 
 part 'shift_provider.g.dart';
 
+/// ShiftService provider
+@riverpod
+ShiftService shiftService(ShiftServiceRef ref) {
+  final db = ref.watch(databaseProvider);
+  return ShiftService(db: db);
+}
+
 /// Current active shift
+/// Offline-first: Local DB эхлээд, background-д API refresh
 @riverpod
 Future<ShiftModel?> currentShift(
   CurrentShiftRef ref,
   String storeId,
 ) async {
-  final db = ref.watch(databaseProvider);
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return null;
 
-  // TODO: Implement actual query
-  // final shift = await db.select(db.shifts)
-  //   .where((s) => s.storeId.equals(storeId) & s.endTime.isNull())
-  //   .getSingleOrNull();
+  final service = ref.watch(shiftServiceProvider);
+  final result = await service.getActiveShift(storeId, userId);
 
-  // Mock data for Phase 3
-  return _getMockCurrentShift();
+  return result.when(
+    success: (shift) => shift,
+    error: (_, __, ___) => null,
+  );
 }
 
 /// Shift history (past shifts)
@@ -29,112 +40,105 @@ Future<List<ShiftModel>> shiftHistory(
   String storeId, {
   int limit = 20,
 }) async {
-  final db = ref.watch(databaseProvider);
+  final service = ref.watch(shiftServiceProvider);
+  final result = await service.getShiftHistory(storeId, limit: limit);
 
-  // TODO: Implement actual query
-  // final shifts = await db.select(db.shifts)
-  //   .where((s) => s.storeId.equals(storeId) & s.endTime.isNotNull())
-  //   .orderBy([(s) => OrderingTerm.desc(s.startTime)])
-  //   .limit(limit)
-  //   .get();
-
-  // Mock data for Phase 3
-  return _getMockShiftHistory();
+  return result.when(
+    success: (shifts) => shifts,
+    error: (_, __, ___) => [],
+  );
 }
 
-/// Start new shift
+/// Shift detail
+@riverpod
+Future<ShiftModel?> shiftDetail(
+  ShiftDetailRef ref,
+  String storeId,
+  String shiftId,
+) async {
+  final service = ref.watch(shiftServiceProvider);
+  final result = await service.getShiftDetail(storeId, shiftId);
+
+  return result.when(
+    success: (shift) => shift,
+    error: (_, __, ___) => null,
+  );
+}
+
+/// Shift actions (open, close)
 @riverpod
 class ShiftActions extends _$ShiftActions {
   @override
   FutureOr<void> build() {}
 
-  Future<void> startShift({
-    required String sellerId,
-    required String sellerName,
-    required String storeId,
-    String? notes,
+  /// Ээлж нээх
+  Future<bool> openShift({
+    double? openBalance,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final db = ref.read(databaseProvider);
 
-      // TODO: Implement actual insert
-      // await db.into(db.shifts).insert(
-      //   ShiftsCompanion.insert(
-      //     sellerId: sellerId,
-      //     sellerName: sellerName,
-      //     storeId: storeId,
-      //     startTime: DateTime.now(),
-      //     notes: Value(notes),
-      //   ),
-      // );
+    final storeId = ref.read(storeIdProvider);
+    final user = ref.read(currentUserProvider);
 
-      // Invalidate current shift to refresh
-      ref.invalidate(currentShiftProvider);
-    });
+    if (storeId == null || user == null) {
+      state = AsyncValue.error('Хэрэглэгч нэвтрээгүй байна', StackTrace.current);
+      return false;
+    }
+
+    final service = ref.read(shiftServiceProvider);
+    final result = await service.openShift(
+      storeId,
+      user.id,
+      user.name ?? 'Unknown',
+      openBalance: openBalance,
+    );
+
+    return result.when(
+      success: (_) {
+        state = const AsyncValue.data(null);
+        // Invalidate to refresh
+        ref.invalidate(currentShiftProvider(storeId));
+        return true;
+      },
+      error: (message, _, __) {
+        state = AsyncValue.error(message, StackTrace.current);
+        return false;
+      },
+    );
   }
 
-  Future<void> endShift({
+  /// Ээлж хаах
+  Future<bool> closeShift({
     required String shiftId,
-    String? notes,
+    double? closeBalance,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final db = ref.read(databaseProvider);
 
-      // TODO: Implement actual update
-      // await (db.update(db.shifts)..where((s) => s.id.equals(shiftId)))
-      //   .write(
-      //     ShiftsCompanion(
-      //       endTime: Value(DateTime.now()),
-      //       notes: Value(notes),
-      //     ),
-      //   );
+    final storeId = ref.read(storeIdProvider);
+    if (storeId == null) {
+      state = AsyncValue.error('Хэрэглэгч нэвтрээгүй байна', StackTrace.current);
+      return false;
+    }
 
-      // Invalidate to refresh
-      ref.invalidate(currentShiftProvider);
-      ref.invalidate(shiftHistoryProvider);
-    });
+    final service = ref.read(shiftServiceProvider);
+    final result = await service.closeShift(
+      storeId,
+      shiftId,
+      closeBalance: closeBalance,
+    );
+
+    return result.when(
+      success: (_) {
+        state = const AsyncValue.data(null);
+        // Invalidate to refresh
+        ref.invalidate(currentShiftProvider(storeId));
+        ref.invalidate(shiftHistoryProvider(storeId));
+        return true;
+      },
+      error: (message, _, __) {
+        state = AsyncValue.error(message, StackTrace.current);
+        return false;
+      },
+    );
   }
-}
-
-/// Mock data for Phase 3
-ShiftModel? _getMockCurrentShift() {
-  return ShiftModel(
-    id: 'shift-1',
-    sellerId: 'seller-1',
-    sellerName: 'Болд',
-    storeId: 'store-1',
-    startTime: DateTime.now().subtract(const Duration(hours: 3)),
-    totalSales: 125000,
-    transactionCount: 18,
-    createdAt: DateTime.now().subtract(const Duration(hours: 3)),
-  );
-}
-
-List<ShiftModel> _getMockShiftHistory() {
-  return [
-    ShiftModel(
-      id: 'shift-2',
-      sellerId: 'seller-1',
-      sellerName: 'Болд',
-      storeId: 'store-1',
-      startTime: DateTime.now().subtract(const Duration(days: 1, hours: 4)),
-      endTime: DateTime.now().subtract(const Duration(days: 1)),
-      totalSales: 210000,
-      transactionCount: 32,
-      createdAt: DateTime.now().subtract(const Duration(days: 1, hours: 4)),
-    ),
-    ShiftModel(
-      id: 'shift-3',
-      sellerId: 'seller-2',
-      sellerName: 'Сарнай',
-      storeId: 'store-1',
-      startTime: DateTime.now().subtract(const Duration(days: 2, hours: 5)),
-      endTime: DateTime.now().subtract(const Duration(days: 2)),
-      totalSales: 185000,
-      transactionCount: 27,
-      createdAt: DateTime.now().subtract(const Duration(days: 2, hours: 5)),
-    ),
-  ];
 }

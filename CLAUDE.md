@@ -7,13 +7,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 1. **Монгол хэлээр харилцах** - Хэрэглэгчтэй үргэлж монгол хэлээр ярилц
 2. **Сургалтын зорилготой** - Код бичихдээ яагаад ийм шийдэл сонгосон, ямар pattern ашигласан, юу сурч болох талаар тайлбарлаж өг. Хэрэглэгчийн суурь мэдлэгийг дээшлүүлэхэд туслах
 3. **Git commit** - Commit message-д "Co-Authored-By" мөр хэзээ ч бүү нэм
+4. **Код дээрх тайлбар монголоор** - Docblock, comment, TODO зэрэг кодын тайлбаруудыг монгол хэлээр бич
 
 ## Project Overview
 
 Local Retail Control Platform - an offline-first retail inventory and sales management system for small retailers in Mongolia. The project consists of:
 
 - **Flutter mobile app** (main application) - offline-first with local SQLite database
-- **Node.js backend** (in `/backend`) - Fastify API server (not yet implemented)
+- **Node.js backend** (in `/backend`) - Fastify API server with Supabase
 
 ## Build & Development Commands
 
@@ -29,6 +30,8 @@ flutter test test/path/to/test_file.dart                     # Run single test
 flutter analyze                                              # Static analysis
 flutter gen-l10n                                             # Regenerate localization
 ```
+
+**IMPORTANT**: After modifying `*.dart` files with `@freezed`, `@riverpod`, or Drift tables, always run `build_runner build`.
 
 ### Backend (Node.js)
 
@@ -50,6 +53,57 @@ npm run docker:down      # Stop containers
 
 ## Architecture
 
+### Flutter App Structure
+
+```
+lib/
+├── core/                    # Shared infrastructure
+│   ├── api/                 # API client, endpoints, result types
+│   ├── database/            # Drift tables (app_database.dart)
+│   ├── providers/           # Global Riverpod providers
+│   ├── routing/             # GoRouter configuration
+│   ├── services/            # Service layer (base_service.dart pattern)
+│   ├── sync/                # Offline sync logic
+│   ├── theme/               # App theming
+│   └── widgets/             # Reusable UI components
+│       ├── buttons/
+│       ├── cards/
+│       ├── indicators/
+│       ├── inputs/
+│       ├── layout/
+│       └── modals/
+└── features/                # Feature modules
+    ├── auth/                # Authentication (OTP flow)
+    ├── inventory/           # Products & stock management
+    ├── sales/               # Cart & sales transactions
+    ├── shifts/              # Seller shift management
+    ├── alerts/              # System notifications
+    ├── dashboard/           # Main dashboard
+    └── onboarding/          # Splash & intro screens
+```
+
+Each feature follows: `domain/` (models) → `presentation/providers/` → `presentation/screens/`
+
+### Code Generation Patterns
+
+**Freezed models** (immutable data classes):
+```dart
+@freezed
+class CartItem with _$CartItem {
+  const factory CartItem({...}) = _CartItem;
+  factory CartItem.fromJson(Map<String, dynamic> json) => _$CartItemFromJson(json);
+}
+```
+
+**Riverpod providers** (state management):
+```dart
+@riverpod
+class CartNotifier extends _$CartNotifier {
+  @override
+  List<CartItem> build() => [];
+}
+```
+
 ### Offline-First with Event Sourcing
 
 The core architectural pattern is **Event Sourcing** for inventory management:
@@ -68,21 +122,29 @@ The core architectural pattern is **Event Sourcing** for inventory management:
    - Materialized view `product_stock_levels` for performance
    - Call `refresh_product_stock_levels()` after inventory changes
 
-### Key Flutter Dependencies
-
-- **State Management**: Riverpod with code generation (`riverpod_generator`)
-- **Local Database**: Drift with SQLCipher encryption
-- **Backend**: Supabase for auth and real-time sync
-- **Models**: Freezed for immutable data classes
-- **Localization**: Flutter's built-in l10n (English + Mongolian)
-
 ### Backend Architecture (Fastify)
 
-- **Entry point**: [backend/src/server.ts](backend/src/server.ts)
-- **Plugin system**: Security (CORS, Helmet, Rate-limit) → JWT → Error handler
-- **Module structure**: Each module has `schema.ts` (Zod), `service.ts`, `routes.ts`
-- **Auth middleware**: `authenticate` (JWT verify), `authorize(roles[])`, `requireStore()` - see [backend/src/modules/auth/auth.middleware.ts](backend/src/modules/auth/auth.middleware.ts)
-- **User roles**: `owner`, `manager`, `seller`
+```
+backend/src/
+├── config/            # Environment, Supabase client
+├── plugins/           # CORS, Helmet, Rate-limit, JWT, Swagger
+├── modules/           # Feature modules
+│   ├── auth/          # OTP auth, middleware (authenticate, authorize, requireStore)
+│   ├── store/         # Store CRUD
+│   ├── user/          # User management
+│   ├── product/       # Product catalog
+│   ├── inventory/     # Stock events
+│   ├── shift/         # Shift management
+│   ├── sales/         # Sales transactions
+│   ├── alerts/        # System alerts
+│   ├── reports/       # Analytics
+│   └── sync/          # Offline sync endpoint
+└── server.ts          # Entry point
+```
+
+Each module follows: `schema.ts` (Zod validation) → `service.ts` (business logic) → `routes.ts`
+
+**User roles**: `owner`, `manager`, `seller`
 
 ### Sync Flow
 

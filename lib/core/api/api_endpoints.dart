@@ -21,28 +21,38 @@ class ApiEndpoints {
   // Products
   static String products(String storeId) => '/stores/$storeId/products';
   static String product(String storeId, String productId) => '/stores/$storeId/products/$productId';
+  static String productsBulk(String storeId) => '/stores/$storeId/products/bulk';
 
   // Inventory
-  static String inventory(String storeId) => '/stores/$storeId/inventory';
-  static String stockLevels(String storeId) => '/stores/$storeId/inventory/stock-levels';
+  static String inventoryEvents(String storeId) => '/stores/$storeId/inventory-events';
+  static String stockLevels(String storeId) => '/stores/$storeId/stock-levels';
+  static String stockHistory(String storeId, String productId) =>
+      '/stores/$storeId/products/$productId/stock-history';
 
   // Sales
   static String sales(String storeId) => '/stores/$storeId/sales';
   static String sale(String storeId, String saleId) => '/stores/$storeId/sales/$saleId';
+  static String voidSale(String storeId, String saleId) => '/stores/$storeId/sales/$saleId/void';
 
   // Shifts
   static String shifts(String storeId) => '/stores/$storeId/shifts';
   static String shift(String storeId, String shiftId) => '/stores/$storeId/shifts/$shiftId';
+  static String activeShift(String storeId) => '/stores/$storeId/shifts/active';
+  static String openShift(String storeId) => '/stores/$storeId/shifts/open';
+  static String closeShift(String storeId) => '/stores/$storeId/shifts/close';
 
   // Alerts
   static String alerts(String storeId) => '/stores/$storeId/alerts';
   static String alert(String storeId, String alertId) => '/stores/$storeId/alerts/$alertId';
+  static String resolveAlert(String storeId, String alertId) =>
+      '/stores/$storeId/alerts/$alertId/resolve';
 
   // Reports
   static String reports(String storeId) => '/stores/$storeId/reports';
 
   // Sync
-  static String sync(String storeId) => '/stores/$storeId/sync';
+  static const String sync = '/sync';
+  static String changes(String storeId) => '/stores/$storeId/changes';
 
   // Health
   static const String health = '/health';

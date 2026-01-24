@@ -1,5 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:retail_control_platform/core/database/app_database.dart';
+import 'package:retail_control_platform/core/providers/store_provider.dart';
+import 'package:retail_control_platform/core/services/product_service.dart';
 import 'package:retail_control_platform/features/inventory/domain/product_with_stock.dart';
 
 part 'product_provider.g.dart';
@@ -10,28 +12,39 @@ AppDatabase database(DatabaseRef ref) {
   return AppDatabase();
 }
 
+/// ProductService provider
+@riverpod
+ProductService productService(ProductServiceRef ref) {
+  final db = ref.watch(databaseProvider);
+  return ProductService(db: db);
+}
+
 /// Product list with optional filters
+/// Offline-first: Local DB эхлээд, background-д API refresh
 @riverpod
 Future<List<ProductWithStock>> productList(
   ProductListRef ref, {
   String? searchQuery,
   String? category,
-  String? storeId,
 }) async {
-  final db = ref.watch(databaseProvider);
+  final storeId = ref.watch(storeIdProvider);
+  if (storeId == null) {
+    return [];
+  }
 
-  // TODO: Implement actual query using Drift
-  // For now, return mock data for Phase 3
-  // Will be replaced with real DB query in Phase 4
-
-  // Example query (when Drift queries are ready):
-  // final products = await db.select(db.products).get();
-  // final stockLevels = await db.getStockLevels(...);
-  // Join and map to ProductWithStock
-
-  return _getMockProducts(
+  final service = ref.watch(productServiceProvider);
+  final result = await service.getProducts(
+    storeId,
     searchQuery: searchQuery,
     category: category,
+  );
+
+  return result.when(
+    success: (products) => products,
+    error: (message, statusCode, _) {
+      // Log error but return empty list
+      return [];
+    },
   );
 }
 
@@ -41,14 +54,16 @@ Future<ProductWithStock?> productDetail(
   ProductDetailRef ref,
   String productId,
 ) async {
-  final db = ref.watch(databaseProvider);
+  final storeId = ref.watch(storeIdProvider);
+  if (storeId == null) return null;
 
-  // TODO: Implement actual query
-  // final product = await db.select(db.products).get().where(...);
-  // final stock = await db.getCurrentStock(productId);
+  final service = ref.watch(productServiceProvider);
+  final result = await service.getProduct(storeId, productId);
 
-  return _getMockProducts()
-      .firstWhere((p) => p.id == productId, orElse: () => _getMockProducts().first);
+  return result.when(
+    success: (product) => product,
+    error: (_, __, ___) => null,
+  );
 }
 
 /// Low stock products (for alerts)
@@ -57,13 +72,13 @@ Future<List<ProductWithStock>> lowStockProducts(
   LowStockProductsRef ref,
   String storeId,
 ) async {
-  final db = ref.watch(databaseProvider);
+  final service = ref.watch(productServiceProvider);
+  final result = await service.getLowStockProducts(storeId);
 
-  // TODO: Implement db.getLowStockProducts(storeId)
-
-  return _getMockProducts()
-      .where((p) => p.isLowStock)
-      .toList();
+  return result.when(
+    success: (products) => products,
+    error: (_, __, ___) => [],
+  );
 }
 
 /// Search products (debounced)
@@ -74,104 +89,138 @@ Future<List<ProductWithStock>> searchProducts(
 ) async {
   if (query.isEmpty) return [];
 
-  final db = ref.watch(databaseProvider);
+  final storeId = ref.watch(storeIdProvider);
+  if (storeId == null) return [];
 
-  // TODO: Implement full-text search
-  // await db.searchProducts(query);
+  final service = ref.watch(productServiceProvider);
+  final result = await service.searchProducts(storeId, query);
 
-  return _getMockProducts()
-      .where((p) =>
-          p.name.toLowerCase().contains(query.toLowerCase()) ||
-          p.sku.toLowerCase().contains(query.toLowerCase()))
-      .toList();
+  return result.when(
+    success: (products) => products,
+    error: (_, __, ___) => [],
+  );
 }
 
-/// Mock products for Phase 3 (will be replaced)
-List<ProductWithStock> _getMockProducts({
-  String? searchQuery,
-  String? category,
-}) {
-  final mockProducts = [
-    const ProductWithStock(
-      id: '1',
-      name: 'Coca Cola 1.5L',
-      sku: 'COCA-1.5L',
-      sellPrice: 2500,
-      costPrice: 1800,
-      stockQuantity: 45,
-      isLowStock: false,
-      storeId: 'store-1',
-      category: 'Drinks',
-      unit: 'л',
-      lowStockThreshold: 10,
-    ),
-    const ProductWithStock(
-      id: '2',
-      name: 'Sprite 1.5L',
-      sku: 'SPRITE-1.5L',
-      sellPrice: 2500,
-      costPrice: 1800,
-      stockQuantity: 8,
-      isLowStock: true,
-      storeId: 'store-1',
-      category: 'Drinks',
-      unit: 'л',
-      lowStockThreshold: 10,
-    ),
-    const ProductWithStock(
-      id: '3',
-      name: 'Сахар 1кг',
-      sku: 'SUGAR-1KG',
-      sellPrice: 3200,
-      costPrice: 2500,
-      stockQuantity: 120,
-      isLowStock: false,
-      storeId: 'store-1',
-      category: 'Food',
-      unit: 'кг',
-      lowStockThreshold: 20,
-    ),
-    const ProductWithStock(
-      id: '4',
-      name: 'Гурил 1кг',
-      sku: 'FLOUR-1KG',
-      sellPrice: 2800,
-      costPrice: 2200,
-      stockQuantity: 5,
-      isLowStock: true,
-      storeId: 'store-1',
-      category: 'Food',
-      unit: 'кг',
-      lowStockThreshold: 15,
-    ),
-    const ProductWithStock(
-      id: '5',
-      name: 'Ус 1.5L',
-      sku: 'WATER-1.5L',
-      sellPrice: 1200,
-      costPrice: 800,
-      stockQuantity: 200,
-      isLowStock: false,
-      storeId: 'store-1',
-      category: 'Drinks',
-      unit: 'л',
-      lowStockThreshold: 50,
-    ),
-  ];
+/// Product actions (create, update, delete)
+@riverpod
+class ProductActions extends _$ProductActions {
+  @override
+  FutureOr<void> build() {}
 
-  var filtered = mockProducts;
+  /// Шинэ бараа нэмэх
+  Future<bool> createProduct({
+    required String name,
+    required String sku,
+    required String unit,
+    required double sellPrice,
+    double? costPrice,
+    int? lowStockThreshold,
+    int? initialStock,
+  }) async {
+    state = const AsyncValue.loading();
 
-  if (searchQuery != null && searchQuery.isNotEmpty) {
-    filtered = filtered
-        .where((p) =>
-            p.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
-            p.sku.toLowerCase().contains(searchQuery.toLowerCase()))
-        .toList();
+    final storeId = ref.read(storeIdProvider);
+    final userId = ref.read(currentUserIdProvider);
+
+    if (storeId == null || userId == null) {
+      state = AsyncValue.error('Хэрэглэгч нэвтрээгүй байна', StackTrace.current);
+      return false;
+    }
+
+    final service = ref.read(productServiceProvider);
+    final result = await service.createProduct(
+      storeId,
+      userId,
+      name: name,
+      sku: sku,
+      unit: unit,
+      sellPrice: sellPrice,
+      costPrice: costPrice,
+      lowStockThreshold: lowStockThreshold,
+      initialStock: initialStock,
+    );
+
+    return result.when(
+      success: (_) {
+        state = const AsyncValue.data(null);
+        // Invalidate product list to refresh
+        ref.invalidate(productListProvider);
+        return true;
+      },
+      error: (message, _, __) {
+        state = AsyncValue.error(message, StackTrace.current);
+        return false;
+      },
+    );
   }
 
-  if (category != null && category.isNotEmpty) {
-    filtered = filtered.where((p) => p.category == category).toList();
+  /// Бараа засах
+  Future<bool> updateProduct(
+    String productId, {
+    String? name,
+    String? sku,
+    String? unit,
+    double? sellPrice,
+    double? costPrice,
+    int? lowStockThreshold,
+  }) async {
+    state = const AsyncValue.loading();
+
+    final storeId = ref.read(storeIdProvider);
+    if (storeId == null) {
+      state = AsyncValue.error('Хэрэглэгч нэвтрээгүй байна', StackTrace.current);
+      return false;
+    }
+
+    final service = ref.read(productServiceProvider);
+    final result = await service.updateProduct(
+      storeId,
+      productId,
+      name: name,
+      sku: sku,
+      unit: unit,
+      sellPrice: sellPrice,
+      costPrice: costPrice,
+      lowStockThreshold: lowStockThreshold,
+    );
+
+    return result.when(
+      success: (_) {
+        state = const AsyncValue.data(null);
+        ref.invalidate(productListProvider);
+        ref.invalidate(productDetailProvider(productId));
+        return true;
+      },
+      error: (message, _, __) {
+        state = AsyncValue.error(message, StackTrace.current);
+        return false;
+      },
+    );
   }
 
-  return filtered;
+  /// Бараа устгах
+  Future<bool> deleteProduct(String productId) async {
+    state = const AsyncValue.loading();
+
+    final storeId = ref.read(storeIdProvider);
+    if (storeId == null) {
+      state = AsyncValue.error('Хэрэглэгч нэвтрээгүй байна', StackTrace.current);
+      return false;
+    }
+
+    final service = ref.read(productServiceProvider);
+    final result = await service.deleteProduct(storeId, productId);
+
+    return result.when(
+      success: (_) {
+        state = const AsyncValue.data(null);
+        ref.invalidate(productListProvider);
+        return true;
+      },
+      error: (message, _, __) {
+        state = AsyncValue.error(message, StackTrace.current);
+        return false;
+      },
+    );
+  }
 }

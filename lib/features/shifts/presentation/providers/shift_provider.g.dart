@@ -6,7 +6,23 @@ part of 'shift_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$currentShiftHash() => r'c7dc9a1fb8aac6f1439d11bd37d2cf24d2ac3ad4';
+String _$shiftServiceHash() => r'a9679758c63a2f06e4a60b1d81b5c0d18104f196';
+
+/// ShiftService provider
+///
+/// Copied from [shiftService].
+@ProviderFor(shiftService)
+final shiftServiceProvider = AutoDisposeProvider<ShiftService>.internal(
+  shiftService,
+  name: r'shiftServiceProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$shiftServiceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef ShiftServiceRef = AutoDisposeProviderRef<ShiftService>;
+String _$currentShiftHash() => r'63632f84450404bec7fd5ce460a9fbaaae923a56';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -30,21 +46,25 @@ class _SystemHash {
 }
 
 /// Current active shift
+/// Offline-first: Local DB эхлээд, background-д API refresh
 ///
 /// Copied from [currentShift].
 @ProviderFor(currentShift)
 const currentShiftProvider = CurrentShiftFamily();
 
 /// Current active shift
+/// Offline-first: Local DB эхлээд, background-д API refresh
 ///
 /// Copied from [currentShift].
 class CurrentShiftFamily extends Family<AsyncValue<ShiftModel?>> {
   /// Current active shift
+  /// Offline-first: Local DB эхлээд, background-д API refresh
   ///
   /// Copied from [currentShift].
   const CurrentShiftFamily();
 
   /// Current active shift
+  /// Offline-first: Local DB эхлээд, background-д API refresh
   ///
   /// Copied from [currentShift].
   CurrentShiftProvider call(
@@ -80,10 +100,12 @@ class CurrentShiftFamily extends Family<AsyncValue<ShiftModel?>> {
 }
 
 /// Current active shift
+/// Offline-first: Local DB эхлээд, background-д API refresh
 ///
 /// Copied from [currentShift].
 class CurrentShiftProvider extends AutoDisposeFutureProvider<ShiftModel?> {
   /// Current active shift
+  /// Offline-first: Local DB эхлээд, background-д API refresh
   ///
   /// Copied from [currentShift].
   CurrentShiftProvider(
@@ -167,7 +189,7 @@ class _CurrentShiftProviderElement
   String get storeId => (origin as CurrentShiftProvider).storeId;
 }
 
-String _$shiftHistoryHash() => r'cde81f57a4a7b81f2eadc1ccfd18eb34e1ff7b55';
+String _$shiftHistoryHash() => r'127aab050b542a62085426bcc345abbfd87c4fb3';
 
 /// Shift history (past shifts)
 ///
@@ -325,9 +347,166 @@ class _ShiftHistoryProviderElement
   int get limit => (origin as ShiftHistoryProvider).limit;
 }
 
-String _$shiftActionsHash() => r'04652818db525baf908d33fc26434472038875c2';
+String _$shiftDetailHash() => r'307c10d67a9b6f3908e7730b503fa8707d761ff6';
 
-/// Start new shift
+/// Shift detail
+///
+/// Copied from [shiftDetail].
+@ProviderFor(shiftDetail)
+const shiftDetailProvider = ShiftDetailFamily();
+
+/// Shift detail
+///
+/// Copied from [shiftDetail].
+class ShiftDetailFamily extends Family<AsyncValue<ShiftModel?>> {
+  /// Shift detail
+  ///
+  /// Copied from [shiftDetail].
+  const ShiftDetailFamily();
+
+  /// Shift detail
+  ///
+  /// Copied from [shiftDetail].
+  ShiftDetailProvider call(
+    String storeId,
+    String shiftId,
+  ) {
+    return ShiftDetailProvider(
+      storeId,
+      shiftId,
+    );
+  }
+
+  @override
+  ShiftDetailProvider getProviderOverride(
+    covariant ShiftDetailProvider provider,
+  ) {
+    return call(
+      provider.storeId,
+      provider.shiftId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'shiftDetailProvider';
+}
+
+/// Shift detail
+///
+/// Copied from [shiftDetail].
+class ShiftDetailProvider extends AutoDisposeFutureProvider<ShiftModel?> {
+  /// Shift detail
+  ///
+  /// Copied from [shiftDetail].
+  ShiftDetailProvider(
+    String storeId,
+    String shiftId,
+  ) : this._internal(
+          (ref) => shiftDetail(
+            ref as ShiftDetailRef,
+            storeId,
+            shiftId,
+          ),
+          from: shiftDetailProvider,
+          name: r'shiftDetailProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$shiftDetailHash,
+          dependencies: ShiftDetailFamily._dependencies,
+          allTransitiveDependencies:
+              ShiftDetailFamily._allTransitiveDependencies,
+          storeId: storeId,
+          shiftId: shiftId,
+        );
+
+  ShiftDetailProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.storeId,
+    required this.shiftId,
+  }) : super.internal();
+
+  final String storeId;
+  final String shiftId;
+
+  @override
+  Override overrideWith(
+    FutureOr<ShiftModel?> Function(ShiftDetailRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: ShiftDetailProvider._internal(
+        (ref) => create(ref as ShiftDetailRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        storeId: storeId,
+        shiftId: shiftId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<ShiftModel?> createElement() {
+    return _ShiftDetailProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ShiftDetailProvider &&
+        other.storeId == storeId &&
+        other.shiftId == shiftId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, storeId.hashCode);
+    hash = _SystemHash.combine(hash, shiftId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+mixin ShiftDetailRef on AutoDisposeFutureProviderRef<ShiftModel?> {
+  /// The parameter `storeId` of this provider.
+  String get storeId;
+
+  /// The parameter `shiftId` of this provider.
+  String get shiftId;
+}
+
+class _ShiftDetailProviderElement
+    extends AutoDisposeFutureProviderElement<ShiftModel?> with ShiftDetailRef {
+  _ShiftDetailProviderElement(super.provider);
+
+  @override
+  String get storeId => (origin as ShiftDetailProvider).storeId;
+  @override
+  String get shiftId => (origin as ShiftDetailProvider).shiftId;
+}
+
+String _$shiftActionsHash() => r'7960f8e9e0be9cfd6b86f2e29c3f103f1a8b8c73';
+
+/// Shift actions (open, close)
 ///
 /// Copied from [ShiftActions].
 @ProviderFor(ShiftActions)

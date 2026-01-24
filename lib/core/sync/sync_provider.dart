@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:retail_control_platform/core/database/app_database.dart';
+import 'package:retail_control_platform/core/providers/store_provider.dart';
+import 'package:retail_control_platform/core/sync/sync_queue_manager.dart';
 import 'package:retail_control_platform/core/sync/sync_state.dart';
+import 'package:retail_control_platform/features/alerts/presentation/providers/alert_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
+import 'package:retail_control_platform/features/shifts/presentation/providers/shift_provider.dart';
 
 part 'sync_provider.g.dart';
 
@@ -43,13 +46,11 @@ class SyncNotifier extends _$SyncNotifier {
     );
   }
 
+  /// Интернэт холболтыг шалгах
   Future<void> _checkConnectivity() async {
-    final List<ConnectivityResult> results = await Connectivity().checkConnectivity();
-    if (results.isNotEmpty) {
-      _updateOnlineStatus(results.first);
-    } else {
-      _updateOnlineStatus(ConnectivityResult.none);
-    }
+    // connectivity_plus 5.x дээр checkConnectivity() нь дан ConnectivityResult буцаана
+    final result = await Connectivity().checkConnectivity();
+    _updateOnlineStatus(result);
   }
 
   void _updateOnlineStatus(ConnectivityResult result) {
@@ -75,33 +76,48 @@ class SyncNotifier extends _$SyncNotifier {
       return;
     }
 
+    final storeId = ref.read(storeIdProvider);
+    if (storeId == null) {
+      state = state.copyWith(
+        status: SyncStatus.error,
+        errorMessage: 'Store ID байхгүй байна',
+      );
+      return;
+    }
+
     state = state.copyWith(status: SyncStatus.syncing);
 
     try {
       final db = ref.read(databaseProvider);
+      final syncManager = SyncQueueManager(db: db);
 
-      // TODO: Implement actual sync logic
-      // 1. Get pending items from sync_queue
-      // final pendingItems = await db.select(db.syncQueue).get();
-      //
-      // 2. Send to backend API
-      // for (final item in pendingItems) {
-      //   await _sendToBackend(item);
-      //   await db.delete(db.syncQueue).delete(item);
-      // }
-      //
-      // 3. Fetch latest data from backend
-      // await _fetchFromBackend();
+      // Sync хийх (push + pull)
+      final result = await syncManager.sync(storeId);
 
-      // Mock: Simulate sync delay
-      await Future.delayed(const Duration(seconds: 2));
+      // Pending count шинэчлэх
+      final remaining = await db.getPendingSyncOperations(limit: 100);
 
-      state = state.copyWith(
-        status: SyncStatus.synced,
-        pendingCount: 0,
-        lastSyncTime: DateTime.now(),
-        errorMessage: null,
-      );
+      if (result.isSuccess) {
+        state = state.copyWith(
+          status: remaining.isEmpty ? SyncStatus.synced : SyncStatus.pendingChanges,
+          pendingCount: remaining.length,
+          lastSyncTime: DateTime.now(),
+          errorMessage: null,
+        );
+
+        // Provider-уудыг invalidate хийх (data refresh)
+        ref.invalidate(productListProvider);
+        ref.invalidate(alertListProvider);
+        if (storeId.isNotEmpty) {
+          ref.invalidate(shiftHistoryProvider(storeId));
+        }
+      } else {
+        state = state.copyWith(
+          status: SyncStatus.error,
+          pendingCount: remaining.length,
+          errorMessage: result.errors.isNotEmpty ? result.errors.first : 'Sync алдаа',
+        );
+      }
     } catch (e) {
       state = state.copyWith(
         status: SyncStatus.error,
@@ -118,14 +134,23 @@ class SyncNotifier extends _$SyncNotifier {
     );
   }
 
+  /// Check and update pending count from database
+  Future<void> refreshPendingCount() async {
+    try {
+      final db = ref.read(databaseProvider);
+      final pending = await db.getPendingSyncOperations(limit: 100);
+      updatePendingCount(pending.length);
+    } catch (e) {
+      // Ignore
+    }
+  }
 }
 
-/// Connectivity stream provider
+/// Интернэт холболтын өөрчлөлтийг сонсох stream provider
 @riverpod
 Stream<ConnectivityResult> connectivityStream(ConnectivityStreamRef ref) {
-  return Connectivity().onConnectivityChanged.map((List<ConnectivityResult> results) {
-    return results.isNotEmpty ? results.first : ConnectivityResult.none;
-  });
+  // connectivity_plus 5.x дээр onConnectivityChanged нь Stream<ConnectivityResult> буцаана
+  return Connectivity().onConnectivityChanged;
 }
 
 /// Is online (convenience provider)
@@ -133,4 +158,11 @@ Stream<ConnectivityResult> connectivityStream(ConnectivityStreamRef ref) {
 bool isOnline(IsOnlineRef ref) {
   final syncState = ref.watch(syncNotifierProvider);
   return syncState.isOnline;
+}
+
+/// Pending sync count (convenience provider)
+@riverpod
+int pendingSyncCount(PendingSyncCountRef ref) {
+  final syncState = ref.watch(syncNotifierProvider);
+  return syncState.pendingCount;
 }

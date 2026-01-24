@@ -22,7 +22,24 @@ final databaseProvider = AutoDisposeProvider<AppDatabase>.internal(
 );
 
 typedef DatabaseRef = AutoDisposeProviderRef<AppDatabase>;
-String _$productListHash() => r'e9f703980155617883277400c84d0b5cfcd3e1c4';
+String _$productServiceHash() => r'7faf47ff41a55bb68fab695ccf6208dec6cbba84';
+
+/// ProductService provider
+///
+/// Copied from [productService].
+@ProviderFor(productService)
+final productServiceProvider = AutoDisposeProvider<ProductService>.internal(
+  productService,
+  name: r'productServiceProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$productServiceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef ProductServiceRef = AutoDisposeProviderRef<ProductService>;
+String _$productListHash() => r'702b2013d2d146ecda93d6644680f5dd0643b0f4';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -46,32 +63,34 @@ class _SystemHash {
 }
 
 /// Product list with optional filters
+/// Offline-first: Local DB эхлээд, background-д API refresh
 ///
 /// Copied from [productList].
 @ProviderFor(productList)
 const productListProvider = ProductListFamily();
 
 /// Product list with optional filters
+/// Offline-first: Local DB эхлээд, background-д API refresh
 ///
 /// Copied from [productList].
 class ProductListFamily extends Family<AsyncValue<List<ProductWithStock>>> {
   /// Product list with optional filters
+  /// Offline-first: Local DB эхлээд, background-д API refresh
   ///
   /// Copied from [productList].
   const ProductListFamily();
 
   /// Product list with optional filters
+  /// Offline-first: Local DB эхлээд, background-д API refresh
   ///
   /// Copied from [productList].
   ProductListProvider call({
     String? searchQuery,
     String? category,
-    String? storeId,
   }) {
     return ProductListProvider(
       searchQuery: searchQuery,
       category: category,
-      storeId: storeId,
     );
   }
 
@@ -82,7 +101,6 @@ class ProductListFamily extends Family<AsyncValue<List<ProductWithStock>>> {
     return call(
       searchQuery: provider.searchQuery,
       category: provider.category,
-      storeId: provider.storeId,
     );
   }
 
@@ -102,23 +120,23 @@ class ProductListFamily extends Family<AsyncValue<List<ProductWithStock>>> {
 }
 
 /// Product list with optional filters
+/// Offline-first: Local DB эхлээд, background-д API refresh
 ///
 /// Copied from [productList].
 class ProductListProvider
     extends AutoDisposeFutureProvider<List<ProductWithStock>> {
   /// Product list with optional filters
+  /// Offline-first: Local DB эхлээд, background-д API refresh
   ///
   /// Copied from [productList].
   ProductListProvider({
     String? searchQuery,
     String? category,
-    String? storeId,
   }) : this._internal(
           (ref) => productList(
             ref as ProductListRef,
             searchQuery: searchQuery,
             category: category,
-            storeId: storeId,
           ),
           from: productListProvider,
           name: r'productListProvider',
@@ -131,7 +149,6 @@ class ProductListProvider
               ProductListFamily._allTransitiveDependencies,
           searchQuery: searchQuery,
           category: category,
-          storeId: storeId,
         );
 
   ProductListProvider._internal(
@@ -143,12 +160,10 @@ class ProductListProvider
     required super.from,
     required this.searchQuery,
     required this.category,
-    required this.storeId,
   }) : super.internal();
 
   final String? searchQuery;
   final String? category;
-  final String? storeId;
 
   @override
   Override overrideWith(
@@ -165,7 +180,6 @@ class ProductListProvider
         debugGetCreateSourceHash: null,
         searchQuery: searchQuery,
         category: category,
-        storeId: storeId,
       ),
     );
   }
@@ -179,8 +193,7 @@ class ProductListProvider
   bool operator ==(Object other) {
     return other is ProductListProvider &&
         other.searchQuery == searchQuery &&
-        other.category == category &&
-        other.storeId == storeId;
+        other.category == category;
   }
 
   @override
@@ -188,7 +201,6 @@ class ProductListProvider
     var hash = _SystemHash.combine(0, runtimeType.hashCode);
     hash = _SystemHash.combine(hash, searchQuery.hashCode);
     hash = _SystemHash.combine(hash, category.hashCode);
-    hash = _SystemHash.combine(hash, storeId.hashCode);
 
     return _SystemHash.finish(hash);
   }
@@ -200,9 +212,6 @@ mixin ProductListRef on AutoDisposeFutureProviderRef<List<ProductWithStock>> {
 
   /// The parameter `category` of this provider.
   String? get category;
-
-  /// The parameter `storeId` of this provider.
-  String? get storeId;
 }
 
 class _ProductListProviderElement
@@ -214,11 +223,9 @@ class _ProductListProviderElement
   String? get searchQuery => (origin as ProductListProvider).searchQuery;
   @override
   String? get category => (origin as ProductListProvider).category;
-  @override
-  String? get storeId => (origin as ProductListProvider).storeId;
 }
 
-String _$productDetailHash() => r'5bb4d56ed888092776e2775fcbf066165adfec85';
+String _$productDetailHash() => r'54c2c3959d4879d9c50c52b066127070b72c2026';
 
 /// Single product detail
 ///
@@ -360,7 +367,7 @@ class _ProductDetailProviderElement
   String get productId => (origin as ProductDetailProvider).productId;
 }
 
-String _$lowStockProductsHash() => r'547a7a9e59c295a7eac091ba1c4dc2fb7dabdaf5';
+String _$lowStockProductsHash() => r'a5e6ac1a7d2bddb3d43b60376eab98439283890d';
 
 /// Low stock products (for alerts)
 ///
@@ -505,7 +512,7 @@ class _LowStockProductsProviderElement
   String get storeId => (origin as LowStockProductsProvider).storeId;
 }
 
-String _$searchProductsHash() => r'4bf33d1e05be5deb6f01bfa1ee055a177efb8e31';
+String _$searchProductsHash() => r'13acfa18b8cb4484f79576d40d8f788950aa03a2';
 
 /// Search products (debounced)
 ///
@@ -648,5 +655,24 @@ class _SearchProductsProviderElement
   @override
   String get query => (origin as SearchProductsProvider).query;
 }
+
+String _$productActionsHash() => r'15daeb501e713cbec021d96fe32730daf48ffceb';
+
+/// Product actions (create, update, delete)
+///
+/// Copied from [ProductActions].
+@ProviderFor(ProductActions)
+final productActionsProvider =
+    AutoDisposeAsyncNotifierProvider<ProductActions, void>.internal(
+  ProductActions.new,
+  name: r'productActionsProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$productActionsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ProductActions = AutoDisposeAsyncNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

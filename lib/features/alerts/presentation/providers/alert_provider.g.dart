@@ -6,7 +6,23 @@ part of 'alert_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$alertListHash() => r'94b9300e16f6be241edf5ecb964007403fb80dc3';
+String _$alertServiceHash() => r'10c6b784fb705eba0e75590e8c497ce92f6e8bdc';
+
+/// AlertService provider
+///
+/// Copied from [alertService].
+@ProviderFor(alertService)
+final alertServiceProvider = AutoDisposeProvider<AlertService>.internal(
+  alertService,
+  name: r'alertServiceProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$alertServiceHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef AlertServiceRef = AutoDisposeProviderRef<AlertService>;
+String _$alertListHash() => r'e6d2958a87f6448331e831c821a2b0bf823dd581';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -30,21 +46,25 @@ class _SystemHash {
 }
 
 /// Alert list with optional filters
+/// Offline-first: Local DB эхлээд, background-д API refresh
 ///
 /// Copied from [alertList].
 @ProviderFor(alertList)
 const alertListProvider = AlertListFamily();
 
 /// Alert list with optional filters
+/// Offline-first: Local DB эхлээд, background-д API refresh
 ///
 /// Copied from [alertList].
 class AlertListFamily extends Family<AsyncValue<List<AlertModel>>> {
   /// Alert list with optional filters
+  /// Offline-first: Local DB эхлээд, background-д API refresh
   ///
   /// Copied from [alertList].
   const AlertListFamily();
 
   /// Alert list with optional filters
+  /// Offline-first: Local DB эхлээд, background-д API refresh
   ///
   /// Copied from [alertList].
   AlertListProvider call({
@@ -86,10 +106,12 @@ class AlertListFamily extends Family<AsyncValue<List<AlertModel>>> {
 }
 
 /// Alert list with optional filters
+/// Offline-first: Local DB эхлээд, background-д API refresh
 ///
 /// Copied from [alertList].
 class AlertListProvider extends AutoDisposeFutureProvider<List<AlertModel>> {
   /// Alert list with optional filters
+  /// Offline-first: Local DB эхлээд, background-д API refresh
   ///
   /// Copied from [alertList].
   AlertListProvider({
@@ -201,7 +223,7 @@ class _AlertListProviderElement
   bool? get unresolvedOnly => (origin as AlertListProvider).unresolvedOnly;
 }
 
-String _$unreadAlertCountHash() => r'15754f303e46d428df4e2fe934794611feb60084';
+String _$unreadAlertCountHash() => r'3d154d4cf21e09aff39616d12e5c65183bddcc4b';
 
 /// Unread alert count (for badge)
 ///
@@ -341,7 +363,7 @@ class _UnreadAlertCountProviderElement
   String get storeId => (origin as UnreadAlertCountProvider).storeId;
 }
 
-String _$alertActionsHash() => r'01c559ec61004dbcbed42279a40fef3d7b54da96';
+String _$alertActionsHash() => r'cb1b42e579baf809534fd336bf3b305120a7f1e9';
 
 /// Alert actions
 ///

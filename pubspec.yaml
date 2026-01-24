@@ -71,6 +71,7 @@ dependencies:
   logger: ^2.0.2
   equatable: ^2.0.5
   dartz: ^0.10.1
+  shared_preferences: ^2.2.2
 
   # Analytics & Monitoring (Temporarily disabled for Xcode 26 compatibility)
   # firebase_core: ^2.27.0

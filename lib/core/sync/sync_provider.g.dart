@@ -7,9 +7,9 @@ part of 'sync_provider.dart';
 // **************************************************************************
 
 String _$connectivityStreamHash() =>
-    r'4bbb56f5b9b9aab3e112fd19558f13688d575361';
+    r'0be207f65611c78b374d4cfdbb9a493e52c44e53';
 
-/// Connectivity stream provider
+/// Интернэт холболтын өөрчлөлтийг сонсох stream provider
 ///
 /// Copied from [connectivityStream].
 @ProviderFor(connectivityStream)
@@ -42,7 +42,24 @@ final isOnlineProvider = AutoDisposeProvider<bool>.internal(
 );
 
 typedef IsOnlineRef = AutoDisposeProviderRef<bool>;
-String _$syncNotifierHash() => r'141356124d3c7ddc9f697da99b0458deed0d44b9';
+String _$pendingSyncCountHash() => r'89b0bf09c026e57378686f697964d66a656a87bb';
+
+/// Pending sync count (convenience provider)
+///
+/// Copied from [pendingSyncCount].
+@ProviderFor(pendingSyncCount)
+final pendingSyncCountProvider = AutoDisposeProvider<int>.internal(
+  pendingSyncCount,
+  name: r'pendingSyncCountProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$pendingSyncCountHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef PendingSyncCountRef = AutoDisposeProviderRef<int>;
+String _$syncNotifierHash() => r'8043943bc8ffe581b001c5d5f1f09d6df0e145b0';
 
 /// Sync state notifier
 ///
