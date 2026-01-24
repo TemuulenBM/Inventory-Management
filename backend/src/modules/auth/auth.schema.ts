@@ -12,6 +12,8 @@ import { z } from 'zod';
  */
 export const otpRequestSchema = z.object({
   phone: z.string().min(8).max(20).describe('Утасны дугаар (+976XXXXXXXX)'),
+  deviceId: z.string().optional().describe('Төхөөрөмжийн UUID'),
+  trustDevice: z.boolean().optional().default(false).describe('Төхөөрөмжийг итгэмжлэх эсэх'),
 });
 
 export type OTPRequestBody = z.infer<typeof otpRequestSchema>;
@@ -23,9 +25,23 @@ export type OTPRequestBody = z.infer<typeof otpRequestSchema>;
 export const otpVerifySchema = z.object({
   phone: z.string().min(8).max(20).describe('Утасны дугаар'),
   otp: z.string().length(6).regex(/^\d{6}$/).describe('6 оронтой OTP код'),
+  deviceId: z.string().optional().describe('Төхөөрөмжийн UUID'),
+  trustDevice: z.boolean().optional().default(false).describe('Төхөөрөмжийг итгэмжлэх эсэх'),
 });
 
 export type OTPVerifyBody = z.infer<typeof otpVerifySchema>;
+
+/**
+ * Device Login Schema
+ * POST /auth/device-login body validation
+ * Итгэмжлэгдсэн төхөөрөмжөөр OTP-гүй нэвтрэх
+ */
+export const deviceLoginSchema = z.object({
+  phone: z.string().min(8).max(20).describe('Утасны дугаар'),
+  deviceId: z.string().min(1).describe('Төхөөрөмжийн UUID'),
+});
+
+export type DeviceLoginBody = z.infer<typeof deviceLoginSchema>;
 
 /**
  * Refresh Token Schema

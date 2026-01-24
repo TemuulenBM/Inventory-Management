@@ -14,12 +14,13 @@ import {
   otpRequestSchema,
   otpVerifySchema,
   refreshTokenSchema,
+  deviceLoginSchema,
   type OTPRequestResponse,
   type OTPVerifyResponse,
   type RefreshTokenResponse,
   type UserInfoResponse,
 } from './auth.schema.js';
-import { requestOTP, verifyOTP, refreshAccessToken, logout } from './auth.service.js';
+import { requestOTP, verifyOTP, refreshAccessToken, logout, deviceLogin, getTrustedDevices, removeTrustedDevice } from './auth.service.js';
 import type { JWTPayload } from '../../plugins/jwt.js';
 
 /**
@@ -70,7 +71,7 @@ export async function authRoutes(server: FastifyInstance) {
    * OTP баталгаажуулах endpoint
    */
   server.post<{
-    Body: { phone: string; otp: string };
+    Body: { phone: string; otp: string; deviceId?: string; trustDevice?: boolean };
     Reply: OTPVerifyResponse | { statusCode: number; error: string; message: string };
   }>('/auth/otp/verify', async (request: FastifyRequest, reply: FastifyReply) => {
     // 1. Request validation
@@ -83,10 +84,10 @@ export async function authRoutes(server: FastifyInstance) {
       });
     }
 
-    const { phone, otp } = parseResult.data;
+    const { phone, otp, deviceId, trustDevice } = parseResult.data;
 
-    // 2. OTP verify болон login
-    const result = await verifyOTP(phone, otp, server);
+    // 2. OTP verify болон login (device trust дэмжсэн)
+    const result = await verifyOTP(phone, otp, server, deviceId, trustDevice);
 
     if (!result.success) {
       return reply.status(401).send({
@@ -226,6 +227,107 @@ export async function authRoutes(server: FastifyInstance) {
           storeId: userData.store_id,
           createdAt: userData.created_at,
         },
+      });
+    }
+  );
+
+  // ============================================================================
+  // DEVICE TRUST ENDPOINTS
+  // ============================================================================
+
+  /**
+   * POST /auth/device-login
+   * Итгэмжлэгдсэн төхөөрөмжөөр OTP-гүй нэвтрэх
+   */
+  server.post<{
+    Body: { phone: string; deviceId: string };
+    Reply: OTPVerifyResponse | { statusCode: number; error: string; message: string };
+  }>('/auth/device-login', async (request: FastifyRequest, reply: FastifyReply) => {
+    // 1. Request validation
+    const parseResult = deviceLoginSchema.safeParse(request.body);
+    if (!parseResult.success) {
+      return reply.status(400).send({
+        statusCode: 400,
+        error: 'Bad Request',
+        message: parseResult.error.errors[0].message,
+      });
+    }
+
+    const { phone, deviceId } = parseResult.data;
+
+    // 2. Device login
+    const result = await deviceLogin(phone, deviceId, server);
+
+    if (!result.success) {
+      // 403 = device not trusted, client should fall back to OTP
+      return reply.status(403).send({
+        statusCode: 403,
+        error: 'Forbidden',
+        message: result.error || 'Төхөөрөмж итгэмжлэгдээгүй байна',
+      });
+    }
+
+    // 3. Амжилттай
+    return reply.status(200).send({
+      success: true,
+      user: result.user!,
+      tokens: result.tokens!,
+    });
+  });
+
+  /**
+   * GET /auth/trusted-devices
+   * Одоогийн хэрэглэгчийн итгэмжлэгдсэн төхөөрөмжүүдийг авах
+   */
+  server.get<{
+    Reply:
+      | { success: boolean; devices: any[] }
+      | { statusCode: number; error: string; message: string };
+  }>(
+    '/auth/trusted-devices',
+    {
+      onRequest: [server.authenticate],
+    },
+    async (request: any, reply: FastifyReply) => {
+      const user = request.user as JWTPayload;
+      const devices = await getTrustedDevices(user.userId);
+
+      return reply.status(200).send({
+        success: true,
+        devices,
+      });
+    }
+  );
+
+  /**
+   * DELETE /auth/trusted-devices/:deviceId
+   * Итгэмжлэгдсэн төхөөрөмжийг устгах
+   */
+  server.delete<{
+    Params: { deviceId: string };
+    Reply: { success: boolean; message: string } | { statusCode: number; error: string; message: string };
+  }>(
+    '/auth/trusted-devices/:deviceId',
+    {
+      onRequest: [server.authenticate],
+    },
+    async (request: any, reply: FastifyReply) => {
+      const user = request.user as JWTPayload;
+      const { deviceId } = request.params;
+
+      const result = await removeTrustedDevice(user.userId, deviceId);
+
+      if (!result.success) {
+        return reply.status(500).send({
+          statusCode: 500,
+          error: 'Internal Server Error',
+          message: result.error || 'Төхөөрөмж устгахад алдаа гарлаа',
+        });
+      }
+
+      return reply.status(200).send({
+        success: true,
+        message: 'Төхөөрөмж амжилттай устгагдлаа',
       });
     }
   );

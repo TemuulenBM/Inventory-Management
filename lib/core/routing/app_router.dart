@@ -35,8 +35,19 @@ final GoRouter appRouter = GoRouter(
       path: RouteNames.authOtp,
       name: 'auth-otp',
       builder: (context, state) {
-        final phoneNumber = state.extra as String? ?? '';
-        return OtpScreen(phoneNumber: phoneNumber);
+        // extra нь Map эсвэл String байж болно (backward compatibility)
+        String phoneNumber = '';
+        bool trustDevice = false;
+
+        if (state.extra is Map<String, dynamic>) {
+          final data = state.extra as Map<String, dynamic>;
+          phoneNumber = data['phone'] as String? ?? '';
+          trustDevice = data['trustDevice'] as bool? ?? false;
+        } else if (state.extra is String) {
+          phoneNumber = state.extra as String;
+        }
+
+        return OtpScreen(phoneNumber: phoneNumber, trustDevice: trustDevice);
       },
     ),
 

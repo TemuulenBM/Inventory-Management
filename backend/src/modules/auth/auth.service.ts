@@ -82,12 +82,16 @@ export async function requestOTP(phone: string): Promise<{ success: boolean; exp
  * @param phone - Утасны дугаар
  * @param otpInput - Хэрэглэгчийн оруулсан OTP
  * @param server - Fastify instance (JWT үүсгэхэд хэрэгтэй)
+ * @param deviceId - Төхөөрөмжийн UUID (optional)
+ * @param trustDeviceFlag - Төхөөрөмжийг итгэмжлэх эсэх (optional)
  * @returns User болон tokens
  */
 export async function verifyOTP(
   phone: string,
   otpInput: string,
-  server: FastifyInstance
+  server: FastifyInstance,
+  deviceId?: string,
+  trustDeviceFlag?: boolean
 ): Promise<{
   success: boolean;
   user?: any;
@@ -174,6 +178,21 @@ export async function verifyOTP(
     token: refreshToken,
     expires_at: refreshExpiresAt.toISOString(),
   });
+
+  // 10. Device trust хийх (хэрэв хүсвэл)
+  if (trustDeviceFlag && deviceId) {
+    await supabase.from('trusted_devices' as any).upsert(
+      {
+        user_id: user.id,
+        device_id: deviceId,
+        last_used_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'user_id,device_id',
+      }
+    );
+    console.log(`🔐 Device trusted: ${deviceId.substring(0, 8)}... for ${user.phone}`);
+  }
 
   console.log(`✅ User logged in: ${user.phone} (${user.role})`);
 
@@ -335,4 +354,234 @@ export async function cleanupOldOTPs(): Promise<void> {
   } else {
     console.log('✓ Old OTP tokens cleaned up (24h+)');
   }
+}
+
+// ============================================================================
+// DEVICE TRUST FUNCTIONS
+// Итгэмжлэгдсэн төхөөрөмжөөр OTP-гүй нэвтрэх боломж
+// ============================================================================
+
+/**
+ * Төхөөрөмж итгэмжлэгдсэн эсэхийг шалгах
+ *
+ * @param userId - Хэрэглэгчийн ID
+ * @param deviceId - Төхөөрөмжийн UUID
+ * @returns Итгэмжлэгдсэн бол true
+ */
+export async function isDeviceTrusted(userId: string, deviceId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('trusted_devices' as any)
+    .select('id')
+    .eq('user_id', userId)
+    .eq('device_id', deviceId)
+    .single();
+
+  if (error || !data) {
+    return false;
+  }
+
+  // last_used_at шинэчлэх
+  await supabase
+    .from('trusted_devices' as any)
+    .update({ last_used_at: new Date().toISOString() })
+    .eq('user_id', userId)
+    .eq('device_id', deviceId);
+
+  return true;
+}
+
+/**
+ * Төхөөрөмжийг итгэмжлэх
+ *
+ * @param userId - Хэрэглэгчийн ID
+ * @param deviceId - Төхөөрөмжийн UUID
+ * @param deviceName - Төхөөрөмжийн нэр (optional, e.g., "iPhone 15")
+ */
+export async function trustDevice(
+  userId: string,
+  deviceId: string,
+  deviceName?: string
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase.from('trusted_devices' as any).upsert(
+    {
+      user_id: userId,
+      device_id: deviceId,
+      device_name: deviceName,
+      last_used_at: new Date().toISOString(),
+    },
+    {
+      onConflict: 'user_id,device_id',
+    }
+  );
+
+  if (error) {
+    console.error('Trust device error:', error);
+    return { success: false, error: 'Төхөөрөмж итгэмжлэхэд алдаа гарлаа.' };
+  }
+
+  console.log(`🔐 Device trusted: ${deviceId} for user ${userId}`);
+  return { success: true };
+}
+
+/**
+ * Утасны дугаараар хэрэглэгч олох
+ *
+ * @param phone - Утасны дугаар
+ * @returns User объект эсвэл null
+ */
+export async function findUserByPhone(phone: string): Promise<any | null> {
+  const validatedPhone = validatePhone(phone);
+  if (!validatedPhone) {
+    return null;
+  }
+
+  const { data: users, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('phone', validatedPhone)
+    .limit(1);
+
+  if (error || !users || users.length === 0) {
+    return null;
+  }
+
+  return users[0];
+}
+
+/**
+ * JWT tokens үүсгэх
+ *
+ * @param user - User объект
+ * @param server - Fastify instance
+ * @returns Access token, refresh token, expiresIn
+ */
+export async function generateTokens(
+  user: any,
+  server: FastifyInstance
+): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
+  const payload: JWTPayload = {
+    userId: user.id,
+    storeId: user.store_id,
+    role: user.role as 'owner' | 'manager' | 'seller',
+  };
+
+  const accessToken = server.jwt.sign(payload, { expiresIn: env.JWT_ACCESS_EXPIRY });
+  const refreshToken = server.jwt.sign(payload, { expiresIn: env.JWT_REFRESH_EXPIRY });
+
+  // Refresh token database-д хадгалах
+  const refreshExpiresAt = new Date();
+  refreshExpiresAt.setDate(refreshExpiresAt.getDate() + 30);
+
+  await supabase.from('refresh_tokens' as any).insert({
+    user_id: user.id,
+    token: refreshToken,
+    expires_at: refreshExpiresAt.toISOString(),
+  });
+
+  return {
+    accessToken,
+    refreshToken,
+    expiresIn: parseInt(env.JWT_ACCESS_EXPIRY.replace('h', '')) * 3600,
+  };
+}
+
+/**
+ * Итгэмжлэгдсэн төхөөрөмжөөр нэвтрэх (OTP шаардахгүй)
+ *
+ * @param phone - Утасны дугаар
+ * @param deviceId - Төхөөрөмжийн UUID
+ * @param server - Fastify instance
+ * @returns User болон tokens
+ */
+export async function deviceLogin(
+  phone: string,
+  deviceId: string,
+  server: FastifyInstance
+): Promise<{
+  success: boolean;
+  user?: any;
+  tokens?: { accessToken: string; refreshToken: string; expiresIn: number };
+  error?: string;
+}> {
+  // 1. User олох
+  const user = await findUserByPhone(phone);
+  if (!user) {
+    return { success: false, error: 'Хэрэглэгч олдсонгүй.' };
+  }
+
+  // 2. Device trusted эсэх шалгах
+  const trusted = await isDeviceTrusted(user.id, deviceId);
+  if (!trusted) {
+    return { success: false, error: 'Төхөөрөмж итгэмжлэгдээгүй байна. OTP ашиглан нэвтэрнэ үү.' };
+  }
+
+  // 3. Tokens үүсгэх
+  const tokens = await generateTokens(user, server);
+
+  console.log(`✅ Device login: ${user.phone} via trusted device ${deviceId.substring(0, 8)}...`);
+
+  return {
+    success: true,
+    user: {
+      id: user.id,
+      phone: user.phone,
+      name: user.name,
+      role: user.role,
+      storeId: user.store_id,
+    },
+    tokens,
+  };
+}
+
+/**
+ * Хэрэглэгчийн итгэмжлэгдсэн төхөөрөмжүүдийг авах
+ *
+ * @param userId - Хэрэглэгчийн ID
+ * @returns Төхөөрөмжүүдийн жагсаалт
+ */
+export async function getTrustedDevices(
+  userId: string
+): Promise<{ id: string; deviceId: string; deviceName?: string; trustedAt: string; lastUsedAt: string }[]> {
+  const { data, error } = await supabase
+    .from('trusted_devices' as any)
+    .select('*')
+    .eq('user_id', userId)
+    .order('last_used_at', { ascending: false });
+
+  if (error || !data) {
+    return [];
+  }
+
+  return data.map((d: any) => ({
+    id: d.id,
+    deviceId: d.device_id,
+    deviceName: d.device_name,
+    trustedAt: d.trusted_at,
+    lastUsedAt: d.last_used_at,
+  }));
+}
+
+/**
+ * Итгэмжлэгдсэн төхөөрөмж устгах
+ *
+ * @param userId - Хэрэглэгчийн ID
+ * @param deviceId - Төхөөрөмжийн UUID
+ */
+export async function removeTrustedDevice(
+  userId: string,
+  deviceId: string
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await supabase
+    .from('trusted_devices' as any)
+    .delete()
+    .eq('user_id', userId)
+    .eq('device_id', deviceId);
+
+  if (error) {
+    console.error('Remove trusted device error:', error);
+    return { success: false, error: 'Төхөөрөмж устгахад алдаа гарлаа.' };
+  }
+
+  console.log(`🗑️ Trusted device removed: ${deviceId} for user ${userId}`);
+  return { success: true };
 }

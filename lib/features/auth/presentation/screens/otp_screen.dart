@@ -14,10 +14,12 @@ import 'package:retail_control_platform/features/auth/domain/auth_state.dart';
 /// Дизайн: design/auth_phone_&_otp/screen.png (доод хэсэг)
 class OtpScreen extends ConsumerStatefulWidget {
   final String phoneNumber;
+  final bool trustDevice;
 
   const OtpScreen({
     super.key,
     required this.phoneNumber,
+    this.trustDevice = false,
   });
 
   @override
@@ -57,10 +59,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   void _handleOtpComplete(String otp) async {
     setState(() => _errorText = null);
 
-    // Verify OTP
+    // Verify OTP (trustDevice flag дамжуулах)
     await ref.read(authNotifierProvider.notifier).verifyOtp(
           widget.phoneNumber,
           otp,
+          trustDevice: widget.trustDevice,
         );
 
     // Check state

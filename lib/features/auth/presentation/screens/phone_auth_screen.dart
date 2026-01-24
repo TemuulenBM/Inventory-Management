@@ -42,7 +42,20 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen> {
 
     setState(() => _errorText = null);
 
-    // Send OTP
+    // Эхлээд trusted device-ээр нэвтрэх оролдлого хийх
+    final deviceLoginSuccess = await ref
+        .read(authNotifierProvider.notifier)
+        .tryDeviceLogin(phone);
+
+    if (deviceLoginSuccess) {
+      // Trusted device-ээр амжилттай нэвтэрсэн - Dashboard руу
+      if (mounted) {
+        context.go(RouteNames.dashboard);
+      }
+      return;
+    }
+
+    // Trusted биш бол OTP илгээх
     await ref.read(authNotifierProvider.notifier).sendOtp(phone);
 
     // Check state and navigate
@@ -53,11 +66,116 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen> {
           setState(() => _errorText = message);
         },
         otpSent: (sentPhone) {
-          // OTP sent - navigate to OTP screen
-          context.push(RouteNames.authOtp, extra: phone);
+          // OTP sent - navigate to OTP screen (trustDevice flag дамжуулах)
+          context.push(
+            RouteNames.authOtp,
+            extra: {'phone': phone, 'trustDevice': _trustDevice},
+          );
         },
       );
     }
+  }
+
+  /// Тусламжийн dialog харуулах
+  void _showHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.help_outline,
+                color: AppColors.primary,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Тусламж',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Mongolian Retail Solution',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textMainLight,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Борлуулалтын удирдлагын систем',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.gray500,
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 12),
+            const Text(
+              'Холбоо барих:',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.gray700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildContactRow(Icons.phone, '7000-0000'),
+            const SizedBox(height: 8),
+            _buildContactRow(Icons.email, 'support@retail.mn'),
+            const SizedBox(height: 8),
+            _buildContactRow(Icons.web, 'www.retail.mn'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              'Хаах',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContactRow(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.gray400),
+        const SizedBox(width: 10),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.gray600,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -177,24 +295,28 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen> {
         ),
 
         // Help button
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.help_outline,
-            color: AppColors.gray400,
-            size: 20,
+        InkWell(
+          onTap: () => _showHelpDialog(),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.help_outline,
+              color: AppColors.gray400,
+              size: 20,
+            ),
           ),
         ),
       ],

@@ -6,6 +6,8 @@ class ApiEndpoints {
   // Auth
   static const String otpRequest = '/auth/otp/request';
   static const String otpVerify = '/auth/otp/verify';
+  static const String deviceLogin = '/auth/device-login';
+  static const String trustedDevices = '/auth/trusted-devices';
   static const String refresh = '/auth/refresh';
   static const String logout = '/auth/logout';
   static const String me = '/auth/me';

@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:retail_control_platform/core/api/api_client.dart';
 import 'package:retail_control_platform/core/api/api_endpoints.dart';
+import 'package:retail_control_platform/core/utils/device_utils.dart';
 import 'package:retail_control_platform/features/auth/domain/auth_state.dart';
 import 'package:retail_control_platform/features/auth/domain/user_model.dart';
 
@@ -87,7 +88,8 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   /// Verify OTP code
-  Future<void> verifyOtp(String phoneNumber, String otp) async {
+  /// [trustDevice] - true бол төхөөрөмжийг итгэмжлэх (дараагийн удаа OTP шаардахгүй)
+  Future<void> verifyOtp(String phoneNumber, String otp, {bool trustDevice = false}) async {
     state = const AuthState.loading();
 
     try {
@@ -95,11 +97,79 @@ class AuthNotifier extends _$AuthNotifier {
           ? phoneNumber
           : '+976$phoneNumber';
 
+      // Device ID авах
+      final deviceId = await DeviceUtils.getDeviceId();
+
       final response = await apiClient.post(
         ApiEndpoints.otpVerify,
         data: {
           'phone': formattedPhone,
           'otp': otp,
+          'deviceId': deviceId,
+          'trustDevice': trustDevice,
+        },
+      );
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        // Save tokens
+        final tokens = response.data['tokens'];
+        await apiClient.saveTokens(
+          accessToken: tokens['accessToken'],
+          refreshToken: tokens['refreshToken'],
+        );
+
+        // Local trust хадгалах (client-side cache)
+        if (trustDevice) {
+          await DeviceUtils.trustDevice(formattedPhone);
+        }
+
+        // Get user data
+        final userData = response.data['user'];
+        final user = UserModel(
+          id: userData['id'],
+          phone: userData['phone'],
+          name: userData['name'],
+          role: userData['role'],
+          storeId: userData['storeId'],
+          createdAt: userData['createdAt'] != null
+              ? DateTime.parse(userData['createdAt'])
+              : null,
+        );
+
+        state = AuthState.authenticated(user);
+      } else {
+        state = AuthState.error(
+          response.data['message'] ?? 'OTP буруу байна',
+        );
+      }
+    } catch (e) {
+      state = AuthState.error('OTP баталгаажуулалт амжилтгүй боллоо');
+    }
+  }
+
+  /// Итгэмжлэгдсэн төхөөрөмжөөр нэвтрэх оролдлого (OTP-гүй)
+  /// Амжилттай бол true, амжилтгүй бол false буцаана
+  Future<bool> tryDeviceLogin(String phoneNumber) async {
+    try {
+      final formattedPhone = phoneNumber.startsWith('+976')
+          ? phoneNumber
+          : '+976$phoneNumber';
+
+      // Эхлээд local-д trusted эсэхийг шалгах
+      final isTrusted = await DeviceUtils.isDeviceTrusted(formattedPhone);
+      if (!isTrusted) {
+        return false;
+      }
+
+      final deviceId = await DeviceUtils.getDeviceId();
+
+      state = const AuthState.loading();
+
+      final response = await apiClient.post(
+        ApiEndpoints.deviceLogin,
+        data: {
+          'phone': formattedPhone,
+          'deviceId': deviceId,
         },
       );
 
@@ -125,13 +195,16 @@ class AuthNotifier extends _$AuthNotifier {
         );
 
         state = AuthState.authenticated(user);
-      } else {
-        state = AuthState.error(
-          response.data['message'] ?? 'OTP буруу байна',
-        );
+        return true;
       }
+
+      // Server дээр device trusted биш бол local trust устгах
+      await DeviceUtils.untrustDevice(formattedPhone);
+      state = const AuthState.unauthenticated();
+      return false;
     } catch (e) {
-      state = AuthState.error('OTP баталгаажуулалт амжилтгүй боллоо');
+      state = const AuthState.unauthenticated();
+      return false;
     }
   }
 

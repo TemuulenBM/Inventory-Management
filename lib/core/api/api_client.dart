@@ -13,6 +13,9 @@ class ApiClient {
   static const String _accessTokenKey = 'access_token';
   static const String _refreshTokenKey = 'refresh_token';
 
+  // Refresh token concurrent request хамгаалалт
+  bool _isRefreshing = false;
+
   ApiClient._() {
     final baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://localhost:3000';
 
@@ -54,7 +57,9 @@ class ApiClient {
           }
 
           // 401 Unauthorized - try to refresh token
-          if (error.response?.statusCode == 401) {
+          // IMPORTANT: /auth/refresh хүсэлтийг давтахгүй (infinite loop үүсгэхгүй)
+          final isRefreshRequest = error.requestOptions.path.contains('/auth/refresh');
+          if (error.response?.statusCode == 401 && !isRefreshRequest) {
             final refreshed = await _tryRefreshToken();
             if (refreshed) {
               // Retry the original request
@@ -68,6 +73,9 @@ class ApiClient {
               } catch (e) {
                 return handler.next(error);
               }
+            } else {
+              // Refresh амжилтгүй - tokens устгах
+              await clearTokens();
             }
           }
           return handler.next(error);
@@ -83,9 +91,16 @@ class ApiClient {
 
   /// Refresh token хийх
   Future<bool> _tryRefreshToken() async {
+    // Аль хэдийн refresh хийж байгаа бол дахин хийхгүй
+    if (_isRefreshing) return false;
+
+    _isRefreshing = true;
     try {
       final refreshToken = await _storage.read(key: _refreshTokenKey);
-      if (refreshToken == null) return false;
+      if (refreshToken == null) {
+        _isRefreshing = false;
+        return false;
+      }
 
       final response = await _dio.post(
         '/auth/refresh',
@@ -98,13 +113,16 @@ class ApiClient {
           accessToken: tokens['accessToken'],
           refreshToken: tokens['refreshToken'],
         );
+        _isRefreshing = false;
         return true;
       }
+      _isRefreshing = false;
       return false;
     } catch (e) {
       if (kDebugMode) {
         print('Token refresh failed: $e');
       }
+      _isRefreshing = false;
       return false;
     }
   }
