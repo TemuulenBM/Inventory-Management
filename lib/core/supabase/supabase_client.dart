@@ -1,14 +1,14 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 /// Supabase Client Singleton
 /// Бүх апп дээр нэг л instance ашиглана
 class SupabaseClientManager {
-  static SupabaseClient? _instance;
+  static supabase.SupabaseClient? _instance;
 
   /// Get Supabase client instance
-  static SupabaseClient get instance {
+  static supabase.SupabaseClient get instance {
     if (_instance == null) {
       throw Exception(
         'SupabaseClientManager not initialized. Call initialize() first.',
@@ -32,16 +32,16 @@ class SupabaseClientManager {
     }
 
     // Initialize Supabase
-    await Supabase.initialize(
+    await supabase.Supabase.initialize(
       url: supabaseUrl,
       anonKey: supabaseAnonKey,
       debug: kDebugMode, // Enable debug logging in development
-      authOptions: const FlutterAuthClientOptions(
-        authFlowType: AuthFlowType.pkce, // Use PKCE flow for better security
+      authOptions: const supabase.FlutterAuthClientOptions(
+        authFlowType: supabase.AuthFlowType.pkce, // Use PKCE flow for better security
       ),
     );
 
-    _instance = Supabase.instance.client;
+    _instance = supabase.Supabase.instance.client;
 
     if (kDebugMode) {
       print('✅ Supabase initialized: $supabaseUrl');
@@ -54,7 +54,7 @@ class SupabaseClientManager {
   }
 
   /// Get current user
-  static User? get currentUser {
+  static supabase.User? get currentUser {
     return _instance?.auth.currentUser;
   }
 
@@ -81,7 +81,7 @@ class SupabaseClientManager {
   }
 
   /// Listen to auth state changes
-  static Stream<AuthState> get authStateChanges {
+  static Stream<supabase.AuthState> get authStateChanges {
     if (_instance == null) {
       throw Exception('SupabaseClientManager not initialized');
     }
@@ -90,4 +90,4 @@ class SupabaseClientManager {
 }
 
 /// Convenience getter for Supabase client
-SupabaseClient get supabase => SupabaseClientManager.instance;
+supabase.SupabaseClient get supabaseClient => SupabaseClientManager.instance;

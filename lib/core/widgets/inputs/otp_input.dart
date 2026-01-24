@@ -4,8 +4,8 @@ import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 
-/// OTP input with 6 individual digit boxes
-/// Auto-focus management, дизайн файлуудаас
+/// OTP input - single TextField with visual digit boxes
+/// Copy-paste боломжтой, auto-submit дэмжинэ
 class OtpInput extends StatefulWidget {
   final Function(String) onComplete;
   final int length;
@@ -23,65 +23,39 @@ class OtpInput extends StatefulWidget {
 }
 
 class _OtpInputState extends State<OtpInput> {
-  late List<TextEditingController> _controllers;
-  late List<FocusNode> _focusNodes;
+  late TextEditingController _controller;
+  late FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
-    _controllers = List.generate(
-      widget.length,
-      (_) => TextEditingController(),
-    );
-    _focusNodes = List.generate(
-      widget.length,
-      (_) => FocusNode(),
-    );
+    _controller = TextEditingController();
+    _focusNode = FocusNode();
 
-    // Auto-focus first field
+    // Auto-focus
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNodes[0].requestFocus();
+      _focusNode.requestFocus();
     });
+
+    // Listen for changes
+    _controller.addListener(_onTextChanged);
   }
 
   @override
   void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    for (var node in _focusNodes) {
-      node.dispose();
-    }
+    _controller.removeListener(_onTextChanged);
+    _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
-  void _onChanged(int index, String value) {
-    if (value.isNotEmpty) {
-      // Move to next field
-      if (index < widget.length - 1) {
-        _focusNodes[index + 1].requestFocus();
-      } else {
-        // Last field - check if complete
-        _focusNodes[index].unfocus();
-        _checkComplete();
-      }
-    }
-  }
+  void _onTextChanged() {
+    setState(() {});
 
-  void _onKeyEvent(int index, KeyEvent event) {
-    if (event is KeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.backspace) {
-      if (_controllers[index].text.isEmpty && index > 0) {
-        // Move to previous field on backspace
-        _focusNodes[index - 1].requestFocus();
-      }
-    }
-  }
-
-  void _checkComplete() {
-    final otp = _controllers.map((c) => c.text).join();
-    if (otp.length == widget.length) {
-      widget.onComplete(otp);
+    // Auto-submit when complete
+    if (_controller.text.length == widget.length) {
+      _focusNode.unfocus();
+      widget.onComplete(_controller.text);
     }
   }
 
@@ -89,13 +63,66 @@ class _OtpInputState extends State<OtpInput> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(
-            widget.length,
-            (index) => _buildDigitBox(index),
-          ),
+        // Hidden TextField for input
+        Stack(
+          children: [
+            // Visual digit boxes
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const spacing = 8.0;
+                final totalSpacing = spacing * widget.length;
+                final availableWidth = constraints.maxWidth.isFinite
+                    ? constraints.maxWidth
+                    : 320.0;
+                final boxWidth = ((availableWidth - totalSpacing) / widget.length)
+                    .clamp(40.0, 52.0);
+                final boxHeight = boxWidth * 1.15;
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(
+                    widget.length,
+                    (index) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: _buildDigitBox(index, boxWidth, boxHeight),
+                    ),
+                  ),
+                );
+              },
+            ),
+
+            // Invisible TextField overlay for input
+            Positioned.fill(
+              child: TextField(
+                controller: _controller,
+                focusNode: _focusNode,
+                keyboardType: TextInputType.number,
+                maxLength: widget.length,
+                autofillHints: const [AutofillHints.oneTimeCode],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(widget.length),
+                ],
+                style: const TextStyle(
+                  color: Colors.transparent,
+                  height: 0.01,
+                ),
+                decoration: const InputDecoration(
+                  counterText: '',
+                  border: InputBorder.none,
+                  fillColor: Colors.transparent,
+                  filled: true,
+                ),
+                cursorColor: Colors.transparent,
+                cursorWidth: 0,
+                showCursor: false,
+              ),
+            ),
+          ],
         ),
+
+        // Error text
         if (widget.errorText != null) ...[
           AppSpacing.verticalSM,
           Text(
@@ -111,62 +138,53 @@ class _OtpInputState extends State<OtpInput> {
     );
   }
 
-  Widget _buildDigitBox(int index) {
-    return SizedBox(
-      width: 50,
-      height: 60,
-      child: KeyboardListener(
-        focusNode: FocusNode(),
-        onKeyEvent: (event) => _onKeyEvent(index, event),
-        child: TextField(
-          controller: _controllers[index],
-          focusNode: _focusNodes[index],
-          textAlign: TextAlign.center,
-          keyboardType: TextInputType.number,
-          maxLength: 1,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-          ],
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0,
+  Widget _buildDigitBox(int index, double width, double height) {
+    final text = _controller.text;
+    final hasDigit = index < text.length;
+    final digit = hasDigit ? text[index] : '';
+    final isFocused = _focusNode.hasFocus && index == text.length;
+    final hasError = widget.errorText != null;
+
+    return GestureDetector(
+      onTap: () => _focusNode.requestFocus(),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: hasDigit ? AppColors.primary.withOpacity(0.05) : AppColors.surfaceLight,
+          borderRadius: AppRadius.radiusMD,
+          border: Border.all(
+            color: hasError
+                ? AppColors.danger
+                : isFocused
+                    ? AppColors.primary
+                    : hasDigit
+                        ? AppColors.primary.withOpacity(0.3)
+                        : AppColors.gray300,
+            width: isFocused || hasDigit ? 2 : 1.5,
           ),
-          decoration: InputDecoration(
-            counterText: '',
-            filled: true,
-            fillColor: AppColors.surfaceLight,
-            border: OutlineInputBorder(
-              borderRadius: AppRadius.radiusMD,
-              borderSide: const BorderSide(
-                color: AppColors.gray300,
-                width: 1.5,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: AppRadius.radiusMD,
-              borderSide: const BorderSide(
-                color: AppColors.gray300,
-                width: 1.5,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: AppRadius.radiusMD,
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-                width: 2,
-              ),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: AppRadius.radiusMD,
-              borderSide: const BorderSide(
-                color: AppColors.danger,
-                width: 1.5,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-          onChanged: (value) => _onChanged(index, value),
+        ),
+        child: Center(
+          child: hasDigit
+              ? Text(
+                  digit,
+                  style: TextStyle(
+                    fontSize: width * 0.45,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textMainLight,
+                  ),
+                )
+              : isFocused
+                  ? Container(
+                      width: 2,
+                      height: height * 0.4,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(1),
+                      ),
+                    )
+                  : null,
         ),
       ),
     );

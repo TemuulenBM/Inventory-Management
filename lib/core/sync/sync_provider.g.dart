@@ -6,25 +6,25 @@ part of 'sync_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$connectivityProviderHash() =>
-    r'6cfc331587465939bf19d8599f1c096e4c8702de';
+String _$connectivityStreamHash() =>
+    r'4bbb56f5b9b9aab3e112fd19558f13688d575361';
 
 /// Connectivity stream provider
 ///
-/// Copied from [connectivityProvider].
-@ProviderFor(connectivityProvider)
-final connectivityProviderProvider =
+/// Copied from [connectivityStream].
+@ProviderFor(connectivityStream)
+final connectivityStreamProvider =
     AutoDisposeStreamProvider<ConnectivityResult>.internal(
-  connectivityProvider,
-  name: r'connectivityProviderProvider',
+  connectivityStream,
+  name: r'connectivityStreamProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$connectivityProviderHash,
+      : _$connectivityStreamHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef ConnectivityProviderRef
+typedef ConnectivityStreamRef
     = AutoDisposeStreamProviderRef<ConnectivityResult>;
 String _$isOnlineHash() => r'5def1d73cb7152cce8fed7ecf2dfb5d9c3ef3601';
 
@@ -42,7 +42,7 @@ final isOnlineProvider = AutoDisposeProvider<bool>.internal(
 );
 
 typedef IsOnlineRef = AutoDisposeProviderRef<bool>;
-String _$syncNotifierHash() => r'33ac5a8849588b266e7d1a52c4a422d0a59dc0a4';
+String _$syncNotifierHash() => r'141356124d3c7ddc9f697da99b0458deed0d44b9';
 
 /// Sync state notifier
 ///

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:retail_control_platform/core/routing/app_router.dart';
 import 'package:retail_control_platform/core/theme/app_theme.dart';
 import 'package:retail_control_platform/l10n/app_localizations.dart';
@@ -9,6 +10,9 @@ import 'package:retail_control_platform/l10n/app_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load environment variables
+  await dotenv.load(fileName: '.env');
 
   // Initialize Supabase
   // TODO: Uncomment ба .env файлын SUPABASE_URL, SUPABASE_ANON_KEY оруулах

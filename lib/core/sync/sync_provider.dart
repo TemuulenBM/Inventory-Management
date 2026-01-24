@@ -24,11 +24,16 @@ class SyncNotifier extends _$SyncNotifier {
       }
     });
 
+    // Clean up timer on dispose
+    ref.onDispose(() {
+      _syncTimer?.cancel();
+    });
+
     // Listen to connectivity changes
-    ref.listen(connectivityProvider, (previous, next) {
-      if (next.hasValue) {
-        _updateOnlineStatus(next.value!);
-      }
+    ref.listen(connectivityStreamProvider, (previous, next) {
+      next.whenData((result) {
+        _updateOnlineStatus(result);
+      });
     });
 
     return const SyncState(
@@ -39,8 +44,12 @@ class SyncNotifier extends _$SyncNotifier {
   }
 
   Future<void> _checkConnectivity() async {
-    final connectivity = await Connectivity().checkConnectivity();
-    _updateOnlineStatus(connectivity.first);
+    final List<ConnectivityResult> results = await Connectivity().checkConnectivity();
+    if (results.isNotEmpty) {
+      _updateOnlineStatus(results.first);
+    } else {
+      _updateOnlineStatus(ConnectivityResult.none);
+    }
   }
 
   void _updateOnlineStatus(ConnectivityResult result) {
@@ -109,17 +118,14 @@ class SyncNotifier extends _$SyncNotifier {
     );
   }
 
-  @override
-  void dispose() {
-    _syncTimer?.cancel();
-    super.dispose();
-  }
 }
 
 /// Connectivity stream provider
 @riverpod
-Stream<ConnectivityResult> connectivityProvider(ConnectivityProviderRef ref) {
-  return Connectivity().onConnectivityChanged.map((results) => results.first);
+Stream<ConnectivityResult> connectivityStream(ConnectivityStreamRef ref) {
+  return Connectivity().onConnectivityChanged.map((List<ConnectivityResult> results) {
+    return results.isNotEmpty ? results.first : ConnectivityResult.none;
+  });
 }
 
 /// Is online (convenience provider)

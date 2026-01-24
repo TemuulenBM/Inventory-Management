@@ -6,30 +6,13 @@ part of 'auth_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$authStateChangesHash() => r'6b70ca4a05f6252a095fc36b789ac5a79f193c7f';
-
-/// Auth state changes stream
-///
-/// Copied from [authStateChanges].
-@ProviderFor(authStateChanges)
-final authStateChangesProvider = AutoDisposeStreamProvider<AuthState>.internal(
-  authStateChanges,
-  name: r'authStateChangesProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$authStateChangesHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef AuthStateChangesRef = AutoDisposeStreamProviderRef<AuthState>;
-String _$currentUserHash() => r'239ad3b53edf895d1e9b211482ff50b7c078899c';
+String _$currentUserHash() => r'6b17c43347dc1626dddc792e9c0d7d1bdf998454';
 
 /// Current user (convenience provider)
 ///
 /// Copied from [currentUser].
 @ProviderFor(currentUser)
-final currentUserProvider = AutoDisposeProvider<User?>.internal(
+final currentUserProvider = AutoDisposeProvider<UserModel?>.internal(
   currentUser,
   name: r'currentUserProvider',
   debugGetCreateSourceHash:
@@ -38,8 +21,8 @@ final currentUserProvider = AutoDisposeProvider<User?>.internal(
   allTransitiveDependencies: null,
 );
 
-typedef CurrentUserRef = AutoDisposeProviderRef<User?>;
-String _$isAuthenticatedHash() => r'f2339fdaf4a06140f85905b543189f1d1635b1e1';
+typedef CurrentUserRef = AutoDisposeProviderRef<UserModel?>;
+String _$isAuthenticatedHash() => r'a741df17e53be53e7ba71f46dd037ffb8aa4b97f';
 
 /// Is authenticated (convenience provider)
 ///
@@ -56,9 +39,9 @@ final isAuthenticatedProvider = AutoDisposeProvider<bool>.internal(
 );
 
 typedef IsAuthenticatedRef = AutoDisposeProviderRef<bool>;
-String _$authNotifierHash() => r'557b0e458ea3be2ef2f7bb53282a9ddf25d135d7';
+String _$authNotifierHash() => r'5522bb6d9f63ea84179c1860ba4fe70a89d6a03b';
 
-/// Auth state notifier
+/// Auth state notifier - Backend API ашиглан authentication хийнэ
 ///
 /// Copied from [AuthNotifier].
 @ProviderFor(AuthNotifier)

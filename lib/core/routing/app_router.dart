@@ -2,6 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:retail_control_platform/core/routing/placeholder_screens.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
+import 'package:retail_control_platform/features/auth/presentation/screens/phone_auth_screen.dart';
+import 'package:retail_control_platform/features/auth/presentation/screens/otp_screen.dart';
+import 'package:retail_control_platform/features/onboarding/presentation/screens/splash_screen.dart';
+import 'package:retail_control_platform/features/dashboard/presentation/screens/dashboard_screen.dart';
+import 'package:retail_control_platform/features/sales/presentation/screens/quick_sale_select_screen.dart';
+import 'package:retail_control_platform/features/sales/presentation/screens/cart_screen.dart';
+import 'package:retail_control_platform/features/inventory/presentation/screens/products_list_screen.dart';
+import 'package:retail_control_platform/features/inventory/presentation/screens/product_detail_screen.dart';
+import 'package:retail_control_platform/features/inventory/presentation/screens/product_form_screen.dart';
 
 /// GoRouter configuration for app navigation
 /// Auth guards, deep linking, route transitions
@@ -25,7 +34,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: RouteNames.authOtp,
       name: 'auth-otp',
-      builder: (context, state) => const OtpScreen(),
+      builder: (context, state) {
+        final phoneNumber = state.extra as String? ?? '';
+        return OtpScreen(phoneNumber: phoneNumber);
+      },
     ),
 
     // ===== MAIN APP =====
@@ -44,14 +56,27 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: RouteNames.quickSaleCart,
       name: 'quick-sale-cart',
-      builder: (context, state) => const QuickSaleCartScreen(),
+      builder: (context, state) => const CartScreen(),
     ),
 
     // ===== INVENTORY =====
     GoRoute(
       path: RouteNames.inventory,
       name: 'inventory',
-      builder: (context, state) => const InventoryScreen(),
+      builder: (context, state) => const ProductsListScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.addProduct,
+      name: 'add-product',
+      builder: (context, state) => const ProductFormScreen(productId: 'new'),
+    ),
+    GoRoute(
+      path: RouteNames.editProduct,
+      name: 'edit-product',
+      builder: (context, state) {
+        final productId = state.pathParameters['id'] ?? '';
+        return ProductFormScreen(productId: productId);
+      },
     ),
     GoRoute(
       path: RouteNames.productDetail,

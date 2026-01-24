@@ -91,7 +91,7 @@ class AppComponentThemes {
 
   // ===== CARD THEME =====
 
-  static CardTheme cardTheme = CardTheme(
+  static CardThemeData cardTheme = CardThemeData(
     color: AppColors.surfaceLight,
     shadowColor: AppColors.shadowLight,
     surfaceTintColor: Colors.transparent,
@@ -226,7 +226,7 @@ class AppComponentThemes {
 
   // ===== DIALOG THEME =====
 
-  static DialogTheme dialogTheme = DialogTheme(
+  static DialogThemeData dialogTheme = DialogThemeData(
     backgroundColor: AppColors.surfaceLight,
     elevation: 8,
     shape: RoundedRectangleBorder(
