@@ -59,7 +59,7 @@ final pendingSyncCountProvider = AutoDisposeProvider<int>.internal(
 );
 
 typedef PendingSyncCountRef = AutoDisposeProviderRef<int>;
-String _$syncNotifierHash() => r'70e146257820912e12526a74407c0aa4fed97293';
+String _$syncNotifierHash() => r'bd579a5b19dcc27ecb311eba2dbf3cfdfa4af811';
 
 /// Sync state notifier
 ///

@@ -39,11 +39,27 @@ class SyncNotifier extends _$SyncNotifier {
       });
     });
 
+    // Initial sync - app эхлэхэд автомат sync хийх
+    Future.microtask(() {
+      _performInitialSync();
+    });
+
     return const SyncState(
       status: SyncStatus.synced,
       isOnline: true,
       pendingCount: 0,
     );
+  }
+
+  /// App эхлэхэд нэг удаа sync хийх
+  Future<void> _performInitialSync() async {
+    // Бага зэрэг хүлээх - connectivity шалгалт дуусах хүртэл
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Online бөгөөд хэзээ ч sync хийгээгүй бол эхлэн sync хийх
+    if (state.isOnline && state.lastSyncTime == null) {
+      sync();
+    }
   }
 
   Future<void> _checkConnectivity() async {

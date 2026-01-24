@@ -24,29 +24,35 @@ class DashboardScreen extends ConsumerWidget {
       body: SafeArea(
         child: Stack(
           children: [
-            // Main scrollable content
-            SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header
-                  _buildHeader(ref),
-                  AppSpacing.verticalMD,
+            // Main scrollable content with Pull-to-Refresh
+            RefreshIndicator(
+              onRefresh: () => _handleRefresh(ref),
+              color: const Color(0xFF00878F),
+              backgroundColor: Colors.white,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header
+                    _buildHeader(context, ref),
+                    AppSpacing.verticalMD,
 
-                  // Today's Sales Hero Card
-                  _buildSalesHeroCard(ref),
-                  AppSpacing.verticalLG,
+                    // Today's Sales Hero Card
+                    _buildSalesHeroCard(ref),
+                    AppSpacing.verticalLG,
 
-                  // Low Stock Alerts
-                  _buildLowStockSection(ref),
-                  AppSpacing.verticalLG,
+                    // Low Stock Alerts
+                    _buildLowStockSection(ref),
+                    AppSpacing.verticalLG,
 
-                  // Top Products
-                  _buildTopProductsSection(),
+                    // Top Products (динамик)
+                    _buildTopProductsSection(ref),
 
-                  // Bottom spacing for FAB
-                  const SizedBox(height: 120),
-                ],
+                    // Bottom spacing for FAB
+                    const SizedBox(height: 120),
+                  ],
+                ),
               ),
             ),
 
@@ -63,7 +69,17 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(WidgetRef ref) {
+  /// Pull-to-refresh handler
+  Future<void> _handleRefresh(WidgetRef ref) async {
+    // Sync эхлүүлэх
+    await ref.read(syncNotifierProvider.notifier).sync();
+    // Providers шинэчлэх
+    ref.invalidate(todaySalesTotalProvider);
+    ref.invalidate(yesterdaySalesTotalProvider);
+    ref.invalidate(topProductsProvider);
+  }
+
+  Widget _buildHeader(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
     final timeFormat = DateFormat('h:mm a');
     final currentTime = timeFormat.format(now).toUpperCase();
@@ -104,49 +120,53 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
 
-          // Sync status badge - now dynamic
+          // Sync status badge - tap-to-retry нэмсэн
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: _getSyncBgColor(syncState.status),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: _getSyncColor(syncState.status).withOpacity(0.1),
-                    width: 1,
+              InkWell(
+                onTap: () => _handleSyncTap(context, ref, syncState),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+                  decoration: BoxDecoration(
+                    color: _getSyncBgColor(syncState.status),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _getSyncColor(syncState.status).withOpacity(0.1),
+                      width: 1,
                     ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      _getSyncIcon(syncState.status),
-                      size: 16,
-                      color: _getSyncColor(syncState.status),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _getSyncStatusText(syncState.status),
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: _getSyncColor(syncState.status),
-                        letterSpacing: 0.8,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _getSyncIcon(syncState.status),
+                        size: 16,
+                        color: _getSyncColor(syncState.status),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _getSyncStatusText(syncState.status),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: _getSyncColor(syncState.status),
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 4),
@@ -233,6 +253,42 @@ class DashboardScreen extends ConsumerWidget {
     if (diff.inMinutes < 60) return 'Сүүлд: ${diff.inMinutes} мин өмнө';
     if (diff.inHours < 24) return 'Сүүлд: ${diff.inHours} цаг өмнө';
     return 'Сүүлд: ${DateFormat('MMM d').format(time)}';
+  }
+
+  /// Sync badge дарахад - manual sync эхлүүлэх
+  void _handleSyncTap(BuildContext context, WidgetRef ref, SyncState syncState) {
+    if (syncState.status == SyncStatus.syncing) {
+      // Аль хэдийн sync хийж байгаа бол юу ч хийхгүй
+      return;
+    }
+
+    if (syncState.status == SyncStatus.error ||
+        syncState.status == SyncStatus.offline ||
+        syncState.status == SyncStatus.pendingChanges) {
+      // Manual sync эхлүүлэх
+      ref.read(syncNotifierProvider.notifier).sync();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Синк эхэллээ...'),
+          backgroundColor: const Color(0xFF00878F),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else if (syncState.status == SyncStatus.synced) {
+      // Sync info харуулах
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Сүүлд синк хийсэн: ${_formatLastSync(syncState.lastSyncTime)}'),
+          backgroundColor: const Color(0xFF3D7A6E),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
   }
 
   Widget _buildSalesHeroCard(WidgetRef ref) {
@@ -749,7 +805,9 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTopProductsSection() {
+  Widget _buildTopProductsSection(WidgetRef ref) {
+    final topProductsAsync = ref.watch(topProductsProvider);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -766,37 +824,131 @@ class DashboardScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
 
-        // Horizontal scrolling product cards
-        SizedBox(
-          height: 180,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+        // Динамик product cards
+        topProductsAsync.when(
+          data: (products) {
+            if (products.isEmpty) {
+              return _buildEmptyTopProducts();
+            }
+            return SizedBox(
+              height: 180,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                itemCount: products.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) {
+                  final product = products[index];
+                  return _buildTopProductCard(
+                    rank: index + 1,
+                    name: product.name,
+                    salesCount: product.salesCount,
+                    bgColor: _getProductColor(index),
+                  );
+                },
+              ),
+            );
+          },
+          loading: () => _buildTopProductsLoading(),
+          error: (_, __) => _buildTopProductsError(),
+        ),
+      ],
+    );
+  }
+
+  /// Top products-ийн өнгө (rank-д тулгуурласан)
+  Color _getProductColor(int index) {
+    final colors = [
+      const Color(0xFFFFCDD2), // Улаан
+      const Color(0xFFC8E6C9), // Ногоон
+      const Color(0xFFFFE0B2), // Улбар
+      const Color(0xFFBBDEFB), // Цэнхэр
+      const Color(0xFFE1BEE7), // Ягаан
+    ];
+    return colors[index % colors.length];
+  }
+
+  /// Top products хоосон үед
+  Widget _buildEmptyTopProducts() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        height: 140,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: AppRadius.radiusLG,
+          border: Border.all(color: AppColors.gray100),
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildTopProductCard(
-                rank: 1,
-                name: 'Coca Cola 500...',
-                salesCount: 28,
-                bgColor: const Color(0xFFFFCDD2),
-              ),
-              const SizedBox(width: 12),
-              _buildTopProductCard(
-                rank: 2,
-                name: 'Цагаан будаа',
-                salesCount: 44,
-                bgColor: const Color(0xFFC8E6C9),
-              ),
-              const SizedBox(width: 12),
-              _buildTopProductCard(
-                rank: 3,
-                name: 'Дээд гэр',
-                salesCount: 82,
-                bgColor: const Color(0xFFFFE0B2),
+              Icon(Icons.inventory_2_outlined, size: 40, color: AppColors.gray300),
+              SizedBox(height: 8),
+              Text(
+                'Өнөөдөр борлуулалт байхгүй',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.gray400,
+                ),
               ),
             ],
           ),
         ),
-      ],
+      ),
+    );
+  }
+
+  /// Top products loading state
+  Widget _buildTopProductsLoading() {
+    return SizedBox(
+      height: 180,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        itemCount: 3,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          return Container(
+            width: 140,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: AppRadius.radiusLG,
+            ),
+            child: const Center(
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Top products error state
+  Widget _buildTopProductsError() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        height: 140,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: AppRadius.radiusLG,
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 32, color: AppColors.gray400),
+              SizedBox(height: 8),
+              Text(
+                'Өгөгдөл ачаалахад алдаа гарлаа',
+                style: TextStyle(fontSize: 12, color: AppColors.gray400),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

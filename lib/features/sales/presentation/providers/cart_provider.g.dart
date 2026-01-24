@@ -253,6 +253,23 @@ final yesterdaySalesTotalProvider = AutoDisposeFutureProvider<double>.internal(
 );
 
 typedef YesterdaySalesTotalRef = AutoDisposeFutureProviderRef<double>;
+String _$topProductsHash() => r'21e95a59fb5a956859cec3b3d4182edb3e0cc57f';
+
+/// Өнөөдрийн шилдэг борлуулалттай бүтээгдэхүүнүүд (Top 5)
+///
+/// Copied from [topProducts].
+@ProviderFor(topProducts)
+final topProductsProvider =
+    AutoDisposeFutureProvider<List<TopProductItem>>.internal(
+  topProducts,
+  name: r'topProductsProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$topProductsHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef TopProductsRef = AutoDisposeFutureProviderRef<List<TopProductItem>>;
 String _$cartNotifierHash() => r'2db98b97a7fa24552e82c5956d8ad84b5c6b33d7';
 
 /// Cart state notifier

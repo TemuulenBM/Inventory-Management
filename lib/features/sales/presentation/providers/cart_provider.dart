@@ -186,3 +186,39 @@ Future<double> yesterdaySalesTotal(YesterdaySalesTotalRef ref) async {
     error: (_, __, ___) => 0,
   );
 }
+
+/// Шилдэг борлуулалттай бүтээгдэхүүн (Top products)
+class TopProductItem {
+  final String id;
+  final String name;
+  final int salesCount;
+  final double revenue;
+
+  TopProductItem({
+    required this.id,
+    required this.name,
+    required this.salesCount,
+    required this.revenue,
+  });
+
+  factory TopProductItem.fromMap(Map<String, dynamic> map) {
+    return TopProductItem(
+      id: map['id'] as String,
+      name: map['name'] as String,
+      salesCount: (map['total_quantity'] as num?)?.toInt() ?? 0,
+      revenue: (map['total_revenue'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+}
+
+/// Өнөөдрийн шилдэг борлуулалттай бүтээгдэхүүнүүд (Top 5)
+@riverpod
+Future<List<TopProductItem>> topProducts(TopProductsRef ref) async {
+  final storeId = ref.watch(storeIdProvider);
+  if (storeId == null) return [];
+
+  final db = ref.watch(databaseProvider);
+  final results = await db.getTopSellingProducts(storeId, limit: 5);
+
+  return results.map((map) => TopProductItem.fromMap(map)).toList();
+}

@@ -121,8 +121,9 @@ class SyncQueueManager {
   Future<SyncResult> pullChanges(String storeId) async {
     try {
       final lastSync = await _getLastSyncTime();
-      final sinceStr = lastSync?.toIso8601String() ??
-          DateTime.now().subtract(const Duration(days: 7)).toIso8601String();
+      // ISO 8601 format with timezone (Z = UTC)
+      final sinceTime = lastSync ?? DateTime.now().subtract(const Duration(days: 7));
+      final sinceStr = '${sinceTime.toUtc().toIso8601String().split('.').first}Z';
 
       _log('Pulling changes since: $sinceStr');
 
