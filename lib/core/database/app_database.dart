@@ -221,6 +221,23 @@ class AppDatabase extends _$AppDatabase {
     return result.fold<double>(0, (sum, sale) => sum + sale.totalAmount);
   }
 
+  /// Өчигдрийн нийт борлуулалт (Dashboard - өсөлтийн хувь тооцоход)
+  Future<double> getYesterdayTotalSales(String storeId) async {
+    final today = DateTime.now();
+    final startOfYesterday = DateTime(today.year, today.month, today.day)
+        .subtract(const Duration(days: 1));
+    final endOfYesterday = DateTime(today.year, today.month, today.day);
+
+    final result = await (select(sales)
+          ..where((s) =>
+              s.storeId.equals(storeId) &
+              s.timestamp.isBiggerOrEqualValue(startOfYesterday) &
+              s.timestamp.isSmallerThanValue(endOfYesterday)))
+        .get();
+
+    return result.fold<double>(0, (sum, sale) => sum + sale.totalAmount);
+  }
+
   /// Шилдэг борлуулалттай бараанууд (Top 5)
   Future<List<Map<String, dynamic>>> getTopSellingProducts(String storeId,
       {int limit = 5}) async {

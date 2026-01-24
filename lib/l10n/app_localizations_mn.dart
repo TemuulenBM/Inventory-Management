@@ -268,4 +268,34 @@ class AppLocalizationsMn extends AppLocalizations {
 
   @override
   String get no => 'Үгүй';
+
+  @override
+  String alertCount(int count) {
+    return '$count сэрэмжлүүлэг';
+  }
+
+  @override
+  String get justNow => 'Дөнгөж сая';
+
+  @override
+  String minutesAgo(int minutes) {
+    return '$minutes мин өмнө';
+  }
+
+  @override
+  String hoursAgo(int hours) {
+    return '$hours цаг өмнө';
+  }
+
+  @override
+  String get neverSynced => 'Синк хийгдээгүй';
+
+  @override
+  String get yesterday => 'Өчигдөр';
+
+  @override
+  String get viewAll => 'Бүгдийг харах';
+
+  @override
+  String get remaining => 'үлдсэн';
 }

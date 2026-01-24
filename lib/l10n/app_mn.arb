@@ -113,5 +113,29 @@
   "retry": "Дахин оролдох",
 
   "yes": "Тийм",
-  "no": "Үгүй"
+  "no": "Үгүй",
+
+  "alertCount": "{count} сэрэмжлүүлэг",
+  "@alertCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "justNow": "Дөнгөж сая",
+  "minutesAgo": "{minutes} мин өмнө",
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "hoursAgo": "{hours} цаг өмнө",
+  "@hoursAgo": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "neverSynced": "Синк хийгдээгүй",
+  "yesterday": "Өчигдөр",
+  "viewAll": "Бүгдийг харах",
+  "remaining": "үлдсэн"
 }

@@ -113,5 +113,29 @@
   "retry": "Retry",
 
   "yes": "Yes",
-  "no": "No"
+  "no": "No",
+
+  "alertCount": "{count, plural, =1{1 alert} other{{count} alerts}}",
+  "@alertCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "justNow": "Just now",
+  "minutesAgo": "{minutes} min ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "hoursAgo": "{hours}h ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "neverSynced": "Never synced",
+  "yesterday": "Yesterday",
+  "viewAll": "View all",
+  "remaining": "remaining"
 }

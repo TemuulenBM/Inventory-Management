@@ -6,6 +6,11 @@ import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
+import 'package:retail_control_platform/core/sync/sync_provider.dart';
+import 'package:retail_control_platform/core/sync/sync_state.dart';
+import 'package:retail_control_platform/core/providers/store_provider.dart';
+import 'package:retail_control_platform/features/sales/presentation/providers/cart_provider.dart';
+import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 
 /// Owner Dashboard Screen
 /// Дизайн: design/owner_dashboard/screen.png
@@ -25,15 +30,15 @@ class DashboardScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Header
-                  _buildHeader(),
+                  _buildHeader(ref),
                   AppSpacing.verticalMD,
 
                   // Today's Sales Hero Card
-                  _buildSalesHeroCard(),
+                  _buildSalesHeroCard(ref),
                   AppSpacing.verticalLG,
 
                   // Low Stock Alerts
-                  _buildLowStockSection(),
+                  _buildLowStockSection(ref),
                   AppSpacing.verticalLG,
 
                   // Top Products
@@ -58,10 +63,13 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(WidgetRef ref) {
     final now = DateTime.now();
     final timeFormat = DateFormat('h:mm a');
     final currentTime = timeFormat.format(now).toUpperCase();
+
+    // Watch sync state
+    final syncState = ref.watch(syncNotifierProvider);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
@@ -96,7 +104,7 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
 
-          // Sync status badge
+          // Sync status badge - now dynamic
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -106,10 +114,10 @@ class DashboardScreen extends ConsumerWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE6F0EE),
+                  color: _getSyncBgColor(syncState.status),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: const Color(0xFF3D7A6E).withOpacity(0.1),
+                    color: _getSyncColor(syncState.status).withOpacity(0.1),
                     width: 1,
                   ),
                   boxShadow: [
@@ -123,18 +131,18 @@ class DashboardScreen extends ConsumerWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.cloud_done,
+                    Icon(
+                      _getSyncIcon(syncState.status),
                       size: 16,
-                      color: Color(0xFF3D7A6E),
+                      color: _getSyncColor(syncState.status),
                     ),
                     const SizedBox(width: 4),
-                    const Text(
-                      'SYNCED',
+                    Text(
+                      _getSyncStatusText(syncState.status),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFF3D7A6E),
+                        color: _getSyncColor(syncState.status),
                         letterSpacing: 0.8,
                       ),
                     ),
@@ -142,9 +150,9 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
-                'Last sync: 2 min ago',
-                style: TextStyle(
+              Text(
+                _formatLastSync(syncState.lastSyncTime),
+                style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
                   color: AppColors.gray400,
@@ -157,7 +165,127 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSalesHeroCard() {
+  // Sync helper methods
+  String _getSyncStatusText(SyncStatus status) {
+    switch (status) {
+      case SyncStatus.synced:
+        return 'SYNCED';
+      case SyncStatus.syncing:
+        return 'SYNCING...';
+      case SyncStatus.pendingChanges:
+        return 'PENDING';
+      case SyncStatus.offline:
+        return 'OFFLINE';
+      case SyncStatus.error:
+        return 'ERROR';
+    }
+  }
+
+  Color _getSyncColor(SyncStatus status) {
+    switch (status) {
+      case SyncStatus.synced:
+        return const Color(0xFF3D7A6E);
+      case SyncStatus.syncing:
+        return const Color(0xFF1976D2);
+      case SyncStatus.pendingChanges:
+        return const Color(0xFFE65100);
+      case SyncStatus.offline:
+        return const Color(0xFF757575);
+      case SyncStatus.error:
+        return const Color(0xFFC62828);
+    }
+  }
+
+  Color _getSyncBgColor(SyncStatus status) {
+    switch (status) {
+      case SyncStatus.synced:
+        return const Color(0xFFE6F0EE);
+      case SyncStatus.syncing:
+        return const Color(0xFFE3F2FD);
+      case SyncStatus.pendingChanges:
+        return const Color(0xFFFFF4E6);
+      case SyncStatus.offline:
+        return const Color(0xFFF5F5F5);
+      case SyncStatus.error:
+        return const Color(0xFFFFEBEE);
+    }
+  }
+
+  IconData _getSyncIcon(SyncStatus status) {
+    switch (status) {
+      case SyncStatus.synced:
+        return Icons.cloud_done;
+      case SyncStatus.syncing:
+        return Icons.sync;
+      case SyncStatus.pendingChanges:
+        return Icons.cloud_upload;
+      case SyncStatus.offline:
+        return Icons.cloud_off;
+      case SyncStatus.error:
+        return Icons.error_outline;
+    }
+  }
+
+  String _formatLastSync(DateTime? time) {
+    if (time == null) return 'Синк хийгдээгүй';
+    final diff = DateTime.now().difference(time);
+    if (diff.inMinutes < 1) return 'Дөнгөж сая';
+    if (diff.inMinutes < 60) return 'Сүүлд: ${diff.inMinutes} мин өмнө';
+    if (diff.inHours < 24) return 'Сүүлд: ${diff.inHours} цаг өмнө';
+    return 'Сүүлд: ${DateFormat('MMM d').format(time)}';
+  }
+
+  Widget _buildSalesHeroCard(WidgetRef ref) {
+    final todaySalesAsync = ref.watch(todaySalesTotalProvider);
+    final yesterdaySalesAsync = ref.watch(yesterdaySalesTotalProvider);
+
+    return todaySalesAsync.when(
+      data: (todaySales) {
+        return yesterdaySalesAsync.when(
+          data: (yesterdaySales) {
+            // Calculate growth percentage
+            final growthPercent = yesterdaySales > 0
+                ? ((todaySales - yesterdaySales) / yesterdaySales * 100).round()
+                : 0;
+            final isPositive = growthPercent >= 0;
+
+            return _buildSalesCardContent(
+              todayAmount: todaySales,
+              yesterdayAmount: yesterdaySales,
+              growthPercent: growthPercent,
+              isPositive: isPositive,
+            );
+          },
+          loading: () => _buildSalesCardContent(
+            todayAmount: todaySales,
+            yesterdayAmount: 0,
+            growthPercent: 0,
+            isPositive: true,
+            isLoading: true,
+          ),
+          error: (_, __) => _buildSalesCardContent(
+            todayAmount: todaySales,
+            yesterdayAmount: 0,
+            growthPercent: 0,
+            isPositive: true,
+          ),
+        );
+      },
+      loading: () => _buildSalesCardLoading(),
+      error: (_, __) => _buildSalesCardError(),
+    );
+  }
+
+  Widget _buildSalesCardContent({
+    required double todayAmount,
+    required double yesterdayAmount,
+    required int growthPercent,
+    required bool isPositive,
+    bool isLoading = false,
+  }) {
+    final formattedToday = NumberFormat('#,###', 'mn').format(todayAmount.round());
+    final formattedYesterday = NumberFormat('#,###', 'mn').format(yesterdayAmount.round());
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -245,43 +373,51 @@ class DashboardScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFEBF5EC),
-                        borderRadius: AppRadius.radiusSM,
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.trending_up,
-                            size: 14,
-                            color: Color(0xFF2E7D32),
-                          ),
-                          const SizedBox(width: 4),
-                          const Text(
-                            '+12%',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF2E7D32),
+                    // Growth badge - dynamic
+                    if (!isLoading && yesterdayAmount > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isPositive
+                              ? const Color(0xFFEBF5EC)
+                              : const Color(0xFFFFEBEE),
+                          borderRadius: AppRadius.radiusSM,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isPositive ? Icons.trending_up : Icons.trending_down,
+                              size: 14,
+                              color: isPositive
+                                  ? const Color(0xFF2E7D32)
+                                  : const Color(0xFFC62828),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 4),
+                            Text(
+                              '${isPositive ? '+' : ''}$growthPercent%',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: isPositive
+                                    ? const Color(0xFF2E7D32)
+                                    : const Color(0xFFC62828),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
 
-                // Amount
-                const Text(
-                  '₮ 1,250,400',
-                  style: TextStyle(
+                // Amount - dynamic
+                Text(
+                  '₮ $formattedToday',
+                  style: const TextStyle(
                     fontSize: 36,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFFC96F53),
@@ -291,9 +427,9 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                const Text(
-                  'Өчигдөр: ₮ 1,115,000',
-                  style: TextStyle(
+                Text(
+                  'Өчигдөр: ₮ $formattedYesterday',
+                  style: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: AppColors.gray400,
@@ -314,118 +450,209 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLowStockSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Header
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Бага үлдэгдэлтэй',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textMainLight,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF4E6),
-                  borderRadius: AppRadius.radiusSM,
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.warning_amber_rounded,
-                      size: 14,
-                      color: Color(0xFFE65100),
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
-                      '3 зааварлууд',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFE65100),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        AppSpacing.verticalMD,
-
-        // Alert cards
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              _buildAlertCard(
-                icon: Icons.local_fire_department,
-                iconColor: const Color(0xFFFF6B35),
-                iconBg: const Color(0xFFFFF4E6),
-                title: 'Танх Атар',
-                subtitle: 'Танх, нарийн боов',
-                stockCount: 2,
-              ),
-              const SizedBox(height: 12),
-              _buildAlertCard(
-                icon: Icons.opacity,
-                iconColor: const Color(0xFF1976D2),
-                iconBg: const Color(0xFFE3F2FD),
-                title: 'Сүү ІЛ',
-                subtitle: 'Сүү, сүүн бүтээгдэхүүн',
-                stockCount: 4,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // "See all" link
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: TextButton(
-            onPressed: () {
-              // Navigate to alerts
-            },
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.zero,
-              minimumSize: Size.zero,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  Widget _buildSalesCardLoading() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        height: 200,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: AppRadius.radiusXL,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 40,
+              offset: const Offset(0, 10),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Бүгдийг харах',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textSecondaryLight,
+          ],
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: Color(0xFFC96F53),
+            strokeWidth: 2,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSalesCardError() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        height: 200,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: AppRadius.radiusXL,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 40,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, color: AppColors.gray400, size: 32),
+              SizedBox(height: 8),
+              Text(
+                'Өгөгдөл ачаалахад алдаа гарлаа',
+                style: TextStyle(color: AppColors.gray400, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLowStockSection(WidgetRef ref) {
+    final storeId = ref.watch(storeIdProvider);
+    if (storeId == null) {
+      return const SizedBox.shrink();
+    }
+
+    final lowStockAsync = ref.watch(lowStockProductsProvider(storeId));
+
+    return lowStockAsync.when(
+      data: (products) {
+        if (products.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header with dynamic count
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Бага үлдэгдэлтэй',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textMainLight,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF4E6),
+                      borderRadius: AppRadius.radiusSM,
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          size: 14,
+                          color: Color(0xFFE65100),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${products.length} сэрэмжлүүлэг',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFE65100),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            AppSpacing.verticalMD,
+
+            // Dynamic alert cards
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: products.take(3).map((product) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildAlertCard(
+                      icon: Icons.inventory_2_outlined,
+                      iconColor: const Color(0xFFE65100),
+                      iconBg: const Color(0xFFFFF4E6),
+                      title: product.name,
+                      subtitle: product.unit ?? product.category ?? '',
+                      stockCount: product.stockQuantity,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+
+            // "See all" link
+            if (products.length > 3)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: TextButton(
+                  onPressed: () {
+                    // Navigate to alerts
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Бүгдийг харах',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondaryLight,
+                        ),
+                      ),
+                      SizedBox(width: 4),
+                      Icon(
+                        Icons.arrow_forward,
+                        size: 14,
+                        color: AppColors.textSecondaryLight,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.arrow_forward,
-                  size: 14,
-                  color: AppColors.textSecondaryLight,
-                ),
-              ],
-            ),
+              ),
+          ],
+        );
+      },
+      loading: () => _buildLowStockLoading(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildLowStockLoading() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: AppRadius.radiusLG,
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Color(0xFFE65100),
           ),
         ),
-      ],
+      ),
     );
   }
 
