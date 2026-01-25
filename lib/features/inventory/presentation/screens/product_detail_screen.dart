@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
+import 'package:retail_control_platform/features/inventory/domain/inventory_event_model.dart';
+import 'package:retail_control_platform/features/inventory/domain/product_with_stock.dart';
+import 'package:retail_control_platform/features/inventory/presentation/providers/inventory_event_provider.dart';
+import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
+import 'package:retail_control_platform/features/inventory/presentation/widgets/adjustment_bottom_sheet.dart';
 
 /// Product Detail Screen
 /// Дизайн: design/product_detail_view/screen.png
@@ -18,45 +24,78 @@ class ProductDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Mock product data (will be replaced with actual provider)
-    final product = {
-      'name': 'Ноолуур ороолт',
-      'category': 'ХУВЦАС',
-      'color': 'Шаргал',
-      'stock': 156,
-      'stockStatus': 'хэвийн',
-      'price': 125000,
-      'sku': 'CSH-001-BGE',
-      'lowStockThreshold': 10,
-      'location': 'Төв дэлгүүр',
-    };
+    // Provider-аас бодит data авах
+    final productAsync = ref.watch(productDetailProvider(productId));
+    final eventsAsync = ref.watch(productInventoryEventsProvider(productId));
 
-    final historyItems = [
-      {
-        'type': 'sale',
-        'title': 'Борлуулалт',
-        'date': 'Өнөөдөр, 14:30',
-        'quantity': -2,
-        'color': const Color(0xFFDC2626),
-        'icon': Icons.shopping_cart_outlined,
+    return productAsync.when(
+      data: (product) {
+        if (product == null) {
+          return _buildErrorScreen(context, 'Бараа олдсонгүй');
+        }
+        return _buildContent(context, ref, product, eventsAsync);
       },
-      {
-        'type': 'restock',
-        'title': 'Орлого',
-        'date': 'Өчигдөр, 10:15',
-        'quantity': 50,
-        'color': const Color(0xFF059669),
-        'icon': Icons.inventory_2_outlined,
-      },
-      {
-        'type': 'adjust',
-        'title': 'Засвар',
-        'date': 'Oct 24, 18:00',
-        'quantity': 0,
-        'color': AppColors.gray500,
-        'icon': Icons.edit_outlined,
-      },
-    ];
+      loading: () => _buildLoadingScreen(),
+      error: (error, _) => _buildErrorScreen(context, error.toString()),
+    );
+  }
+
+  /// Loading screen
+  Widget _buildLoadingScreen() {
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      appBar: AppBar(
+        backgroundColor: AppColors.backgroundLight,
+        elevation: 0,
+        title: const Text('БҮТЭЭГДЭХҮҮН'),
+      ),
+      body: const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      ),
+    );
+  }
+
+  /// Error screen
+  Widget _buildErrorScreen(BuildContext context, String message) {
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      appBar: AppBar(
+        backgroundColor: AppColors.backgroundLight,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.textMainLight),
+          onPressed: () => context.pop(),
+        ),
+        title: const Text('БҮТЭЭГДЭХҮҮН'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: AppColors.gray400),
+            AppSpacing.verticalMD,
+            Text(
+              message,
+              style: const TextStyle(color: AppColors.gray500),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Main content
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    ProductWithStock product,
+    AsyncValue<List<InventoryEventModel>> eventsAsync,
+  ) {
+    // Stock status тодорхойлох
+    final stockStatus = product.isLowStock
+        ? (product.stockQuantity <= 0 ? 'дууссан' : 'бага')
+        : 'хэвийн';
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -123,7 +162,7 @@ class ProductDetailScreen extends ConsumerWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          product['category'] as String,
+                          product.category ?? 'БАРАА',
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -139,7 +178,7 @@ class ProductDetailScreen extends ConsumerWidget {
                 // Product name
                 Center(
                   child: Text(
-                    product['name'] as String,
+                    product.name,
                     style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
@@ -152,10 +191,10 @@ class ProductDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
 
-                // Product color/variant
+                // Product unit
                 Center(
                   child: Text(
-                    product['color'] as String,
+                    product.unit ?? 'ширхэг',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -167,8 +206,8 @@ class ProductDetailScreen extends ConsumerWidget {
 
                 // Stock card (large)
                 _buildStockCard(
-                  stock: product['stock'] as int,
-                  status: product['stockStatus'] as String,
+                  stock: product.stockQuantity,
+                  status: stockStatus,
                 ),
                 AppSpacing.verticalLG,
 
@@ -179,7 +218,7 @@ class ProductDetailScreen extends ConsumerWidget {
                       child: _buildInfoCard(
                         icon: Icons.monetization_on_outlined,
                         label: 'ҮНЭ',
-                        value: '${product['price']}₮',
+                        value: '${NumberFormat('#,###').format(product.sellPrice.toInt())}₮',
                         valueSize: 20,
                       ),
                     ),
@@ -188,7 +227,7 @@ class ProductDetailScreen extends ConsumerWidget {
                       child: _buildInfoCard(
                         icon: Icons.qr_code_2,
                         label: 'SKU',
-                        value: product['sku'] as String,
+                        value: product.sku,
                         valueSize: 16,
                       ),
                     ),
@@ -202,7 +241,7 @@ class ProductDetailScreen extends ConsumerWidget {
                       child: _buildInfoCard(
                         icon: Icons.notifications_outlined,
                         label: 'БОСГО',
-                        value: '${product['lowStockThreshold']}',
+                        value: '${product.lowStockThreshold ?? 10}',
                         valueSize: 24,
                       ),
                     ),
@@ -210,8 +249,8 @@ class ProductDetailScreen extends ConsumerWidget {
                     Expanded(
                       child: _buildInfoCard(
                         icon: Icons.store_outlined,
-                        label: 'АГУУЛАХ',
-                        value: product['location'] as String,
+                        label: 'ӨРТӨГ',
+                        value: '${NumberFormat('#,###').format(product.costPrice.toInt())}₮',
                         valueSize: 16,
                       ),
                     ),
@@ -249,14 +288,51 @@ class ProductDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // History items
-                ...historyItems.map((item) => _buildHistoryItem(
-                      icon: item['icon'] as IconData,
-                      title: item['title'] as String,
-                      date: item['date'] as String,
-                      quantity: item['quantity'] as int,
-                      color: item['color'] as Color,
-                    )),
+                // History items - Provider-аас авах
+                eventsAsync.when(
+                  data: (events) {
+                    if (events.isEmpty) {
+                      return Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: AppRadius.radiusLG,
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'Түүх байхгүй байна',
+                            style: TextStyle(color: AppColors.gray500),
+                          ),
+                        ),
+                      );
+                    }
+                    // Сүүлийн 3 event харуулах
+                    return Column(
+                      children: events.take(3).map((event) {
+                        return _buildHistoryItemFromEvent(event);
+                      }).toList(),
+                    );
+                  },
+                  loading: () => const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                  error: (_, __) => Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: AppRadius.radiusLG,
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Түүх унших үед алдаа гарлаа',
+                        style: TextStyle(color: AppColors.gray500),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -316,7 +392,21 @@ class ProductDetailScreen extends ConsumerWidget {
                       flex: 2,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          // Adjust stock
+                          // AdjustmentBottomSheet нээх
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.white,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20),
+                              ),
+                            ),
+                            builder: (_) => AdjustmentBottomSheet(
+                              productId: productId,
+                              productName: product.name,
+                            ),
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF00878F),
@@ -501,6 +591,53 @@ class ProductDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// InventoryEventModel-ээс history item widget үүсгэх
+  Widget _buildHistoryItemFromEvent(InventoryEventModel event) {
+    // Event type-д тохирох өнгө, icon тодорхойлох
+    IconData icon;
+    Color color;
+
+    switch (event.type) {
+      case InventoryEventType.sale:
+        icon = Icons.shopping_cart_outlined;
+        color = const Color(0xFFDC2626); // улаан
+        break;
+      case InventoryEventType.initial:
+        icon = Icons.inventory_2_outlined;
+        color = const Color(0xFF059669); // ногоон
+        break;
+      case InventoryEventType.return_:
+        icon = Icons.assignment_return_outlined;
+        color = const Color(0xFF3B82F6); // цэнхэр
+        break;
+      case InventoryEventType.adjust:
+      default:
+        icon = Icons.edit_outlined;
+        color = event.qtyChange >= 0
+            ? const Color(0xFF059669) // ногоон (нэмэх)
+            : const Color(0xFFDC2626); // улаан (хасах)
+        break;
+    }
+
+    // Огноо форматлах
+    String dateStr;
+    if (event.isToday) {
+      dateStr = 'Өнөөдөр, ${DateFormat('HH:mm').format(event.timestamp)}';
+    } else if (event.isYesterday) {
+      dateStr = 'Өчигдөр, ${DateFormat('HH:mm').format(event.timestamp)}';
+    } else {
+      dateStr = DateFormat('MMM d, HH:mm').format(event.timestamp);
+    }
+
+    return _buildHistoryItem(
+      icon: icon,
+      title: event.type.label,
+      date: dateStr,
+      quantity: event.qtyChange,
+      color: color,
     );
   }
 
