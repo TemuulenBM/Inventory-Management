@@ -17,8 +17,12 @@ class RouteNames {
   // Inventory
   static const String inventory = '/inventory';
   static const String productDetail = '/product/:id';
+  static const String inventoryEvents = '/product/:id/events';
   static const String addProduct = '/inventory/add';
   static const String editProduct = '/inventory/edit/:id';
+
+  // History (global inventory events)
+  static const String history = '/history';
 
   // Shifts
   static const String shifts = '/shifts';
@@ -47,5 +51,10 @@ class RouteNames {
   // Helper method to build edit product route
   static String editProductPath(String productId) {
     return '/inventory/edit/$productId';
+  }
+
+  // Helper method to build inventory events route
+  static String inventoryEventsPath(String productId) {
+    return '/product/$productId/events';
   }
 }

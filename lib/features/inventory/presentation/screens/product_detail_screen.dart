@@ -232,7 +232,10 @@ class ProductDetailScreen extends ConsumerWidget {
                       ),
                     ),
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        // Navigate to inventory events screen
+                        context.push(RouteNames.inventoryEventsPath(productId));
+                      },
                       child: const Text(
                         'Бүгд',
                         style: TextStyle(

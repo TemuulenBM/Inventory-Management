@@ -38,23 +38,23 @@ class MainShell extends StatelessWidget {
                 _buildNavItem(
                   context,
                   index: 0,
-                  icon: Icons.home_outlined,
-                  activeIcon: Icons.home,
+                  icon: Icons.storefront_outlined,
+                  activeIcon: Icons.storefront,
                   label: 'Нүүр',
                 ),
                 _buildNavItem(
                   context,
                   index: 1,
-                  icon: Icons.shopping_cart_outlined,
-                  activeIcon: Icons.shopping_cart,
-                  label: 'Борлуулалт',
+                  icon: Icons.inventory_2_outlined,
+                  activeIcon: Icons.inventory_2,
+                  label: 'Бараа',
                 ),
                 _buildNavItem(
                   context,
                   index: 2,
-                  icon: Icons.inventory_2_outlined,
-                  activeIcon: Icons.inventory_2,
-                  label: 'Бараа',
+                  icon: Icons.history_outlined,
+                  activeIcon: Icons.history,
+                  label: 'Түүх',
                 ),
                 _buildNavItem(
                   context,
@@ -121,10 +121,10 @@ class MainShell extends StatelessWidget {
         context.go('/dashboard');
         break;
       case 1:
-        context.go('/sales');
+        context.go('/inventory');
         break;
       case 2:
-        context.go('/inventory');
+        context.go('/history');
         break;
       case 3:
         context.go('/settings');

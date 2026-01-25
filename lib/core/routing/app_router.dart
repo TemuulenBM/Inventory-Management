@@ -12,6 +12,7 @@ import 'package:retail_control_platform/features/sales/presentation/screens/cart
 import 'package:retail_control_platform/features/inventory/presentation/screens/products_list_screen.dart';
 import 'package:retail_control_platform/features/inventory/presentation/screens/product_detail_screen.dart';
 import 'package:retail_control_platform/features/inventory/presentation/screens/product_form_screen.dart';
+import 'package:retail_control_platform/features/inventory/presentation/screens/inventory_events_screen.dart';
 
 /// GoRouter configuration for app navigation
 /// Auth guards, deep linking, route transitions
@@ -56,12 +57,13 @@ final GoRouter appRouter = GoRouter(
     ShellRoute(
       builder: (context, state, child) {
         // currentIndex тооцоолох (route-аас хамаарч)
+        // Шинэ дараалал: 0=Нүүр, 1=Бараа, 2=Түүх, 3=Тохиргоо
         final location = state.uri.path;
         int index = 0;
-        if (location.startsWith('/sales')) {
-          index = 1;
-        } else if (location.startsWith('/inventory') ||
+        if (location.startsWith('/inventory') ||
             location.startsWith('/product')) {
+          index = 1;
+        } else if (location.startsWith('/history')) {
           index = 2;
         } else if (location.startsWith('/settings')) {
           index = 3;
@@ -102,6 +104,21 @@ final GoRouter appRouter = GoRouter(
             final productId = state.pathParameters['id'] ?? '';
             return ProductDetailScreen(productId: productId);
           },
+        ),
+        // Inventory Events (Product History)
+        GoRoute(
+          path: RouteNames.inventoryEvents,
+          name: 'inventory-events',
+          builder: (context, state) {
+            final productId = state.pathParameters['id'] ?? '';
+            return InventoryEventsScreen(productId: productId);
+          },
+        ),
+        // History (Global Inventory Events - bottom nav tab)
+        GoRoute(
+          path: RouteNames.history,
+          name: 'history',
+          builder: (context, state) => const InventoryEventsScreen(),
         ),
         // Add Product
         GoRoute(

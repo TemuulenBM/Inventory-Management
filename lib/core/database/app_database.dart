@@ -155,7 +155,16 @@ class SyncQueue extends Table {
   SyncQueue,
 ])
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(_openConnection());
+  /// Singleton instance - Нэг л database instance ашиглах
+  static AppDatabase? _instance;
+
+  /// Singleton factory constructor
+  factory AppDatabase() {
+    return _instance ??= AppDatabase._internal();
+  }
+
+  /// Private constructor
+  AppDatabase._internal() : super(_openConnection());
 
   @override
   int get schemaVersion => 1;
