@@ -17,6 +17,9 @@ import 'package:retail_control_platform/features/inventory/presentation/screens/
 import 'package:retail_control_platform/features/inventory/presentation/screens/product_detail_screen.dart';
 import 'package:retail_control_platform/features/inventory/presentation/screens/product_form_screen.dart';
 import 'package:retail_control_platform/features/inventory/presentation/screens/inventory_events_screen.dart';
+import 'package:retail_control_platform/features/settings/presentation/screens/settings_screen.dart';
+import 'package:retail_control_platform/features/alerts/presentation/screens/alerts_screen.dart';
+import 'package:retail_control_platform/features/shifts/presentation/screens/shift_management_screen.dart';
 
 /// GoRouter configuration for app navigation
 /// Auth guards, deep linking, route transitions
@@ -178,7 +181,7 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: RouteNames.alerts,
           name: 'alerts',
-          builder: (context, state) => const AlertsCenterScreen(),
+          builder: (context, state) => const AlertsScreen(),
         ),
         // Shifts
         GoRoute(

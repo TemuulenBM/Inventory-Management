@@ -1,0 +1,295 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:retail_control_platform/core/constants/app_colors.dart';
+import 'package:retail_control_platform/core/constants/app_spacing.dart';
+import 'package:retail_control_platform/core/routing/route_names.dart';
+import 'package:retail_control_platform/core/widgets/modals/confirm_dialog.dart';
+import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
+import 'package:retail_control_platform/features/settings/presentation/widgets/settings_section.dart';
+
+/// Тохиргооны дэлгэц
+/// Profile, дэлгүүрийн мэдээлэл, аппын тохиргоо, logout
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+
+    return Scaffold(
+      backgroundColor: AppColors.backgroundLight,
+      appBar: AppBar(
+        backgroundColor: AppColors.backgroundLight,
+        elevation: 0,
+        title: const Text(
+          'Тохиргоо',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textMainLight,
+          ),
+        ),
+        centerTitle: false,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ===== Profile section =====
+            _buildProfileCard(context, user),
+            AppSpacing.verticalLG,
+
+            // ===== Дэлгүүрийн мэдээлэл =====
+            SettingsSection(
+              title: 'ДЭЛГҮҮР',
+              tiles: [
+                SettingsTile(
+                  icon: Icons.store_outlined,
+                  title: 'Дэлгүүрийн мэдээлэл',
+                  subtitle: user?.storeId != null
+                      ? 'ID: ${user!.storeId!.substring(0, 8)}...'
+                      : null,
+                  onTap: () {
+                    // TODO: Store detail screen
+                  },
+                ),
+                SettingsTile(
+                  icon: Icons.people_outline,
+                  title: 'Ажилтнууд',
+                  subtitle: 'Худалдагч, менежер удирдах',
+                  onTap: () {
+                    // TODO: Staff management screen
+                  },
+                ),
+              ],
+            ),
+            AppSpacing.verticalMD,
+
+            // ===== Аппын тохиргоо =====
+            SettingsSection(
+              title: 'АППЛКЕЙШН',
+              tiles: [
+                SettingsTile(
+                  icon: Icons.access_time_outlined,
+                  iconColor: AppColors.secondary,
+                  title: 'Ээлж',
+                  subtitle: 'Ээлжийн удирдлага',
+                  onTap: () => context.go(RouteNames.shifts),
+                ),
+                SettingsTile(
+                  icon: Icons.notifications_outlined,
+                  iconColor: AppColors.warningOrange,
+                  title: 'Сэрэмжлүүлэг',
+                  subtitle: 'Мэдэгдэл, анхааруулга',
+                  onTap: () => context.go(RouteNames.alerts),
+                ),
+                SettingsTile(
+                  icon: Icons.sync_outlined,
+                  iconColor: AppColors.successGreen,
+                  title: 'Синк',
+                  subtitle: 'Offline/Online синхрончлол',
+                  onTap: () => context.go(RouteNames.syncConflicts),
+                ),
+              ],
+            ),
+            AppSpacing.verticalMD,
+
+            // ===== Тусламж =====
+            SettingsSection(
+              title: 'ТУСЛАМЖ',
+              tiles: [
+                SettingsTile(
+                  icon: Icons.help_outline,
+                  iconColor: AppColors.gray600,
+                  title: 'Тусламж',
+                  subtitle: 'Заавар, холбоо барих',
+                  onTap: () {
+                    // TODO: Help screen
+                  },
+                ),
+                SettingsTile(
+                  icon: Icons.info_outline,
+                  iconColor: AppColors.gray600,
+                  title: 'Аппын тухай',
+                  subtitle: 'Хувилбар 1.0.0',
+                  trailing: const Text(
+                    'v1.0.0',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondaryLight,
+                    ),
+                  ),
+                  onTap: () {
+                    // TODO: About screen
+                  },
+                ),
+              ],
+            ),
+            AppSpacing.verticalLG,
+
+            // ===== Logout =====
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton.icon(
+                onPressed: () => _handleLogout(context, ref),
+                icon: const Icon(Icons.logout, size: 20),
+                label: const Text(
+                  'Гарах',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.danger,
+                  side: const BorderSide(color: AppColors.danger),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ),
+            AppSpacing.verticalXXL,
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Profile card бүтэц
+  Widget _buildProfileCard(BuildContext context, dynamic user) {
+    final name = user?.name ?? 'Хэрэглэгч';
+    final phone = user?.phone ?? '';
+    final role = user?.role ?? 'seller';
+
+    String roleName;
+    Color roleColor;
+    switch (role) {
+      case 'owner':
+        roleName = 'Эзэмшигч';
+        roleColor = AppColors.primary;
+        break;
+      case 'manager':
+        roleName = 'Менежер';
+        roleColor = AppColors.secondary;
+        break;
+      default:
+        roleName = 'Худалдагч';
+        roleColor = AppColors.gray600;
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.gray200),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.gray200.withOpacity(0.5),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // Avatar
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: AppColors.primary.withOpacity(0.1),
+            child: Text(
+              name[0].toUpperCase(),
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+              ),
+            ),
+          ),
+          AppSpacing.horizontalMD,
+
+          // Мэдээлэл
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textMainLight,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  phone,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondaryLight,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // Role badge
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: roleColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    roleName,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: roleColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Edit icon
+          IconButton(
+            onPressed: () {
+              // TODO: Profile edit screen
+            },
+            icon: const Icon(
+              Icons.edit_outlined,
+              color: AppColors.gray500,
+              size: 22,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Logout хийх
+  Future<void> _handleLogout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await ConfirmDialog.show(
+      context: context,
+      title: 'Гарах',
+      message: 'Та системээс гарахдаа итгэлтэй байна уу?',
+      confirmText: 'Гарах',
+      cancelText: 'Цуцлах',
+      isDanger: true,
+      icon: Icons.logout,
+    );
+
+    if (confirmed == true && context.mounted) {
+      await ref.read(authNotifierProvider.notifier).signOut();
+      if (context.mounted) {
+        context.go(RouteNames.authPhone);
+      }
+    }
+  }
+}

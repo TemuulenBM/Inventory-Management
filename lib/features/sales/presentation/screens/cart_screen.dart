@@ -4,59 +4,30 @@ import 'package:go_router/go_router.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
+import 'package:retail_control_platform/core/routing/route_names.dart';
+import 'package:retail_control_platform/core/widgets/modals/bottom_action_sheet.dart';
+import 'package:retail_control_platform/core/widgets/modals/confirm_dialog.dart';
+import 'package:retail_control_platform/features/sales/domain/cart_item.dart';
+import 'package:retail_control_platform/features/sales/presentation/providers/cart_provider.dart';
 
 /// Cart Screen (Quick Sale)
-/// Дизайн: design/quick_sale_cart/screen.png
-class CartScreen extends ConsumerWidget {
+/// Сагсны бараа, тоо хэмжээ, checkout flow
+class CartScreen extends ConsumerStatefulWidget {
   const CartScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Mock cart items (will be replaced with actual cart provider)
-    final cartItems = [
-      {
-        'name': 'Cashmere Scarf',
-        'description': 'Саарал / M',
-        'price': 120000,
-        'quantity': 1,
-        'discount': 0,
-        'badge': 'NEW',
-        'badgeColor': const Color(0xFFDC2626),
-      },
-      {
-        'name': 'Leather Gloves',
-        'description': 'Бор / L',
-        'price': 85000,
-        'quantity': 2,
-        'discount': 0,
-        'badge': null,
-        'badgeColor': null,
-      },
-      {
-        'name': 'Wool Socks',
-        'description': 'Хар / Free Size',
-        'price': 15000,
-        'originalPrice': 16500,
-        'quantity': 5,
-        'discount': -10,
-        'badge': '-10%',
-        'badgeColor': const Color(0xFF00878F),
-      },
-    ];
+  ConsumerState<CartScreen> createState() => _CartScreenState();
+}
 
-    final totalItems = cartItems.fold<int>(
-      0,
-      (sum, item) => sum + (item['quantity'] as int),
-    );
+class _CartScreenState extends ConsumerState<CartScreen> {
+  bool _isCheckingOut = false;
+  String _paymentMethod = 'cash';
 
-    final subtotal = cartItems.fold<int>(
-      0,
-      (sum, item) =>
-          sum + ((item['price'] as int) * (item['quantity'] as int)),
-    );
-
-    final discountAmount = 1500;
-    final total = subtotal - discountAmount;
+  @override
+  Widget build(BuildContext context) {
+    final cartItems = ref.watch(cartNotifierProvider);
+    final total = ref.watch(cartTotalProvider);
+    final itemCount = ref.watch(cartItemCountProvider);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -77,110 +48,57 @@ class CartScreen extends ConsumerWidget {
         ),
         centerTitle: false,
         actions: [
-          // Sync badge
-          Container(
-            margin: const EdgeInsets.only(right: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFDCFCE7),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF10B981),
-                    shape: BoxShape.circle,
-                  ),
+          if (cartItems.isNotEmpty)
+            TextButton.icon(
+              onPressed: () => _handleClearCart(context),
+              icon: const Icon(
+                Icons.delete_outline,
+                size: 18,
+                color: Color(0xFFDC2626),
+              ),
+              label: const Text(
+                'Цэвэрлэх',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFFDC2626),
                 ),
-                const SizedBox(width: 6),
-                const Text(
-                  'SYNCED',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF059669),
+              ),
+            ),
+        ],
+      ),
+      body: cartItems.isEmpty
+          ? _buildEmptyCart()
+          : Stack(
+              children: [
+                // Сагсны бараануудын жагсаалт
+                ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 200),
+                  itemCount: cartItems.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final item = cartItems[index];
+                    return _buildCartItem(item);
+                  },
+                ),
+
+                // Доод хэсгийн хураангуй + Төлөх товч
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: _buildBottomSummary(
+                    totalItems: itemCount,
+                    total: total,
                   ),
                 ),
               ],
             ),
-          ),
-
-          // Clear button
-          TextButton.icon(
-            onPressed: () {
-              // Clear cart
-            },
-            icon: const Icon(
-              Icons.delete_outline,
-              size: 18,
-              color: Color(0xFFDC2626),
-            ),
-            label: const Text(
-              'Цэвэрлэх',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFFDC2626),
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          // Cart items list
-          ListView.separated(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 180),
-            itemCount: cartItems.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final item = cartItems[index];
-              return _buildCartItem(
-                name: item['name'] as String,
-                description: item['description'] as String,
-                price: item['price'] as int,
-                originalPrice: item['originalPrice'] as int?,
-                quantity: item['quantity'] as int,
-                badge: item['badge'] as String?,
-                badgeColor: item['badgeColor'] as Color?,
-                onIncrease: () {},
-                onDecrease: () {},
-              );
-            },
-          ),
-
-          // Bottom summary
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: _buildBottomSummary(
-              totalItems: totalItems,
-              subtotal: subtotal,
-              discountAmount: discountAmount,
-              total: total,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildCartItem({
-    required String name,
-    required String description,
-    required int price,
-    int? originalPrice,
-    required int quantity,
-    String? badge,
-    Color? badgeColor,
-    required VoidCallback onIncrease,
-    required VoidCallback onDecrease,
-  }) {
+  /// Сагсны нэг бараа
+  Widget _buildCartItem(CartItem item) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -196,59 +114,42 @@ class CartScreen extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          // Product image placeholder with badge
-          Stack(
-            children: [
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: AppColors.gray100,
-                  borderRadius: AppRadius.radiusMD,
-                ),
-                child: const Icon(
-                  Icons.inventory_2_outlined,
-                  size: 32,
-                  color: AppColors.gray400,
-                ),
-              ),
-              if (badge != null)
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: badgeColor ?? AppColors.primary,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        bottomRight: Radius.circular(8),
+          // Барааны зураг
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              color: AppColors.gray100,
+              borderRadius: AppRadius.radiusMD,
+            ),
+            child: item.product.imageUrl != null
+                ? ClipRRect(
+                    borderRadius: AppRadius.radiusMD,
+                    child: Image.network(
+                      item.product.imageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.inventory_2_outlined,
+                        size: 32,
+                        color: AppColors.gray400,
                       ),
                     ),
-                    child: Text(
-                      badge,
-                      style: const TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
+                  )
+                : const Icon(
+                    Icons.inventory_2_outlined,
+                    size: 32,
+                    color: AppColors.gray400,
                   ),
-                ),
-            ],
           ),
           const SizedBox(width: 12),
 
-          // Product info
+          // Барааны мэдээлэл
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  name,
+                  item.product.name,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -257,7 +158,7 @@ class CartScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  description,
+                  item.product.sku,
                   style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w400,
@@ -265,83 +166,77 @@ class CartScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-
-                // Price
-                Row(
-                  children: [
-                    if (originalPrice != null) ...[
-                      Text(
-                        '${originalPrice}₮',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.gray400,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                    ],
-                    Text(
-                      '${price}₮',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFFC96F53),
-                      ),
-                    ),
-                  ],
+                Text(
+                  '${item.product.sellPrice.toStringAsFixed(0)}₮',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFC96F53),
+                  ),
                 ),
               ],
             ),
           ),
+
+          // Тоо хэмжээ удирдлага
+          _buildQuantityControls(item),
         ],
       ),
     );
   }
 
-  Widget _buildQuantityControls({
-    required int quantity,
-    required VoidCallback onDecrease,
-    required VoidCallback onIncrease,
-  }) {
+  /// Тоо хэмжээ +/- удирдлага
+  Widget _buildQuantityControls(CartItem item) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Decrease button
+        // Хасах
         Material(
           color: AppColors.gray100,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
-            onTap: onDecrease,
+            onTap: () {
+              if (item.quantity > 1) {
+                ref
+                    .read(cartNotifierProvider.notifier)
+                    .updateQuantity(item.product.id, item.quantity - 1);
+              } else {
+                ref
+                    .read(cartNotifierProvider.notifier)
+                    .removeProduct(item.product.id);
+              }
+            },
             borderRadius: BorderRadius.circular(12),
             child: Container(
               width: 36,
               height: 36,
               alignment: Alignment.center,
-              child: const Icon(
-                Icons.remove,
+              child: Icon(
+                item.quantity == 1 ? Icons.delete_outline : Icons.remove,
                 size: 18,
-                color: AppColors.textMainLight,
+                color: item.quantity == 1
+                    ? AppColors.danger
+                    : AppColors.textMainLight,
               ),
             ),
           ),
         ),
         const SizedBox(width: 16),
 
-        // Quantity
+        // Тоо
         Column(
           children: [
             Text(
-              '$quantity',
+              '${item.quantity}',
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
                 color: AppColors.textMainLight,
               ),
             ),
-            const Text(
-              'ш',
-              style: TextStyle(
+            Text(
+              item.product.unit ?? 'ш',
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: AppColors.gray500,
@@ -351,22 +246,22 @@ class CartScreen extends ConsumerWidget {
         ),
         const SizedBox(width: 16),
 
-        // Increase button
+        // Нэмэх
         Material(
           color: AppColors.primary,
           borderRadius: BorderRadius.circular(12),
           child: InkWell(
-            onTap: onIncrease,
+            onTap: () {
+              ref
+                  .read(cartNotifierProvider.notifier)
+                  .updateQuantity(item.product.id, item.quantity + 1);
+            },
             borderRadius: BorderRadius.circular(12),
             child: Container(
               width: 36,
               height: 36,
               alignment: Alignment.center,
-              child: const Icon(
-                Icons.add,
-                size: 18,
-                color: Colors.white,
-              ),
+              child: const Icon(Icons.add, size: 18, color: Colors.white),
             ),
           ),
         ),
@@ -374,11 +269,10 @@ class CartScreen extends ConsumerWidget {
     );
   }
 
+  /// Доод хэсгийн хураангуй
   Widget _buildBottomSummary({
     required int totalItems,
-    required int subtotal,
-    required int discountAmount,
-    required int total,
+    required double total,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -401,7 +295,7 @@ class CartScreen extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Summary row
+            // Барааны тоо
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -425,7 +319,7 @@ class CartScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
 
-            // Total amount
+            // Нийт дүн
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -439,46 +333,26 @@ class CartScreen extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  '${total}₮',
+                  '${total.toStringAsFixed(0)}₮',
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textMainLight,
-                    fontFamily: 'Epilogue',
                     height: 1.0,
                   ),
                 ),
               ],
             ),
-
-            // Discount
-            if (discountAmount > 0) ...[
-              const SizedBox(height: 4),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  'Хямдрал: -${discountAmount}₮',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF059669),
-                  ),
-                ),
-              ),
-            ],
-
             const SizedBox(height: 20),
 
-            // Checkout button
+            // Төлөх товч → PaymentBottomSheet харуулах
             Material(
               color: const Color(0xFF00878F),
               borderRadius: AppRadius.radiusXL,
               elevation: 4,
               shadowColor: const Color(0xFF00878F).withOpacity(0.3),
               child: InkWell(
-                onTap: () {
-                  // Process checkout
-                },
+                onTap: _isCheckingOut ? null : () => _showCheckoutSheet(),
                 borderRadius: AppRadius.radiusXL,
                 child: Container(
                   height: 56,
@@ -508,6 +382,126 @@ class CartScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Checkout bottom sheet харуулах (PaymentBottomSheet)
+  void _showCheckoutSheet() {
+    final total = ref.read(cartTotalProvider);
+
+    BottomActionSheet.show<void>(
+      context: context,
+      child: StatefulBuilder(
+        builder: (context, setSheetState) {
+          return PaymentBottomSheet(
+            subtotal: total,
+            paymentMethod: _paymentMethod,
+            onPaymentMethodChanged: (method) {
+              setSheetState(() => _paymentMethod = method);
+              setState(() => _paymentMethod = method);
+            },
+            onConfirm: () {
+              Navigator.pop(context);
+              _processCheckout();
+            },
+            isProcessing: _isCheckingOut,
+          );
+        },
+      ),
+    );
+  }
+
+  /// Checkout боловсруулах
+  Future<void> _processCheckout() async {
+    setState(() => _isCheckingOut = true);
+
+    final saleId = await ref
+        .read(checkoutActionsProvider.notifier)
+        .checkout(paymentMethod: _paymentMethod);
+
+    if (!mounted) return;
+    setState(() => _isCheckingOut = false);
+
+    if (saleId != null) {
+      // Амжилттай → SuccessDialog → QuickSaleSelect руу буцах
+      await SuccessDialog.show(
+        context: context,
+        title: 'Борлуулалт амжилттай',
+        message: 'Борлуулалт бүртгэгдлээ.',
+        buttonText: 'Үргэлжлүүлэх',
+      );
+      if (mounted) {
+        context.go(RouteNames.quickSaleSelect);
+      }
+    } else {
+      // Алдаа → ErrorDialog
+      await ErrorDialog.show(
+        context: context,
+        message: 'Борлуулалт бүртгэхэд алдаа гарлаа. Дахин оролдоно уу.',
+      );
+    }
+  }
+
+  /// Сагс цэвэрлэх (ConfirmDialog-аар баталгаажуулах)
+  Future<void> _handleClearCart(BuildContext context) async {
+    final confirmed = await ConfirmDialog.show(
+      context: context,
+      title: 'Сагс цэвэрлэх',
+      message: 'Сагсан дахь бүх барааг устгах уу?',
+      confirmText: 'Цэвэрлэх',
+      cancelText: 'Цуцлах',
+      isDanger: true,
+      icon: Icons.delete_outline,
+    );
+
+    if (confirmed == true) {
+      ref.read(cartNotifierProvider.notifier).clear();
+    }
+  }
+
+  /// Хоосон сагс
+  Widget _buildEmptyCart() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.shopping_cart_outlined,
+            size: 80,
+            color: AppColors.gray300,
+          ),
+          AppSpacing.verticalMD,
+          const Text(
+            'Сагс хоосон байна',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textSecondaryLight,
+            ),
+          ),
+          AppSpacing.verticalSM,
+          const Text(
+            'Бараа нэмэхийн тулд буцна уу',
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textTertiaryLight,
+            ),
+          ),
+          AppSpacing.verticalLG,
+          ElevatedButton.icon(
+            onPressed: () => context.pop(),
+            icon: const Icon(Icons.arrow_back, size: 18),
+            label: const Text('Бараа сонгох'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
