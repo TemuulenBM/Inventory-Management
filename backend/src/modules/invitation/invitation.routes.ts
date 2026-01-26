@@ -36,7 +36,7 @@ export async function invitationRoutes(server: FastifyInstance) {
   }>(
     '/invitations',
     {
-      onRequest: [server.authenticate, authorize(['super_admin'])], // Зөвхөн super_admin урилга илгээнэ
+      onRequest: [server.authenticate, authorize(['super_admin', 'owner'])], // Super-admin болон owner урилга илгээнэ
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const authRequest = request as AuthRequest;
@@ -84,7 +84,7 @@ export async function invitationRoutes(server: FastifyInstance) {
   }>(
     '/invitations',
     {
-      onRequest: [server.authenticate, authorize(['super_admin'])], // Зөвхөн super_admin
+      onRequest: [server.authenticate, authorize(['super_admin', 'owner'])], // Super-admin болон owner жагсаалт харна
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       // 1. Validation
@@ -128,7 +128,7 @@ export async function invitationRoutes(server: FastifyInstance) {
   }>(
     '/invitations/:id',
     {
-      onRequest: [server.authenticate, authorize(['super_admin'])], // Зөвхөн super_admin
+      onRequest: [server.authenticate, authorize(['super_admin', 'owner'])], // Super-admin болон owner урилга цуцлана
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const authRequest = request as AuthRequest;

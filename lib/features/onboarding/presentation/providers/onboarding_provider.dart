@@ -81,27 +81,28 @@ class OnboardingNotifier extends _$OnboardingNotifier {
   }
 
   /// Худалдагч урих
+  /// Invitation system ашиглан manager/seller урих
   Future<bool> inviteSeller({
     required String phone,
-    String? name,
+    String? name, // Хэрэггүй болсон, харин API consistency-н төлөө үлдээсэн
     String role = 'seller',
   }) async {
-    if (_storeId == null) return false;
-
     try {
       final formattedPhone =
           phone.startsWith('+976') ? phone : '+976$phone';
 
+      // POST /invitations endpoint ашиглах (owner эрхтэй)
       final response = await apiClient.post(
-        ApiEndpoints.users(_storeId!),
+        ApiEndpoints.invitations,
         data: {
           'phone': formattedPhone,
-          if (name != null && name.isNotEmpty) 'name': name,
-          'role': role,
+          'role': role, // 'manager' эсвэл 'seller'
+          'expiresInDays': 7, // 7 хоногийн дараа дуусна
         },
       );
 
-      return response.statusCode == 201 && response.data['success'] == true;
+      return (response.statusCode == 200 || response.statusCode == 201) &&
+          response.data['success'] == true;
     } catch (e) {
       return false;
     }

@@ -59,6 +59,7 @@ class _OnboardingInviteScreenState
     if (mounted) {
       setState(() => _isLoading = false);
       if (success) {
+        // Урилга амжилттай илгээгдсэн - list-д нэмэх
         _invitedUsers.add(_InvitedUser(
           phone: phone,
           name: _nameController.text.trim().isNotEmpty
@@ -69,6 +70,17 @@ class _OnboardingInviteScreenState
         _phoneController.clear();
         _nameController.clear();
         setState(() {});
+
+        // Success message харуулах
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Урилга амжилттай илгээгдлээ. Урилгаа хүлээн авсан хүн app татаж, OTP-аар нэвтэрнэ.',
+            ),
+            duration: Duration(seconds: 4),
+            backgroundColor: Colors.green,
+          ),
+        );
       } else {
         setState(() => _errorText = 'Урихад алдаа гарлаа. Дахин оролдоно уу.');
       }
