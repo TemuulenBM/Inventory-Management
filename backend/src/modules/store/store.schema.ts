@@ -12,7 +12,7 @@ import { z } from 'zod';
  */
 export const createStoreSchema = z.object({
   name: z.string().min(1).max(100).describe('Дэлгүүрийн нэр'),
-  location: z.string().min(1).max(200).describe('Хаяг'),
+  location: z.string().min(1).max(200).nullable().optional().describe('Хаяг (заавал биш)'),
   timezone: z.string().default('Asia/Ulaanbaatar').describe('Цагийн бүс'),
 });
 
