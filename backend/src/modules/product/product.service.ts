@@ -5,6 +5,7 @@
  */
 
 import { supabase } from '../../config/supabase.js';
+import { randomUUID } from 'crypto';
 import type { CreateProductBody, UpdateProductBody, ProductQueryParams, ProductInfo, ProductWithStock } from './product.schema.js';
 
 /**
@@ -77,6 +78,7 @@ export async function getProducts(storeId: string, query: ProductQueryParams) {
     costPrice: p.cost_price,
     sellPrice: p.sell_price,
     lowStockThreshold: p.low_stock_threshold,
+    imageUrl: p.image_url ?? null,
     currentStock: stockMap[p.id]?.currentStock || 0,
     isLowStock: stockMap[p.id]?.isLowStock || false,
     createdAt: p.created_at,
@@ -141,6 +143,7 @@ export async function getProduct(productId: string, storeId: string) {
     costPrice: product.cost_price ?? 0,
     sellPrice: product.sell_price,
     lowStockThreshold: product.low_stock_threshold,
+    imageUrl: product.image_url ?? null,
     currentStock: stockData?.current_stock ?? 0,
     isLowStock: stockData?.is_low_stock ?? false,
     createdAt: product.created_at ?? new Date().toISOString(),
@@ -207,6 +210,7 @@ export async function createProduct(storeId: string, data: CreateProductBody) {
       costPrice: product.cost_price ?? 0,
       sellPrice: product.sell_price,
       lowStockThreshold: product.low_stock_threshold,
+      imageUrl: product.image_url ?? null,
       createdAt: product.created_at ?? new Date().toISOString(),
     },
   };
@@ -268,6 +272,7 @@ export async function updateProduct(productId: string, storeId: string, data: Up
       costPrice: product.cost_price ?? 0,
       sellPrice: product.sell_price,
       lowStockThreshold: product.low_stock_threshold,
+      imageUrl: product.image_url ?? null,
       createdAt: product.created_at ?? new Date().toISOString(),
     },
   };
@@ -362,6 +367,7 @@ export async function bulkCreateProducts(storeId: string, products: CreateProduc
     costPrice: p.cost_price ?? 0,
     sellPrice: p.sell_price,
     lowStockThreshold: p.low_stock_threshold,
+    imageUrl: p.image_url ?? null,
     createdAt: p.created_at ?? new Date().toISOString(),
   }));
 
@@ -370,4 +376,110 @@ export async function bulkCreateProducts(storeId: string, products: CreateProduc
     created: productList.length,
     products: productList,
   };
+}
+
+/**
+ * Барааны зураг upload хийх (Supabase Storage)
+ *
+ * @param storeId - Store ID
+ * @param productId - Product ID
+ * @param fileBuffer - Зургийн buffer
+ * @param mimeType - MIME type (image/jpeg, image/png, etc.)
+ * @returns Image URL
+ */
+export async function uploadProductImage(
+  storeId: string,
+  productId: string,
+  fileBuffer: Buffer,
+  mimeType: string
+): Promise<{ success: true; imageUrl: string } | { success: false; error: string }> {
+  // File extension олох
+  const extension = mimeType.split('/')[1] || 'jpg';
+  const fileName = `${storeId}/${productId}/${randomUUID()}.${extension}`;
+
+  // Supabase Storage руу upload хийх
+  const { error } = await supabase.storage
+    .from('product-images')
+    .upload(fileName, fileBuffer, {
+      contentType: mimeType,
+      upsert: true,
+    });
+
+  if (error) {
+    console.error('Image upload error:', error);
+    return { success: false, error: `Зураг хадгалахад алдаа: ${error.message}` };
+  }
+
+  // Public URL авах
+  const { data: urlData } = supabase.storage.from('product-images').getPublicUrl(fileName);
+
+  // Products table-д image_url шинэчлэх
+  const { error: updateError } = await supabase
+    .from('products')
+    .update({ image_url: urlData.publicUrl })
+    .eq('id', productId)
+    .eq('store_id', storeId);
+
+  if (updateError) {
+    console.error('Product update error:', updateError);
+    return { success: false, error: 'Барааны мэдээлэл шинэчлэхэд алдаа' };
+  }
+
+  console.log(`📸 Image uploaded for product ${productId}: ${urlData.publicUrl}`);
+
+  return { success: true, imageUrl: urlData.publicUrl };
+}
+
+/**
+ * Барааны зураг устгах
+ *
+ * @param storeId - Store ID
+ * @param productId - Product ID
+ * @returns Success status
+ */
+export async function deleteProductImage(
+  storeId: string,
+  productId: string
+): Promise<{ success: true } | { success: false; error: string }> {
+  // Одоогийн image URL авах
+  const { data: product, error: fetchError } = await supabase
+    .from('products')
+    .select('image_url')
+    .eq('id', productId)
+    .eq('store_id', storeId)
+    .single();
+
+  if (fetchError || !product) {
+    return { success: false, error: 'Бараа олдсонгүй' };
+  }
+
+  // Storage-с зураг устгах
+  if (product.image_url) {
+    const urlParts = product.image_url.split('/product-images/');
+    if (urlParts[1]) {
+      const { error: deleteError } = await supabase.storage
+        .from('product-images')
+        .remove([urlParts[1]]);
+
+      if (deleteError) {
+        console.error('Image delete error:', deleteError);
+      }
+    }
+  }
+
+  // Products table-с image_url цэвэрлэх
+  const { error: updateError } = await supabase
+    .from('products')
+    .update({ image_url: null })
+    .eq('id', productId)
+    .eq('store_id', storeId);
+
+  if (updateError) {
+    console.error('Product update error:', updateError);
+    return { success: false, error: 'Барааны мэдээлэл шинэчлэхэд алдаа' };
+  }
+
+  console.log(`🗑️  Image deleted for product ${productId}`);
+
+  return { success: true };
 }

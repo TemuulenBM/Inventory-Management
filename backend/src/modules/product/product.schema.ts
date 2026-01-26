@@ -74,6 +74,7 @@ export interface ProductInfo {
   costPrice: number;
   sellPrice: number;
   lowStockThreshold: number | null;
+  imageUrl: string | null;
   createdAt: string;
 }
 

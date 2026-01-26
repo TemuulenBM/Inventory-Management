@@ -1,8 +1,12 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:retail_control_platform/core/api/api_endpoints.dart';
 import 'package:retail_control_platform/core/api/api_result.dart';
 import 'package:retail_control_platform/core/database/app_database.dart';
 import 'package:retail_control_platform/core/services/base_service.dart';
+import 'package:retail_control_platform/core/services/image_service.dart';
 import 'package:retail_control_platform/features/inventory/domain/product_with_stock.dart';
 import 'package:uuid/uuid.dart';
 
@@ -327,6 +331,7 @@ class ProductService extends BaseService {
         isLowStock: stock <= p.lowStockThreshold,
         storeId: p.storeId,
         unit: p.unit,
+        imageUrl: p.localImagePath ?? p.imageUrl,
         lowStockThreshold: p.lowStockThreshold,
         createdAt: p.createdAt,
         updatedAt: p.updatedAt,
@@ -354,6 +359,7 @@ class ProductService extends BaseService {
       isLowStock: stock <= product.lowStockThreshold,
       storeId: product.storeId,
       unit: product.unit,
+      imageUrl: product.localImagePath ?? product.imageUrl,
       lowStockThreshold: product.lowStockThreshold,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
@@ -381,6 +387,7 @@ class ProductService extends BaseService {
             sellPrice: Value((data['sellPrice'] as num?)?.toDouble() ?? 0),
             costPrice: Value((data['costPrice'] as num?)?.toDouble()),
             lowStockThreshold: Value(data['lowStockThreshold'] ?? 10),
+            imageUrl: Value(data['imageUrl'] as String?),
             updatedAt: Value(DateTime.now()),
           );
 
@@ -422,5 +429,128 @@ class ProductService extends BaseService {
         },
       );
     }
+  }
+
+  // ============================================================================
+  // IMAGE OPERATIONS
+  // ============================================================================
+
+  final ImageService _imageService = ImageService();
+
+  /// Барааны зургийг local-д хадгалж, DB-д path бичих
+  ///
+  /// Offline-first: эхлээд local-д хадгалж, дараа нь server рүү upload хийнэ.
+  /// [storeId] - Store ID
+  /// [productId] - Product ID
+  /// [imageFile] - Зураг файл (камер эсвэл галерейгаас)
+  /// Returns: Local файлын path
+  Future<ApiResult<String>> saveProductImageLocally(
+    String storeId,
+    String productId,
+    File imageFile,
+  ) async {
+    try {
+      // 1. Зургийг компресс хийх
+      final Uint8List? compressed = await _imageService.compressImage(imageFile);
+      if (compressed == null) {
+        return const ApiResult.error('Зургийг компресс хийх боломжгүй');
+      }
+
+      // 2. Local-д хадгалах
+      final localPath = await _imageService.saveImageLocally(compressed, productId);
+
+      // 3. DB-д local path хадгалах
+      await (db.update(db.products)..where((p) => p.id.equals(productId))).write(
+        ProductsCompanion(
+          localImagePath: Value(localPath),
+          imageSynced: const Value(false),
+          updatedAt: Value(DateTime.now()),
+        ),
+      );
+
+      log('Image saved locally for product $productId: $localPath');
+      return ApiResult.success(localPath);
+    } catch (e) {
+      log('saveProductImageLocally error: $e');
+      return ApiResult.error('Зураг хадгалахад алдаа гарлаа: $e');
+    }
+  }
+
+  /// Барааны зургийг backend руу upload хийх
+  ///
+  /// [storeId] - Store ID
+  /// [productId] - Product ID
+  /// [imageFile] - Зураг файл
+  /// Returns: Server дээрх image URL
+  Future<ApiResult<String>> uploadProductImage(
+    String storeId,
+    String productId,
+    File imageFile,
+  ) async {
+    try {
+      // Multipart form data бэлдэх
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(
+          imageFile.path,
+          filename: 'product_$productId.jpg',
+        ),
+      });
+
+      final response = await api.post(
+        ApiEndpoints.productImage(storeId, productId),
+        data: formData,
+        options: Options(
+          contentType: 'multipart/form-data',
+        ),
+      );
+
+      if (response.data['success'] == true) {
+        final imageUrl = response.data['imageUrl'] as String;
+
+        // DB-д server URL хадгалах, imageSynced = true
+        await (db.update(db.products)..where((p) => p.id.equals(productId))).write(
+          ProductsCompanion(
+            imageUrl: Value(imageUrl),
+            imageSynced: const Value(true),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+
+        log('Image uploaded for product $productId: $imageUrl');
+        return ApiResult.success(imageUrl);
+      } else {
+        return ApiResult.error(response.data['error'] ?? 'Зураг upload хийхэд алдаа');
+      }
+    } catch (e) {
+      log('uploadProductImage error: $e');
+      return ApiResult.error('Зураг upload хийхэд алдаа гарлаа: $e');
+    }
+  }
+
+  /// Барааны зургийг local-д хадгалж, online бол server рүү upload хийх
+  ///
+  /// Offline-first flow: local save → online бол upload
+  Future<ApiResult<String>> saveAndUploadProductImage(
+    String storeId,
+    String productId,
+    File imageFile,
+  ) async {
+    // 1. Local-д хадгалах
+    final localResult = await saveProductImageLocally(storeId, productId, imageFile);
+    if (!localResult.isSuccess) {
+      return localResult;
+    }
+
+    // 2. Online бол server рүү upload хийх
+    if (await isOnline) {
+      final uploadResult = await uploadProductImage(storeId, productId, imageFile);
+      if (uploadResult.isSuccess) {
+        return uploadResult;
+      }
+      // Upload амжилтгүй бол local path буцаана (дараа sync хийгдэнэ)
+      log('Upload failed, will sync later');
+    }
+
+    return localResult;
   }
 }

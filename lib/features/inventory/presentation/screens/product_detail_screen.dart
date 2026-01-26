@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -140,6 +141,10 @@ class ProductDetailScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Барааны зураг (байвал)
+                if (product.imageUrl != null && product.imageUrl!.isNotEmpty)
+                  _buildProductImage(product.imageUrl!),
+
                 // Category badge
                 Center(
                   child: Container(
@@ -437,6 +442,54 @@ class ProductDetailScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Барааны зураг харуулах widget
+  Widget _buildProductImage(String imageUrl) {
+    return Container(
+      width: double.infinity,
+      height: 200,
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: AppRadius.radiusXXL,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: AppRadius.radiusXXL,
+        child: CachedNetworkImage(
+          imageUrl: imageUrl,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          placeholder: (context, url) => Container(
+            color: AppColors.gray100,
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+                strokeWidth: 2,
+              ),
+            ),
+          ),
+          errorWidget: (context, url, error) => Container(
+            color: AppColors.gray100,
+            child: const Center(
+              child: Icon(
+                Icons.image_not_supported_outlined,
+                size: 48,
+                color: AppColors.gray400,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

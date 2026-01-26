@@ -49,6 +49,12 @@ class Products extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
 
+  // Зургийн талбарууд
+  TextColumn get imageUrl => text().nullable()(); // Supabase Storage URL
+  TextColumn get localImagePath => text().nullable()(); // Offline үед local path
+  BoolColumn get imageSynced =>
+      boolean().withDefault(const Constant(true))(); // Зураг sync хийгдсэн эсэх
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -167,7 +173,20 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            // Version 2: Products table-д зургийн талбарууд нэмэх
+            await m.addColumn(products, products.imageUrl);
+            await m.addColumn(products, products.localImagePath);
+            await m.addColumn(products, products.imageSynced);
+          }
+        },
+      );
 
   // Database connection with encryption support
   static QueryExecutor _openConnection() {

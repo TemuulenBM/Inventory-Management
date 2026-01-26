@@ -818,6 +818,28 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_deleted" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _imageUrlMeta =
+      const VerificationMeta('imageUrl');
+  @override
+  late final GeneratedColumn<String> imageUrl = GeneratedColumn<String>(
+      'image_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _localImagePathMeta =
+      const VerificationMeta('localImagePath');
+  @override
+  late final GeneratedColumn<String> localImagePath = GeneratedColumn<String>(
+      'local_image_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _imageSyncedMeta =
+      const VerificationMeta('imageSynced');
+  @override
+  late final GeneratedColumn<bool> imageSynced = GeneratedColumn<bool>(
+      'image_synced', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("image_synced" IN (0, 1))'),
+      defaultValue: const Constant(true));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -831,7 +853,10 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         note,
         createdAt,
         updatedAt,
-        isDeleted
+        isDeleted,
+        imageUrl,
+        localImagePath,
+        imageSynced
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -904,6 +929,22 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
       context.handle(_isDeletedMeta,
           isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta));
     }
+    if (data.containsKey('image_url')) {
+      context.handle(_imageUrlMeta,
+          imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta));
+    }
+    if (data.containsKey('local_image_path')) {
+      context.handle(
+          _localImagePathMeta,
+          localImagePath.isAcceptableOrUnknown(
+              data['local_image_path']!, _localImagePathMeta));
+    }
+    if (data.containsKey('image_synced')) {
+      context.handle(
+          _imageSyncedMeta,
+          imageSynced.isAcceptableOrUnknown(
+              data['image_synced']!, _imageSyncedMeta));
+    }
     return context;
   }
 
@@ -937,6 +978,12 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at'])!,
       isDeleted: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_deleted'])!,
+      imageUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}image_url']),
+      localImagePath: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}local_image_path']),
+      imageSynced: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}image_synced'])!,
     );
   }
 
@@ -959,6 +1006,9 @@ class Product extends DataClass implements Insertable<Product> {
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isDeleted;
+  final String? imageUrl;
+  final String? localImagePath;
+  final bool imageSynced;
   const Product(
       {required this.id,
       required this.storeId,
@@ -971,7 +1021,10 @@ class Product extends DataClass implements Insertable<Product> {
       this.note,
       required this.createdAt,
       required this.updatedAt,
-      required this.isDeleted});
+      required this.isDeleted,
+      this.imageUrl,
+      this.localImagePath,
+      required this.imageSynced});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -991,6 +1044,13 @@ class Product extends DataClass implements Insertable<Product> {
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['is_deleted'] = Variable<bool>(isDeleted);
+    if (!nullToAbsent || imageUrl != null) {
+      map['image_url'] = Variable<String>(imageUrl);
+    }
+    if (!nullToAbsent || localImagePath != null) {
+      map['local_image_path'] = Variable<String>(localImagePath);
+    }
+    map['image_synced'] = Variable<bool>(imageSynced);
     return map;
   }
 
@@ -1010,6 +1070,13 @@ class Product extends DataClass implements Insertable<Product> {
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       isDeleted: Value(isDeleted),
+      imageUrl: imageUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageUrl),
+      localImagePath: localImagePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localImagePath),
+      imageSynced: Value(imageSynced),
     );
   }
 
@@ -1029,6 +1096,9 @@ class Product extends DataClass implements Insertable<Product> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      imageUrl: serializer.fromJson<String?>(json['imageUrl']),
+      localImagePath: serializer.fromJson<String?>(json['localImagePath']),
+      imageSynced: serializer.fromJson<bool>(json['imageSynced']),
     );
   }
   @override
@@ -1047,6 +1117,9 @@ class Product extends DataClass implements Insertable<Product> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'isDeleted': serializer.toJson<bool>(isDeleted),
+      'imageUrl': serializer.toJson<String?>(imageUrl),
+      'localImagePath': serializer.toJson<String?>(localImagePath),
+      'imageSynced': serializer.toJson<bool>(imageSynced),
     };
   }
 
@@ -1062,7 +1135,10 @@ class Product extends DataClass implements Insertable<Product> {
           Value<String?> note = const Value.absent(),
           DateTime? createdAt,
           DateTime? updatedAt,
-          bool? isDeleted}) =>
+          bool? isDeleted,
+          Value<String?> imageUrl = const Value.absent(),
+          Value<String?> localImagePath = const Value.absent(),
+          bool? imageSynced}) =>
       Product(
         id: id ?? this.id,
         storeId: storeId ?? this.storeId,
@@ -1076,6 +1152,10 @@ class Product extends DataClass implements Insertable<Product> {
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
         isDeleted: isDeleted ?? this.isDeleted,
+        imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
+        localImagePath:
+            localImagePath.present ? localImagePath.value : this.localImagePath,
+        imageSynced: imageSynced ?? this.imageSynced,
       );
   Product copyWithCompanion(ProductsCompanion data) {
     return Product(
@@ -1093,6 +1173,12 @@ class Product extends DataClass implements Insertable<Product> {
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      imageUrl: data.imageUrl.present ? data.imageUrl.value : this.imageUrl,
+      localImagePath: data.localImagePath.present
+          ? data.localImagePath.value
+          : this.localImagePath,
+      imageSynced:
+          data.imageSynced.present ? data.imageSynced.value : this.imageSynced,
     );
   }
 
@@ -1110,14 +1196,31 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('isDeleted: $isDeleted')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('localImagePath: $localImagePath, ')
+          ..write('imageSynced: $imageSynced')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, storeId, name, sku, unit, sellPrice,
-      costPrice, lowStockThreshold, note, createdAt, updatedAt, isDeleted);
+  int get hashCode => Object.hash(
+      id,
+      storeId,
+      name,
+      sku,
+      unit,
+      sellPrice,
+      costPrice,
+      lowStockThreshold,
+      note,
+      createdAt,
+      updatedAt,
+      isDeleted,
+      imageUrl,
+      localImagePath,
+      imageSynced);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1133,7 +1236,10 @@ class Product extends DataClass implements Insertable<Product> {
           other.note == this.note &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
-          other.isDeleted == this.isDeleted);
+          other.isDeleted == this.isDeleted &&
+          other.imageUrl == this.imageUrl &&
+          other.localImagePath == this.localImagePath &&
+          other.imageSynced == this.imageSynced);
 }
 
 class ProductsCompanion extends UpdateCompanion<Product> {
@@ -1149,6 +1255,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<bool> isDeleted;
+  final Value<String?> imageUrl;
+  final Value<String?> localImagePath;
+  final Value<bool> imageSynced;
   final Value<int> rowid;
   const ProductsCompanion({
     this.id = const Value.absent(),
@@ -1163,6 +1272,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
+    this.imageUrl = const Value.absent(),
+    this.localImagePath = const Value.absent(),
+    this.imageSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ProductsCompanion.insert({
@@ -1178,6 +1290,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.isDeleted = const Value.absent(),
+    this.imageUrl = const Value.absent(),
+    this.localImagePath = const Value.absent(),
+    this.imageSynced = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         storeId = Value(storeId),
@@ -1198,6 +1313,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<bool>? isDeleted,
+    Expression<String>? imageUrl,
+    Expression<String>? localImagePath,
+    Expression<bool>? imageSynced,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1213,6 +1331,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (isDeleted != null) 'is_deleted': isDeleted,
+      if (imageUrl != null) 'image_url': imageUrl,
+      if (localImagePath != null) 'local_image_path': localImagePath,
+      if (imageSynced != null) 'image_synced': imageSynced,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1230,6 +1351,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       Value<DateTime>? createdAt,
       Value<DateTime>? updatedAt,
       Value<bool>? isDeleted,
+      Value<String?>? imageUrl,
+      Value<String?>? localImagePath,
+      Value<bool>? imageSynced,
       Value<int>? rowid}) {
     return ProductsCompanion(
       id: id ?? this.id,
@@ -1244,6 +1368,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isDeleted: isDeleted ?? this.isDeleted,
+      imageUrl: imageUrl ?? this.imageUrl,
+      localImagePath: localImagePath ?? this.localImagePath,
+      imageSynced: imageSynced ?? this.imageSynced,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1287,6 +1414,15 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (isDeleted.present) {
       map['is_deleted'] = Variable<bool>(isDeleted.value);
     }
+    if (imageUrl.present) {
+      map['image_url'] = Variable<String>(imageUrl.value);
+    }
+    if (localImagePath.present) {
+      map['local_image_path'] = Variable<String>(localImagePath.value);
+    }
+    if (imageSynced.present) {
+      map['image_synced'] = Variable<bool>(imageSynced.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1308,6 +1444,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('isDeleted: $isDeleted, ')
+          ..write('imageUrl: $imageUrl, ')
+          ..write('localImagePath: $localImagePath, ')
+          ..write('imageSynced: $imageSynced, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4994,6 +5133,9 @@ typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<bool> isDeleted,
+  Value<String?> imageUrl,
+  Value<String?> localImagePath,
+  Value<bool> imageSynced,
   Value<int> rowid,
 });
 typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
@@ -5009,6 +5151,9 @@ typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<DateTime> createdAt,
   Value<DateTime> updatedAt,
   Value<bool> isDeleted,
+  Value<String?> imageUrl,
+  Value<String?> localImagePath,
+  Value<bool> imageSynced,
   Value<int> rowid,
 });
 
@@ -5118,6 +5263,16 @@ class $$ProductsTableFilterComposer
 
   ColumnFilters<bool> get isDeleted => $composableBuilder(
       column: $table.isDeleted, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get imageUrl => $composableBuilder(
+      column: $table.imageUrl, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get localImagePath => $composableBuilder(
+      column: $table.localImagePath,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get imageSynced => $composableBuilder(
+      column: $table.imageSynced, builder: (column) => ColumnFilters(column));
 
   $$StoresTableFilterComposer get storeId {
     final $$StoresTableFilterComposer composer = $composerBuilder(
@@ -5246,6 +5401,16 @@ class $$ProductsTableOrderingComposer
   ColumnOrderings<bool> get isDeleted => $composableBuilder(
       column: $table.isDeleted, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get imageUrl => $composableBuilder(
+      column: $table.imageUrl, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get localImagePath => $composableBuilder(
+      column: $table.localImagePath,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get imageSynced => $composableBuilder(
+      column: $table.imageSynced, builder: (column) => ColumnOrderings(column));
+
   $$StoresTableOrderingComposer get storeId {
     final $$StoresTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -5308,6 +5473,15 @@ class $$ProductsTableAnnotationComposer
 
   GeneratedColumn<bool> get isDeleted =>
       $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<String> get imageUrl =>
+      $composableBuilder(column: $table.imageUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get localImagePath => $composableBuilder(
+      column: $table.localImagePath, builder: (column) => column);
+
+  GeneratedColumn<bool> get imageSynced => $composableBuilder(
+      column: $table.imageSynced, builder: (column) => column);
 
   $$StoresTableAnnotationComposer get storeId {
     final $$StoresTableAnnotationComposer composer = $composerBuilder(
@@ -5432,6 +5606,9 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<bool> isDeleted = const Value.absent(),
+            Value<String?> imageUrl = const Value.absent(),
+            Value<String?> localImagePath = const Value.absent(),
+            Value<bool> imageSynced = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductsCompanion(
@@ -5447,6 +5624,9 @@ class $$ProductsTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             isDeleted: isDeleted,
+            imageUrl: imageUrl,
+            localImagePath: localImagePath,
+            imageSynced: imageSynced,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -5462,6 +5642,9 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<DateTime> createdAt = const Value.absent(),
             Value<DateTime> updatedAt = const Value.absent(),
             Value<bool> isDeleted = const Value.absent(),
+            Value<String?> imageUrl = const Value.absent(),
+            Value<String?> localImagePath = const Value.absent(),
+            Value<bool> imageSynced = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductsCompanion.insert(
@@ -5477,6 +5660,9 @@ class $$ProductsTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
             isDeleted: isDeleted,
+            imageUrl: imageUrl,
+            localImagePath: localImagePath,
+            imageSynced: imageSynced,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

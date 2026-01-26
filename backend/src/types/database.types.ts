@@ -179,6 +179,7 @@ export type Database = {
           cost_price: number | null
           created_at: string | null
           id: string
+          image_url: string | null
           is_deleted: boolean | null
           low_stock_threshold: number | null
           name: string
@@ -193,6 +194,7 @@ export type Database = {
           cost_price?: number | null
           created_at?: string | null
           id?: string
+          image_url?: string | null
           is_deleted?: boolean | null
           low_stock_threshold?: number | null
           name: string
@@ -207,6 +209,7 @@ export type Database = {
           cost_price?: number | null
           created_at?: string | null
           id?: string
+          image_url?: string | null
           is_deleted?: boolean | null
           low_stock_threshold?: number | null
           name?: string
@@ -452,6 +455,41 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trusted_devices: {
+        Row: {
+          device_id: string
+          device_name: string | null
+          id: string
+          last_used_at: string | null
+          trusted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          device_id: string
+          device_name?: string | null
+          id?: string
+          last_used_at?: string | null
+          trusted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          device_id?: string
+          device_name?: string | null
+          id?: string
+          last_used_at?: string | null
+          trusted_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trusted_devices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]

@@ -85,6 +85,13 @@ dependencies:
   # Permissions
   permission_handler: ^11.3.0
 
+  # Image Handling (Барааны зураг)
+  image_picker: ^1.0.7
+  flutter_image_compress: ^2.2.0
+  path_provider: ^2.1.2
+  path: ^1.9.0
+  crypto: ^3.0.3
+
   # Icons
   cupertino_icons: ^1.0.8
 

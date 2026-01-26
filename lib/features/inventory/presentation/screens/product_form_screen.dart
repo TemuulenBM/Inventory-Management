@@ -1,10 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
+import 'package:retail_control_platform/core/services/image_service.dart';
+import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 
 /// Product Form Screen (Add/Edit)
 /// Pattern-based design (consistency with Product Detail + Cart)
@@ -33,6 +38,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   String _selectedCategory = 'ХУВЦАС';
   bool _isSaving = false;
 
+  // Зургийн state
+  File? _selectedImage;
+  String? _existingImageUrl;
+  final ImageService _imageService = ImageService();
+
   final List<String> _categories = [
     'ХУВЦАС',
     'ХҮНС',
@@ -47,18 +57,30 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     _loadProductData();
   }
 
-  void _loadProductData() {
-    // If editing existing product, load data
-    if (widget.productId != 'new') {
-      // Mock data (will be replaced with productProvider)
-      _nameController.text = 'Ноолуур ороолт';
-      _skuController.text = 'CSH-001-BGE';
-      _colorController.text = 'Шаргал';
-      _sellPriceController.text = '125000';
-      _costPriceController.text = '85000';
-      _thresholdController.text = '10';
-      _locationController.text = 'Төв дэлгүүр';
-      _selectedCategory = 'ХУВЦАС';
+  /// Бараа засах үед бодит data ачаалах
+  Future<void> _loadProductData() async {
+    if (widget.productId == 'new') return;
+
+    try {
+      final product = await ref.read(
+        productDetailProvider(widget.productId).future,
+      );
+
+      if (product != null && mounted) {
+        setState(() {
+          _nameController.text = product.name;
+          _skuController.text = product.sku;
+          _sellPriceController.text = product.sellPrice.toInt().toString();
+          if (product.costPrice > 0) {
+            _costPriceController.text = product.costPrice.toInt().toString();
+          }
+          _thresholdController.text =
+              (product.lowStockThreshold ?? 10).toString();
+          _existingImageUrl = product.imageUrl;
+        });
+      }
+    } catch (e) {
+      debugPrint('_loadProductData error: $e');
     }
   }
 
@@ -91,17 +113,44 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     });
 
     try {
-      // Mock save (will be replaced with productProvider.addProduct/updateProduct)
-      await Future.delayed(const Duration(seconds: 1));
+      final actions = ref.read(productActionsProvider.notifier);
+      final isNew = widget.productId == 'new';
+      bool success;
 
-      if (mounted) {
-        // Show success message
+      if (isNew) {
+        // Шинэ бараа нэмэх
+        final productId = await actions.createProduct(
+          name: _nameController.text.trim(),
+          sku: _skuController.text.trim(),
+          unit: 'piece',
+          sellPrice: double.tryParse(_sellPriceController.text) ?? 0,
+          costPrice: _costPriceController.text.isNotEmpty
+              ? double.tryParse(_costPriceController.text)
+              : null,
+          lowStockThreshold: int.tryParse(_thresholdController.text),
+          imageFile: _selectedImage,
+        );
+        success = productId != null;
+      } else {
+        // Бараа засах
+        success = await actions.updateProduct(
+          widget.productId,
+          name: _nameController.text.trim(),
+          sku: _skuController.text.trim(),
+          sellPrice: double.tryParse(_sellPriceController.text),
+          costPrice: _costPriceController.text.isNotEmpty
+              ? double.tryParse(_costPriceController.text)
+              : null,
+          lowStockThreshold: int.tryParse(_thresholdController.text),
+          imageFile: _selectedImage,
+        );
+      }
+
+      if (mounted && success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              widget.productId == 'new'
-                  ? 'Бараа амжилттай нэмэгдлээ'
-                  : 'Бараа амжилттай засагдлаа',
+              isNew ? 'Бараа амжилттай нэмэгдлээ' : 'Бараа амжилттай засагдлаа',
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: const Color(0xFF059669),
@@ -111,9 +160,21 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             ),
           ),
         );
-
-        // Navigate back
         context.pop();
+      } else if (mounted && !success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Бараа хадгалахад алдаа гарлаа',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: const Color(0xFFDC2626),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: AppRadius.radiusMD,
+            ),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -186,6 +247,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Барааны зураг
+                    _buildImagePicker(),
+                    AppSpacing.verticalLG,
+
                     // Category selector
                     const Text(
                       'Ангилал',
@@ -297,6 +362,246 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         ),
       ),
     );
+  }
+
+  /// Зураг сонгох widget
+  Widget _buildImagePicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            Icon(Icons.image_outlined, size: 16, color: AppColors.gray500),
+            SizedBox(width: 6),
+            Text(
+              'Барааны зураг',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.gray600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // Зураг харуулах / сонгох хэсэг
+        GestureDetector(
+          onTap: _showImageSourceDialog,
+          child: Container(
+            width: double.infinity,
+            height: 200,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: AppRadius.radiusLG,
+              border: Border.all(
+                color: AppColors.gray200,
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: _buildImageContent(),
+          ),
+        ),
+
+        // Зураг устгах товч
+        if (_selectedImage != null || _existingImageUrl != null) ...[
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: _removeImage,
+              icon: const Icon(Icons.delete_outline, color: Color(0xFFDC2626), size: 18),
+              label: const Text(
+                'Зураг устгах',
+                style: TextStyle(color: Color(0xFFDC2626), fontSize: 13),
+              ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// Зургийн content (preview эсвэл placeholder)
+  Widget _buildImageContent() {
+    // Шинэ сонгосон зураг байвал
+    if (_selectedImage != null) {
+      return ClipRRect(
+        borderRadius: AppRadius.radiusLG,
+        child: Image.file(
+          _selectedImage!,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+        ),
+      );
+    }
+
+    // Хуучин зураг байвал (edit mode)
+    if (_existingImageUrl != null && _existingImageUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: AppRadius.radiusLG,
+        child: Image.network(
+          _existingImageUrl!,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return Center(
+              child: CircularProgressIndicator(
+                value: loadingProgress.expectedTotalBytes != null
+                    ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
+                    : null,
+                color: AppColors.primary,
+                strokeWidth: 2,
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+        ),
+      );
+    }
+
+    // Placeholder
+    return _buildPlaceholder();
+  }
+
+  /// Зураг байхгүй үеийн placeholder
+  Widget _buildPlaceholder() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          Icons.add_a_photo_outlined,
+          size: 48,
+          color: AppColors.gray400,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Зураг нэмэх',
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: AppColors.gray500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Камер эсвэл галерейгаас сонгох',
+          style: TextStyle(
+            fontSize: 13,
+            color: AppColors.gray400,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Зураг сонгох dialog харуулах
+  void _showImageSourceDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle bar
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.gray300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              // Камераар авах
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.camera_alt, color: AppColors.primary),
+                ),
+                title: const Text(
+                  'Камераар авах',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: const Text('Шинэ зураг авах'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+
+              // Галерейгаас сонгох
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(Icons.photo_library, color: AppColors.primary),
+                ),
+                title: const Text(
+                  'Галерейгаас сонгох',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: const Text('Байгаа зургаас сонгох'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Зураг сонгох
+  Future<void> _pickImage(ImageSource source) async {
+    final file = await _imageService.pickImage(source: source);
+
+    if (file != null) {
+      setState(() {
+        _selectedImage = file;
+        _existingImageUrl = null; // Хуучин URL-г цэвэрлэх
+      });
+    }
+  }
+
+  /// Зураг устгах
+  void _removeImage() {
+    setState(() {
+      _selectedImage = null;
+      _existingImageUrl = null;
+    });
   }
 
   Widget _buildCategorySelector() {

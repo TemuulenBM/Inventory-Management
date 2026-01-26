@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:retail_control_platform/core/api/api_result.dart';
 import 'package:retail_control_platform/core/database/app_database.dart';
 import 'package:retail_control_platform/core/providers/store_provider.dart';
 import 'package:retail_control_platform/core/services/product_service.dart';
@@ -108,7 +111,8 @@ class ProductActions extends _$ProductActions {
   FutureOr<void> build() {}
 
   /// Шинэ бараа нэмэх
-  Future<bool> createProduct({
+  /// Амжилттай бол productId буцаана, амжилтгүй бол null
+  Future<String?> createProduct({
     required String name,
     required String sku,
     required String unit,
@@ -116,6 +120,7 @@ class ProductActions extends _$ProductActions {
     double? costPrice,
     int? lowStockThreshold,
     int? initialStock,
+    File? imageFile,
   }) async {
     state = const AsyncValue.loading();
 
@@ -124,7 +129,7 @@ class ProductActions extends _$ProductActions {
 
     if (storeId == null || userId == null) {
       state = AsyncValue.error('Хэрэглэгч нэвтрээгүй байна', StackTrace.current);
-      return false;
+      return null;
     }
 
     final service = ref.read(productServiceProvider);
@@ -140,18 +145,21 @@ class ProductActions extends _$ProductActions {
       initialStock: initialStock,
     );
 
-    return result.when(
-      success: (_) {
-        state = const AsyncValue.data(null);
-        // Invalidate product list to refresh
-        ref.invalidate(productListProvider);
-        return true;
-      },
-      error: (message, _, __) {
-        state = AsyncValue.error(message, StackTrace.current);
-        return false;
-      },
-    );
+    if (result.isError) {
+      state = AsyncValue.error(result.errorMessage ?? 'Алдаа гарлаа', StackTrace.current);
+      return null;
+    }
+
+    final product = result.dataOrNull!;
+
+    // Зураг хадгалах (байвал)
+    if (imageFile != null) {
+      await service.saveAndUploadProductImage(storeId, product.id, imageFile);
+    }
+
+    state = const AsyncValue.data(null);
+    ref.invalidate(productListProvider);
+    return product.id;
   }
 
   /// Бараа засах
@@ -163,6 +171,7 @@ class ProductActions extends _$ProductActions {
     double? sellPrice,
     double? costPrice,
     int? lowStockThreshold,
+    File? imageFile,
   }) async {
     state = const AsyncValue.loading();
 
@@ -184,18 +193,20 @@ class ProductActions extends _$ProductActions {
       lowStockThreshold: lowStockThreshold,
     );
 
-    return result.when(
-      success: (_) {
-        state = const AsyncValue.data(null);
-        ref.invalidate(productListProvider);
-        ref.invalidate(productDetailProvider(productId));
-        return true;
-      },
-      error: (message, _, __) {
-        state = AsyncValue.error(message, StackTrace.current);
-        return false;
-      },
-    );
+    if (result.isError) {
+      state = AsyncValue.error(result.errorMessage ?? 'Алдаа гарлаа', StackTrace.current);
+      return false;
+    }
+
+    // Зураг хадгалах (байвал)
+    if (imageFile != null) {
+      await service.saveAndUploadProductImage(storeId, productId, imageFile);
+    }
+
+    state = const AsyncValue.data(null);
+    ref.invalidate(productListProvider);
+    ref.invalidate(productDetailProvider(productId));
+    return true;
   }
 
   /// Бараа устгах

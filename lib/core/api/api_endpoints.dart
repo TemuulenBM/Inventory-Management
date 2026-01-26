@@ -24,6 +24,8 @@ class ApiEndpoints {
   static String products(String storeId) => '/stores/$storeId/products';
   static String product(String storeId, String productId) => '/stores/$storeId/products/$productId';
   static String productsBulk(String storeId) => '/stores/$storeId/products/bulk';
+  static String productImage(String storeId, String productId) =>
+      '/stores/$storeId/products/$productId/image';
 
   // Inventory
   static String inventoryEvents(String storeId) => '/stores/$storeId/inventory-events';

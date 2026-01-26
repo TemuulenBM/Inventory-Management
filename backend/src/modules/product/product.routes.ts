@@ -31,6 +31,8 @@ import {
   updateProduct,
   deleteProduct,
   bulkCreateProducts,
+  uploadProductImage,
+  deleteProductImage,
 } from './product.service.js';
 import { authorize, requireStore } from '../auth/auth.middleware.js';
 
@@ -277,6 +279,109 @@ export async function productRoutes(server: FastifyInstance) {
         created: result.created,
         products: result.products,
       });
+    }
+  );
+
+  /**
+   * POST /stores/:storeId/products/:productId/image
+   * Барааны зураг upload хийх (owner, manager)
+   */
+  server.post<{
+    Params: { storeId: string; productId: string };
+    Reply:
+      | { success: true; imageUrl: string }
+      | { statusCode: number; error: string; message: string };
+  }>(
+    '/stores/:storeId/products/:productId/image',
+    {
+      onRequest: [server.authenticate, authorize(['owner', 'manager']), requireStore()],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const params = request.params as { storeId: string; productId: string };
+
+      // Multipart file авах
+      const file = await (request as any).file();
+
+      if (!file) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Файл олдсонгүй',
+        });
+      }
+
+      // File type шалгах
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.mimetype)) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Зөвхөн JPG, PNG, WEBP зураг оруулах боломжтой',
+        });
+      }
+
+      // Buffer авах
+      const buffer = await file.toBuffer();
+
+      // File size шалгах (5MB max)
+      if (buffer.length > 5 * 1024 * 1024) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: 'Зургийн хэмжээ 5MB-с их байна',
+        });
+      }
+
+      // Зураг upload хийх
+      const result = await uploadProductImage(
+        params.storeId,
+        params.productId,
+        buffer,
+        file.mimetype
+      );
+
+      if (!result.success) {
+        return reply.status(500).send({
+          statusCode: 500,
+          error: 'Internal Server Error',
+          message: result.error,
+        });
+      }
+
+      return reply.status(200).send({
+        success: true,
+        imageUrl: result.imageUrl,
+      });
+    }
+  );
+
+  /**
+   * DELETE /stores/:storeId/products/:productId/image
+   * Барааны зураг устгах (owner, manager)
+   */
+  server.delete<{
+    Params: { storeId: string; productId: string };
+    Reply: { success: true } | { statusCode: number; error: string; message: string };
+  }>(
+    '/stores/:storeId/products/:productId/image',
+    {
+      onRequest: [server.authenticate, authorize(['owner', 'manager']), requireStore()],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const params = request.params as { storeId: string; productId: string };
+
+      // Зураг устгах
+      const result = await deleteProductImage(params.storeId, params.productId);
+
+      if (!result.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: result.error,
+        });
+      }
+
+      return reply.status(200).send({ success: true });
     }
   );
 

@@ -59,11 +59,15 @@ CREATE TABLE products (
     cost_price DECIMAL(15, 2) CHECK (cost_price >= 0),
     low_stock_threshold INTEGER DEFAULT 10 CHECK (low_stock_threshold >= 0),
     note TEXT,
+    image_url TEXT,  -- Барааны зургийн URL (Supabase Storage)
     is_deleted BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(store_id, sku)
 );
+
+-- Одоо байгаа database-д image_url нэмэх (migration):
+-- ALTER TABLE products ADD COLUMN image_url TEXT;
 
 CREATE INDEX idx_products_store_id ON products(store_id);
 CREATE INDEX idx_products_sku ON products(sku);

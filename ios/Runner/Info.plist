@@ -45,6 +45,10 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Барааны зураг авахад камер ашиглана</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Барааны зураг сонгоход зургийн цомог ашиглана</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>
