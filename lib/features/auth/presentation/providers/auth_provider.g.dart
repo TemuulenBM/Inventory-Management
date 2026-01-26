@@ -39,7 +39,7 @@ final isAuthenticatedProvider = AutoDisposeProvider<bool>.internal(
 );
 
 typedef IsAuthenticatedRef = AutoDisposeProviderRef<bool>;
-String _$authNotifierHash() => r'95d69a5b7cd49a74e3bcabf0d5658fe007a87f28';
+String _$authNotifierHash() => r'74e240d7265f5d2831c236371eedde2e9343ec0e';
 
 /// Auth state notifier - Backend API ашиглан authentication хийнэ
 ///

@@ -228,6 +228,11 @@ class AuthNotifier extends _$AuthNotifier {
     }
   }
 
+  /// Хэрэглэгчийн мэдээлэл шинэчлэх (profile update дараа)
+  Future<void> refreshCurrentUser() async {
+    await _fetchCurrentUser();
+  }
+
   /// Clear error state
   void clearError() {
     state.maybeWhen(

@@ -22,6 +22,10 @@ import 'package:retail_control_platform/features/alerts/presentation/screens/ale
 import 'package:retail_control_platform/features/shifts/presentation/screens/shift_management_screen.dart';
 import 'package:retail_control_platform/features/invitation/presentation/screens/invitation_list_screen.dart';
 import 'package:retail_control_platform/features/invitation/presentation/screens/invitation_form_screen.dart';
+import 'package:retail_control_platform/features/settings/presentation/screens/profile_edit_screen.dart';
+import 'package:retail_control_platform/features/settings/presentation/screens/store_edit_screen.dart';
+import 'package:retail_control_platform/features/employees/presentation/screens/employee_list_screen.dart';
+import 'package:retail_control_platform/features/employees/presentation/screens/employee_form_screen.dart';
 
 /// GoRouter configuration for app navigation
 /// Auth guards, deep linking, route transitions
@@ -190,6 +194,39 @@ final GoRouter appRouter = GoRouter(
           path: RouteNames.settings,
           name: 'settings',
           builder: (context, state) => const SettingsScreen(),
+        ),
+        // Profile Edit
+        GoRoute(
+          path: RouteNames.profileEdit,
+          name: 'profile-edit',
+          builder: (context, state) => const ProfileEditScreen(),
+        ),
+        // Store Edit
+        GoRoute(
+          path: RouteNames.storeEdit,
+          name: 'store-edit',
+          builder: (context, state) => const StoreEditScreen(),
+        ),
+        // Employees List
+        GoRoute(
+          path: RouteNames.employees,
+          name: 'employees',
+          builder: (context, state) => const EmployeeListScreen(),
+        ),
+        // Employee Add
+        GoRoute(
+          path: RouteNames.employeeAdd,
+          name: 'employee-add',
+          builder: (context, state) => const EmployeeFormScreen(),
+        ),
+        // Employee Edit
+        GoRoute(
+          path: '/settings/employees/:id/edit',
+          name: 'employee-edit',
+          builder: (context, state) {
+            final employeeId = state.pathParameters['id'] ?? '';
+            return EmployeeFormScreen(employeeId: employeeId);
+          },
         ),
         // Alerts
         GoRoute(

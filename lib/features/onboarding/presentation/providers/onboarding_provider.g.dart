@@ -7,7 +7,7 @@ part of 'onboarding_provider.dart';
 // **************************************************************************
 
 String _$onboardingNotifierHash() =>
-    r'1363acd66a12a843c06b3af12e4ba992c884afed';
+    r'2e5216970aa47556992f79b40bf41872c7947b9a';
 
 /// Onboarding flow state management
 /// Store үүсгэх, бараа нэмэх, худалдагч урих үйлдлүүд

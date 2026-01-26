@@ -43,6 +43,14 @@ class RouteNames {
   // Settings
   static const String settings = '/settings';
   static const String profile = '/settings/profile';
+  static const String profileEdit = '/settings/profile/edit';
+
+  // Store
+  static const String storeEdit = '/settings/store/edit';
+
+  // Employees
+  static const String employees = '/settings/employees';
+  static const String employeeAdd = '/settings/employees/add';
 
   // Invitations (super-admin only)
   static const String invitations = '/invitations';
@@ -66,5 +74,10 @@ class RouteNames {
   // Helper method to build inventory events route
   static String inventoryEventsPath(String productId) {
     return '/product/$productId/events';
+  }
+
+  // Helper method to build employee edit route
+  static String employeeEditPath(String employeeId) {
+    return '/settings/employees/$employeeId/edit';
   }
 }

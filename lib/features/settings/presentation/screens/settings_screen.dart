@@ -76,17 +76,13 @@ class SettingsScreen extends ConsumerWidget {
                     subtitle: user?.storeId != null
                         ? 'ID: ${user!.storeId!.substring(0, 8)}...'
                         : null,
-                    onTap: () {
-                      // TODO: Store detail screen
-                    },
+                    onTap: () => context.push(RouteNames.storeEdit),
                   ),
                   SettingsTile(
                     icon: Icons.people_outline,
                     title: 'Ажилтнууд',
                     subtitle: 'Худалдагч, менежер удирдах',
-                    onTap: () {
-                      // TODO: Staff management screen
-                    },
+                    onTap: () => context.push(RouteNames.employees),
                   ),
                 ],
               ),
@@ -289,9 +285,7 @@ class SettingsScreen extends ConsumerWidget {
 
           // Edit icon
           IconButton(
-            onPressed: () {
-              // TODO: Profile edit screen
-            },
+            onPressed: () => context.push(RouteNames.profileEdit),
             icon: const Icon(
               Icons.edit_outlined,
               color: AppColors.gray500,
