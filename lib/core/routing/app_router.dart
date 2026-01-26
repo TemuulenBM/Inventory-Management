@@ -24,6 +24,7 @@ import 'package:retail_control_platform/features/invitation/presentation/screens
 import 'package:retail_control_platform/features/invitation/presentation/screens/invitation_form_screen.dart';
 import 'package:retail_control_platform/features/settings/presentation/screens/profile_edit_screen.dart';
 import 'package:retail_control_platform/features/settings/presentation/screens/store_edit_screen.dart';
+import 'package:retail_control_platform/features/store/presentation/screens/store_selection_screen.dart';
 import 'package:retail_control_platform/features/employees/presentation/screens/employee_list_screen.dart';
 import 'package:retail_control_platform/features/employees/presentation/screens/employee_form_screen.dart';
 
@@ -206,6 +207,12 @@ final GoRouter appRouter = GoRouter(
           path: RouteNames.storeEdit,
           name: 'store-edit',
           builder: (context, state) => const StoreEditScreen(),
+        ),
+        // Store Selection (Multi-store support)
+        GoRoute(
+          path: RouteNames.storeSelection,
+          name: 'store-selection',
+          builder: (context, state) => const StoreSelectionScreen(),
         ),
         // Employees List
         GoRoute(

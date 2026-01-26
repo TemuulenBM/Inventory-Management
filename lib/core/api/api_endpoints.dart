@@ -55,12 +55,20 @@ class ApiEndpoints {
   static String reports(String storeId) => '/stores/$storeId/reports';
 
   // Sync
-  static const String sync = '/sync';
+  static String sync(String storeId) => '/stores/$storeId/sync';
   static String changes(String storeId) => '/stores/$storeId/changes';
 
   // Invitations (super-admin only)
   static const String invitations = '/invitations';
   static String invitation(String invitationId) => '/invitations/$invitationId';
+
+  // Multi-Store Support
+  /// Хэрэглэгчийн бүх дэлгүүрүүдийг авах (owner олон дэлгүүртэй байх)
+  static String userStores(String userId) => '/users/$userId/stores';
+
+  /// Дэлгүүр сонгох (primary store шинэчлэх)
+  static String selectStore(String userId, String storeId) =>
+      '/users/$userId/stores/$storeId/select';
 
   // Health
   static const String health = '/health';

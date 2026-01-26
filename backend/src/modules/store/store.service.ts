@@ -36,7 +36,22 @@ export async function createStore(data: CreateStoreBody, ownerId: string) {
     return { success: false as const, error: 'Дэлгүүр үүсгэхэд алдаа гарлаа' };
   }
 
-  // Owner хэрэглэгчийн store_id-г шинэчлэх (onboarding дараа storeId null биш болно)
+  // === MULTI-STORE: store_members-д owner membership нэмэх ===
+  const { error: memberError } = await supabase
+    .from('store_members')
+    .insert({
+      store_id: store.id,
+      user_id: ownerId,
+      role: 'owner',
+    });
+
+  if (memberError) {
+    console.error('Add store member error:', memberError);
+    // Rollback эсвэл continue хийх боломжтой
+    // Одоогоор warning өгөөд үргэлжлүүлнэ (users.store_id шинэчлэгдэх ёстой)
+  }
+
+  // Owner хэрэглэгчийн store_id-г шинэчлэх (primary/selected store)
   const { error: userUpdateError } = await supabase
     .from('users')
     .update({ store_id: store.id })
@@ -46,7 +61,7 @@ export async function createStore(data: CreateStoreBody, ownerId: string) {
     console.error('Update owner store_id error:', userUpdateError);
   }
 
-  console.log(`✅ Store created: ${store.name} (owner: ${ownerId})`);
+  console.log(`✅ Store created: ${store.name} (owner: ${ownerId}), store_members updated`);
 
   return {
     success: true as const,

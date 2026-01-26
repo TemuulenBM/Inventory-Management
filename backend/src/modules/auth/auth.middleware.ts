@@ -4,11 +4,12 @@
  * Request validation middleware-үүд:
  * - authenticate: JWT token verify (jwt.ts plugin-д байна)
  * - authorize: Role-based access control
- * - requireStore: Store ownership validation
+ * - requireStore: Store ownership validation (multi-store support via store_members)
  */
 
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { JWTPayload } from '../../plugins/jwt.js';
+import { supabase } from '../../config/supabase.js';
 
 /**
  * Extended FastifyRequest with user info
@@ -117,14 +118,25 @@ export function requireStore() {
       });
     }
 
-    // User-ийн store ID-тэй таарч байгаа эсэхийг шалгах
-    if (authRequest.user.storeId !== storeIdFromParams) {
+    // === MULTI-STORE: store_members table шалгах ===
+    // Хэрэглэгч энэ дэлгүүрт хандах эрхтэй эсэхийг store_members-аар шалгах
+    const { data: membership, error } = await supabase
+      .from('store_members')
+      .select('role')
+      .eq('user_id', authRequest.user.userId)
+      .eq('store_id', storeIdFromParams)
+      .single();
+
+    if (error || !membership) {
       return reply.status(403).send({
         statusCode: 403,
         error: 'Forbidden',
-        message: 'Та зөвхөн өөрийн дэлгүүрийн өгөгдөлд хандах эрхтэй',
+        message: 'Та энэ дэлгүүрт хандах эрхгүй байна',
       });
     }
+
+    // Request object дээр store membership мэдээлэл нэмэх (optional - routes-д ашиглаж болно)
+    (authRequest as any).storeMembership = membership;
 
     // Зөвшөөрөгдсөн - дараагийн handler руу шилжих
   };

@@ -439,6 +439,45 @@ export type Database = {
           },
         ]
       }
+      store_members: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string
+          store_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: string
+          store_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          store_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_members_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "store_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           created_at: string | null
@@ -622,6 +661,10 @@ export type Database = {
     Functions: {
       expire_old_invitations: { Args: never; Returns: undefined }
       refresh_product_stock_levels: { Args: never; Returns: undefined }
+      user_has_store_access: {
+        Args: { check_store_id: string }
+        Returns: boolean
+      }
       user_store_id: { Args: never; Returns: string }
     }
     Enums: {

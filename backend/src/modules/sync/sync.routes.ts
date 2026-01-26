@@ -23,31 +23,25 @@ import { requireStore, type AuthRequest } from '../auth/auth.middleware.js';
  */
 export async function syncRoutes(server: FastifyInstance) {
   /**
-   * POST /sync
+   * POST /stores/:storeId/sync
    * Batch sync operations from mobile
    * - Бүх role-д зориулагдсан
    * - Offline дээр хуримтлуулсан operations-г sync хийх
    */
   server.post<{
+    Params: { storeId: string };
     Body: BatchSyncBody;
     Reply: BatchSyncResponse | { statusCode: number; error: string; message: string };
   }>(
-    '/sync',
+    '/stores/:storeId/sync',
     {
-      onRequest: [server.authenticate],
+      onRequest: [server.authenticate, requireStore()],
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const authRequest = request as AuthRequest;
+      const params = request.params as { storeId: string };
       const userId = authRequest.user.userId;
-      const storeId = authRequest.user.storeId;
-
-      if (!userId || !storeId) {
-        return reply.status(401).send({
-          statusCode: 401,
-          error: 'Unauthorized',
-          message: 'Нэвтрэх шаардлагатай',
-        });
-      }
+      const storeId = params.storeId;
 
       // Body validation
       const parseResult = batchSyncSchema.safeParse(request.body);

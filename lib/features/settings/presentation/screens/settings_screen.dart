@@ -70,6 +70,15 @@ class SettingsScreen extends ConsumerWidget {
               SettingsSection(
                 title: 'ДЭЛГҮҮР',
                 tiles: [
+                  // Multi-store: Owner үед дэлгүүр солих товч
+                  if (user?.role == 'owner')
+                    SettingsTile(
+                      icon: Icons.swap_horiz,
+                      iconColor: AppColors.secondary,
+                      title: 'Дэлгүүр солих',
+                      subtitle: 'Олон дэлгүүрийн хооронд солих',
+                      onTap: () => context.push(RouteNames.storeSelection),
+                    ),
                   SettingsTile(
                     icon: Icons.store_outlined,
                     title: 'Дэлгүүрийн мэдээлэл',

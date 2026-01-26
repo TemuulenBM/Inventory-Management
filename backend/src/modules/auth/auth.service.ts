@@ -189,10 +189,9 @@ export async function verifyOTP(
     console.log(`👤 New user created via invitation: ${user.phone} (${user.role})`);
   }
 
-  // 8. JWT tokens үүсгэх
+  // 8. JWT tokens үүсгэх (multi-store: storeId JWT-д хадгалахгүй)
   const payload: JWTPayload = {
     userId: user.id,
-    storeId: user.store_id,
     role: user.role as 'super_admin' | 'owner' | 'manager' | 'seller',
   };
 
@@ -286,7 +285,6 @@ export async function refreshAccessToken(
     // 4. Шинэ tokens үүсгэх
     const payload: JWTPayload = {
       userId: decoded.userId,
-      storeId: decoded.storeId,
       role: decoded.role,
     };
 
@@ -491,7 +489,6 @@ export async function generateTokens(
 ): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
   const payload: JWTPayload = {
     userId: user.id,
-    storeId: user.store_id,
     role: user.role as 'super_admin' | 'owner' | 'manager' | 'seller',
   };
 

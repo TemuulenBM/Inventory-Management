@@ -12,10 +12,13 @@ import { env } from '../config/env.js';
 
 /**
  * JWT Payload interface
+ *
+ * NOTE: Multi-store support - storeId хасагдсан.
+ * Owner олон дэлгүүртэй байж болох тул JWT-д storeId хадгалахгүй.
+ * Store context нь route parameter `/stores/:storeId/*` дээр дамжина.
  */
 export interface JWTPayload {
   userId: string;
-  storeId: string | null; // Super-admin үед null байж болно
   role: 'super_admin' | 'owner' | 'manager' | 'seller';
   iat?: number;
   exp?: number;

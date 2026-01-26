@@ -60,7 +60,7 @@ class SyncQueueManager {
 
     try {
       final response = await api.post(
-        ApiEndpoints.sync,
+        ApiEndpoints.sync(storeId),
         data: {
           'device_id': await _getDeviceId(),
           'operations': operations,
