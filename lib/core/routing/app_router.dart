@@ -6,6 +6,10 @@ import 'package:retail_control_platform/core/widgets/layout/main_shell.dart';
 import 'package:retail_control_platform/features/auth/presentation/screens/phone_auth_screen.dart';
 import 'package:retail_control_platform/features/auth/presentation/screens/otp_screen.dart';
 import 'package:retail_control_platform/features/onboarding/presentation/screens/splash_screen.dart';
+import 'package:retail_control_platform/features/onboarding/presentation/screens/onboarding_welcome_screen.dart';
+import 'package:retail_control_platform/features/onboarding/presentation/screens/onboarding_store_setup_screen.dart';
+import 'package:retail_control_platform/features/onboarding/presentation/screens/onboarding_products_screen.dart';
+import 'package:retail_control_platform/features/onboarding/presentation/screens/onboarding_invite_screen.dart';
 import 'package:retail_control_platform/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:retail_control_platform/features/sales/presentation/screens/quick_sale_select_screen.dart';
 import 'package:retail_control_platform/features/sales/presentation/screens/cart_screen.dart';
@@ -50,6 +54,34 @@ final GoRouter appRouter = GoRouter(
         }
 
         return OtpScreen(phoneNumber: phoneNumber, trustDevice: trustDevice);
+      },
+    ),
+
+    // ===== ONBOARDING (шинэ хэрэглэгч, bottom nav-гүй) =====
+    GoRoute(
+      path: RouteNames.onboardingWelcome,
+      name: 'onboarding-welcome',
+      builder: (context, state) => const OnboardingWelcomeScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.onboardingStoreSetup,
+      name: 'onboarding-store-setup',
+      builder: (context, state) => const OnboardingStoreSetupScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.onboardingProducts,
+      name: 'onboarding-products',
+      builder: (context, state) {
+        final storeId = state.extra as String? ?? '';
+        return OnboardingProductsScreen(storeId: storeId);
+      },
+    ),
+    GoRoute(
+      path: RouteNames.onboardingInvite,
+      name: 'onboarding-invite',
+      builder: (context, state) {
+        final storeId = state.extra as String? ?? '';
+        return OnboardingInviteScreen(storeId: storeId);
       },
     ),
 

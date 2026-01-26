@@ -72,8 +72,12 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       authState.when(
         initial: () {},
         authenticated: (user) {
-          // Success - navigate to dashboard
-          context.go(RouteNames.dashboard);
+          // Store байхгүй бол → Onboarding, байвал → Dashboard
+          if (user.storeId == null) {
+            context.go(RouteNames.onboardingWelcome);
+          } else {
+            context.go(RouteNames.dashboard);
+          }
         },
         error: (message) {
           setState(() => _errorText = message);

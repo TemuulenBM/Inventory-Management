@@ -7,6 +7,12 @@ class RouteNames {
   static const String authPhone = '/auth/phone';
   static const String authOtp = '/auth/otp';
 
+  // Onboarding (шинэ хэрэглэгч)
+  static const String onboardingWelcome = '/onboarding/welcome';
+  static const String onboardingStoreSetup = '/onboarding/store-setup';
+  static const String onboardingProducts = '/onboarding/products';
+  static const String onboardingInvite = '/onboarding/invite';
+
   // Main App
   static const String dashboard = '/dashboard';
 

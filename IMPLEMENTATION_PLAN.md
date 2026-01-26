@@ -389,31 +389,31 @@ backend/
 ### Checklist
 
 #### 7.1 Project Restructure
-- [ ] Feature-based folder structure
-- [ ] GoRouter setup
-- [ ] Theme setup (Material 3)
-- [ ] Riverpod providers setup
-- [ ] API client (Dio)
-- [ ] Offline-first architecture
+- [x] Feature-based folder structure
+- [x] GoRouter setup
+- [x] Theme setup (Material 3)
+- [x] Riverpod providers setup
+- [x] API client (Dio)
+- [x] Offline-first architecture
 
 #### 7.2 Auth Feature
-- [ ] Login screen (phone input)
-- [ ] OTP verification screen
-- [ ] Auth provider (Riverpod)
-- [ ] Token storage (flutter_secure_storage)
-- [ ] Auto-login, Logout
+- [x] Login screen (phone input)
+- [x] OTP verification screen
+- [x] Auth provider (Riverpod)
+- [x] Token storage (flutter_secure_storage)
+- [x] Auto-login, Logout
 
 #### 7.3 Onboarding Feature
-- [ ] Welcome screen
-- [ ] Store setup screen
-- [ ] First products screen
-- [ ] Invite seller screen
+- [x] Welcome screen
+- [x] Store setup screen
+- [x] First products screen
+- [x] Invite seller screen
 
 #### 7.4 Products Feature
-- [ ] Products list screen (search, low stock highlight)
-- [ ] Add/Edit product screen
-- [ ] Product detail screen (stock history)
-- [ ] Offline support (local DB + sync queue)
+- [x] Products list screen (search, low stock highlight)
+- [x] Add/Edit product screen
+- [x] Product detail screen (stock history)
+- [x] Offline support (local DB + sync queue)
 
 ### Deliverables
 - ✅ Auth flow ажиллаж байгаа

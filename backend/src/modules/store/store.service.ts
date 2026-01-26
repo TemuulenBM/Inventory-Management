@@ -36,6 +36,16 @@ export async function createStore(data: CreateStoreBody, ownerId: string) {
     return { success: false as const, error: 'Дэлгүүр үүсгэхэд алдаа гарлаа' };
   }
 
+  // Owner хэрэглэгчийн store_id-г шинэчлэх (onboarding дараа storeId null биш болно)
+  const { error: userUpdateError } = await supabase
+    .from('users')
+    .update({ store_id: store.id })
+    .eq('id', ownerId);
+
+  if (userUpdateError) {
+    console.error('Update owner store_id error:', userUpdateError);
+  }
+
   console.log(`✅ Store created: ${store.name} (owner: ${ownerId})`);
 
   return {

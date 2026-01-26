@@ -74,8 +74,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           context.go(RouteNames.authPhone);
         },
         authenticated: (user) {
-          // Already logged in → Dashboard
-          context.go(RouteNames.dashboard);
+          // Store байхгүй бол → Onboarding, байвал → Dashboard
+          if (user.storeId == null) {
+            context.go(RouteNames.onboardingWelcome);
+          } else {
+            context.go(RouteNames.dashboard);
+          }
         },
         unauthenticated: () {
           // Not logged in → Auth
