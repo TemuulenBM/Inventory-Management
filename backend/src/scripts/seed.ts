@@ -2,9 +2,11 @@
  * Database Seed Script
  *
  * Test өгөгдөл үүсгэнэ:
- * - 1 Test Store (Temuulen's Shop)
+ * - Super-admin (store-гүй owner)
+ * - Test invitation
+ * - 1 Test Store (Baby Shop)
  * - 3 Users (Owner, Manager, Seller)
- * - 10 Products (Mongolian retail items)
+ * - 12 Products (Baby clothing items)
  * - Initial inventory events
  *
  * Ажиллуулах: npm run db:seed
@@ -52,6 +54,9 @@ async function clearDatabase() {
     'otp_tokens',
   ] as const;
 
+  // Invitations хүснэгтийг тусад нь устгах
+  await supabase.from('invitations').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+
   for (const table of tables) {
     const { error } = await supabase.from(table as any).delete().neq('id', '00000000-0000-0000-0000-000000000000');
 
@@ -63,6 +68,57 @@ async function clearDatabase() {
   }
 }
 
+async function seedSuperAdmin() {
+  log('\n🔑 Creating super-admin owner...', 'blue');
+
+  const superAdminId = generateId();
+
+  const superAdmin = {
+    id: superAdminId,
+    phone: '+97694393494', // Temuulen - Super Admin
+    name: 'Temuulen (Admin)',
+    role: 'owner',
+    store_id: null, // Store-гүй super-admin
+    password_hash: null,
+  };
+
+  const { data, error } = await supabase.from('users').insert(superAdmin).select().single();
+
+  if (error) {
+    log(`   ❌ Error: ${error.message}`, 'red');
+    throw error;
+  }
+
+  log(`   ✓ Super-admin created: ${data.phone}`, 'green');
+  return superAdminId;
+}
+
+async function seedTestInvitations(invitedBy: string) {
+  log('\n✉️  Creating test invitations...', 'blue');
+
+  const testInvitations = [
+    {
+      id: generateId(),
+      phone: '+97699119911', // Test owner
+      role: 'owner',
+      invited_by: invitedBy,
+      status: 'pending',
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days
+    },
+  ];
+
+  const { data, error } = await supabase.from('invitations').insert(testInvitations as any).select();
+
+  if (error) {
+    log(`   ❌ Error: ${error.message}`, 'red');
+  } else {
+    log(`   ✓ ${data.length} invitations created`, 'green');
+    data.forEach((inv: any) => {
+      log(`     - ${inv.phone} (${inv.role})`, 'green');
+    });
+  }
+}
+
 async function seedStore() {
   log('\n📦 Creating test store...', 'blue');
 
@@ -71,7 +127,7 @@ async function seedStore() {
 
   const store: StoreInsert = {
     id: storeId,
-    name: "Temuulen's Retail Shop",
+    name: "Temuulen's Baby Shop",
     location: 'Улаанбаатар, Сүхбаатар дүүрэг',
     owner_id: ownerId,
     timezone: 'Asia/Ulaanbaatar',
@@ -138,108 +194,140 @@ async function seedUsers(storeId: string, ownerId: string) {
 }
 
 async function seedProducts(storeId: string) {
-  log('\n🛒 Creating test products...', 'blue');
+  log('\n👶 Creating baby clothing products...', 'blue');
 
   const products: ProductInsert[] = [
     {
       id: generateId(),
       store_id: storeId,
-      name: 'Сүү (1L)',
-      sku: 'MILK-1L',
+      name: 'Хүүхдийн Боди (0-3 сар, Цагаан)',
+      sku: 'BODYSUIT-0-3-WHT',
       unit: 'piece',
-      cost_price: 1500,
-      sell_price: 2000,
+      cost_price: 8000,
+      sell_price: 12000,
       low_stock_threshold: 10,
+      image_url: 'https://images.unsplash.com/photo-1519238109-b95e80677b3f?w=400',
     },
     {
       id: generateId(),
       store_id: storeId,
-      name: 'Талх (Хар)',
-      sku: 'BREAD-BLACK',
+      name: 'Хүүхдийн Боди (3-6 сар, Ягаан)',
+      sku: 'BODYSUIT-3-6-PINK',
       unit: 'piece',
-      cost_price: 800,
-      sell_price: 1200,
-      low_stock_threshold: 20,
-    },
-    {
-      id: generateId(),
-      store_id: storeId,
-      name: 'Өндөг (10 ширхэг)',
-      sku: 'EGG-10',
-      unit: 'pack',
-      cost_price: 3000,
-      sell_price: 4000,
-      low_stock_threshold: 5,
-    },
-    {
-      id: generateId(),
-      store_id: storeId,
-      name: 'Кока Кола (1.5L)',
-      sku: 'COKE-1.5L',
-      unit: 'bottle',
-      cost_price: 2000,
-      sell_price: 3000,
-      low_stock_threshold: 15,
-    },
-    {
-      id: generateId(),
-      store_id: storeId,
-      name: 'Будаа (1кг)',
-      sku: 'RICE-1KG',
-      unit: 'kg',
-      cost_price: 2500,
-      sell_price: 3500,
+      cost_price: 9000,
+      sell_price: 13500,
       low_stock_threshold: 10,
+      image_url: 'https://images.unsplash.com/photo-1522771930-78848d9293e8?w=400',
     },
     {
       id: generateId(),
       store_id: storeId,
-      name: 'Гурил (1кг)',
-      sku: 'FLOUR-1KG',
-      unit: 'kg',
-      cost_price: 1800,
-      sell_price: 2500,
-      low_stock_threshold: 10,
-    },
-    {
-      id: generateId(),
-      store_id: storeId,
-      name: 'Шанага (АПУ)',
-      sku: 'NOODLES-APU',
+      name: 'Хүүхдийн Өмд (6-12 сар, Хөх)',
+      sku: 'PANTS-6-12-BLUE',
       unit: 'piece',
-      cost_price: 500,
-      sell_price: 800,
-      low_stock_threshold: 30,
+      cost_price: 12000,
+      sell_price: 18000,
+      low_stock_threshold: 8,
+      image_url: 'https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=400',
     },
     {
       id: generateId(),
       store_id: storeId,
-      name: 'Цай (100 уутанцар)',
-      sku: 'TEA-100',
-      unit: 'box',
-      cost_price: 3000,
-      sell_price: 4500,
-      low_stock_threshold: 5,
-    },
-    {
-      id: generateId(),
-      store_id: storeId,
-      name: 'Элсэн чихэр (1кг)',
-      sku: 'SUGAR-1KG',
-      unit: 'kg',
-      cost_price: 2200,
-      sell_price: 3000,
-      low_stock_threshold: 10,
-    },
-    {
-      id: generateId(),
-      store_id: storeId,
-      name: 'Үзмийн дарс (Монгол)',
-      sku: 'WINE-MGL',
-      unit: 'bottle',
+      name: 'Охидын Даашинз (6-12 сар, Улаан)',
+      sku: 'DRESS-6-12-RED',
+      unit: 'piece',
       cost_price: 15000,
+      sell_price: 22000,
+      low_stock_threshold: 6,
+      image_url: 'https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=400',
+    },
+    {
+      id: generateId(),
+      store_id: storeId,
+      name: 'Хүүхдийн Комбинезон (0-3 сар)',
+      sku: 'ROMPER-0-3-GRY',
+      unit: 'piece',
+      cost_price: 18000,
       sell_price: 25000,
-      low_stock_threshold: 3,
+      low_stock_threshold: 5,
+      image_url: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400',
+    },
+    {
+      id: generateId(),
+      store_id: storeId,
+      name: 'Хүүхдийн Цамц (12-18 сар, Шар)',
+      sku: 'SHIRT-12-18-YLW',
+      unit: 'piece',
+      cost_price: 10000,
+      sell_price: 15000,
+      low_stock_threshold: 8,
+      image_url: 'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?w=400',
+    },
+    {
+      id: generateId(),
+      store_id: storeId,
+      name: 'Нойрын Хувцас (6-12 сар)',
+      sku: 'SLEEPWEAR-6-12',
+      unit: 'set',
+      cost_price: 14000,
+      sell_price: 20000,
+      low_stock_threshold: 7,
+      image_url: 'https://images.unsplash.com/photo-1519689373023-dd07c7988603?w=400',
+    },
+    {
+      id: generateId(),
+      store_id: storeId,
+      name: 'Хүүхдийн Оймс (0-6 сар, Өнгөт)',
+      sku: 'SOCKS-0-6-MIX',
+      unit: 'pair',
+      cost_price: 3000,
+      sell_price: 5000,
+      low_stock_threshold: 15,
+      image_url: 'https://images.unsplash.com/photo-1586363104862-3a5e2ab60d99?w=400',
+    },
+    {
+      id: generateId(),
+      store_id: storeId,
+      name: 'Хүүхдийн Малгай (Newborn)',
+      sku: 'HAT-NB-BRN',
+      unit: 'piece',
+      cost_price: 5000,
+      sell_price: 8000,
+      low_stock_threshold: 10,
+      image_url: 'https://images.unsplash.com/photo-1607081692251-5f68c6eda402?w=400',
+    },
+    {
+      id: generateId(),
+      store_id: storeId,
+      name: 'Хүүхдийн Жакет (12-18 сар, Хар)',
+      sku: 'JACKET-12-18-BLK',
+      unit: 'piece',
+      cost_price: 25000,
+      sell_price: 35000,
+      low_stock_threshold: 5,
+      image_url: 'https://images.unsplash.com/photo-1503944583220-79d8926ad5e2?w=400',
+    },
+    {
+      id: generateId(),
+      store_id: storeId,
+      name: 'Охидын Кардиган (6-12 сар, Ягаан)',
+      sku: 'CARDIGAN-6-12-PINK',
+      unit: 'piece',
+      cost_price: 16000,
+      sell_price: 23000,
+      low_stock_threshold: 6,
+      image_url: 'https://images.unsplash.com/photo-1519340241574-2cec6aef0c01?w=400',
+    },
+    {
+      id: generateId(),
+      store_id: storeId,
+      name: 'Хөвгүүдийн Шорт (18-24 сар, Цэнхэр)',
+      sku: 'SHORTS-18-24-BLUE',
+      unit: 'piece',
+      cost_price: 9000,
+      sell_price: 14000,
+      low_stock_threshold: 8,
+      image_url: 'https://images.unsplash.com/photo-1519689373023-dd07c7988603?w=400',
     },
   ];
 
@@ -338,24 +426,35 @@ async function main() {
     // 1. Clear existing data
     await clearDatabase();
 
-    // 2. Create store
+    // 2. Create super-admin (store-гүй owner, бүх урилга илгээх эрхтэй)
+    const superAdminId = await seedSuperAdmin();
+
+    // 3. Create test invitations
+    await seedTestInvitations(superAdminId);
+
+    // 4. Create test store
     const { storeId, ownerId } = await seedStore();
 
-    // 3. Create users
+    // 5. Create test users
     await seedUsers(storeId, ownerId);
 
-    // 4. Create products
+    // 6. Create test products
     const products = await seedProducts(storeId);
 
-    // 5. Create initial inventory
+    // 7. Create initial inventory
     await seedInventoryEvents(storeId, ownerId, products);
 
-    // 6. Verify
+    // 8. Verify
     await verifyData(storeId);
 
     log('\n' + '='.repeat(50), 'green');
     log('✅ Database Seeding Completed Successfully!', 'green');
-    log('\nТа одоо эдгээр test өгөгдлийг ашиглан API develop хийж болно.\n', 'blue');
+    log('\n📝 Super-admin credentials:', 'blue');
+    log('   Phone: +97694393494', 'yellow');
+    log('   Нэвтрэхдээ OTP ашиглана\n', 'blue');
+    log('📝 Test invitation:', 'blue');
+    log('   Phone: +97699119911 (owner role)', 'yellow');
+    log('   Энэ дугаар OTP verify хийхэд шинэ owner user үүснэ\n', 'blue');
   } catch (error) {
     log('\n❌ Seeding failed:', 'red');
     console.error(error);

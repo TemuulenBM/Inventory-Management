@@ -9,6 +9,7 @@ import Fastify from 'fastify';
 import { env } from './config/env.js';
 import { registerPlugins } from './plugins/index.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
+import { invitationRoutes } from './modules/invitation/invitation.routes.js';
 import { storeRoutes } from './modules/store/store.routes.js';
 import { userRoutes } from './modules/user/user.routes.js';
 import { productRoutes } from './modules/product/product.routes.js';
@@ -60,6 +61,7 @@ async function start() {
 
     // Register routes
     await server.register(authRoutes);
+    await server.register(invitationRoutes);
     await server.register(storeRoutes);
     await server.register(userRoutes);
     await server.register(productRoutes);

@@ -46,7 +46,7 @@ export type UpdateUserRoleBody = z.infer<typeof updateUserRoleSchema>;
 // User мэдээлэл
 export interface UserInfo {
   id: string;
-  storeId: string;
+  storeId: string | null; // Super-admin owner үед null байж болно
   phone: string;
   name: string | null;
   role: 'owner' | 'manager' | 'seller';

@@ -150,13 +150,43 @@ export async function verifyOTP(
     // Хэрэглэгч байна - login
     user = existingUsers[0];
   } else {
-    // Шинэ хэрэглэгч - бүртгэх (phone-only registration)
-    // NOTE: Энэ нь simplified version - production дээр store_id заавал шаардлагатай
-    // Одоогоор phone-only registration зөвшөөрч байна
-    return {
-      success: false,
-      error: 'Хэрэглэгч бүртгэгдээгүй байна. Эхлээд дэлгүүр үүсгэх хэрэгтэй.',
-    };
+    // ═══ Шинэ хэрэглэгч - Урилга шалгах (Invite-only registration) ═══
+    const { checkInvitation, markInvitationAsUsed } = await import('../invitation/invitation.service.js');
+
+    const invitationCheck = await checkInvitation(validatedPhone);
+
+    if (!invitationCheck.valid) {
+      return {
+        success: false,
+        error: invitationCheck.error || 'Та урилга авах хэрэгтэй. Администратортай холбогдоно уу.',
+      };
+    }
+
+    // ═══ Урилга идэвхитэй - Шинэ owner user үүсгэх ═══
+    const { data: newUser, error: createError } = await supabase
+      .from('users')
+      .insert({
+        phone: validatedPhone,
+        name: validatedPhone, // Temporary name, user updates later via onboarding
+        role: invitationCheck.invitation.role,
+        store_id: null, // Will be set after store creation in onboarding
+      })
+      .select()
+      .single();
+
+    if (createError || !newUser) {
+      console.error('User creation error:', createError);
+      return {
+        success: false,
+        error: 'Хэрэглэгч үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.',
+      };
+    }
+
+    // Урилга ашигласан гэж тэмдэглэх
+    await markInvitationAsUsed(invitationCheck.invitation.id, newUser.id);
+
+    user = newUser;
+    console.log(`👤 New user created via invitation: ${user.phone} (${user.role})`);
   }
 
   // 8. JWT tokens үүсгэх

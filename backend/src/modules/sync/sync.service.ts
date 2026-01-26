@@ -204,7 +204,7 @@ async function syncUpdateProduct(
 
   // Conflict detection: last-write-wins
   const clientTimestamp = new Date(operation.client_timestamp);
-  const serverTimestamp = new Date(existingProduct.updated_at);
+  const serverTimestamp = existingProduct.updated_at ? new Date(existingProduct.updated_at) : new Date(0);
 
   if (serverTimestamp > clientTimestamp) {
     // Server дээрх өгөгдөл шинэ байна - conflict

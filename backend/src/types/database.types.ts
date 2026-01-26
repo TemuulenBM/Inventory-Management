@@ -147,6 +147,63 @@ export type Database = {
           },
         ]
       }
+      invitations: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          phone: string
+          role: string
+          status: string
+          updated_at: string | null
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          phone: string
+          role?: string
+          status?: string
+          updated_at?: string | null
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          phone?: string
+          role?: string
+          status?: string
+          updated_at?: string | null
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invitations_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       otp_tokens: {
         Row: {
           created_at: string | null
@@ -503,7 +560,7 @@ export type Database = {
           password_hash: string | null
           phone: string | null
           role: string
-          store_id: string
+          store_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -514,7 +571,7 @@ export type Database = {
           password_hash?: string | null
           phone?: string | null
           role: string
-          store_id: string
+          store_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -525,7 +582,7 @@ export type Database = {
           password_hash?: string | null
           phone?: string | null
           role?: string
-          store_id?: string
+          store_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -563,6 +620,7 @@ export type Database = {
       }
     }
     Functions: {
+      expire_old_invitations: { Args: never; Returns: undefined }
       refresh_product_stock_levels: { Args: never; Returns: undefined }
       user_store_id: { Args: never; Returns: string }
     }

@@ -29,9 +29,15 @@ flutter test                                                 # Run all tests
 flutter test test/path/to/test_file.dart                     # Run single test
 flutter analyze                                              # Static analysis
 flutter gen-l10n                                             # Regenerate localization
+
+# iOS specific
+cd ios && pod install && cd ..                               # Install iOS dependencies
 ```
 
-**IMPORTANT**: After modifying `*.dart` files with `@freezed`, `@riverpod`, or Drift tables, always run `build_runner build`.
+**IMPORTANT**:
+- After modifying `*.dart` files with `@freezed`, `@riverpod`, or Drift tables, always run `build_runner build`
+- Use `build_runner watch` during active development to auto-regenerate on file changes
+- Run `pod install` after adding new iOS dependencies
 
 ### Backend (Node.js)
 
@@ -43,12 +49,16 @@ npm run build            # TypeScript compile
 npm test                 # Run all tests (vitest)
 npm run test:unit        # Unit tests only
 npm run test:integration # Integration tests only
+npm run test:e2e         # E2E tests only
+npm run test:coverage    # Run tests with coverage
 npm run lint             # ESLint
 npm run format           # Prettier
-npm run db:types         # Generate Supabase types
+npm run db:types         # Generate Supabase types from remote project
+npm run db:test          # Test Supabase connection
 npm run db:seed          # Seed database
-npm run docker:up        # Start PostgreSQL & Redis
+npm run docker:up        # Start PostgreSQL & Redis containers
 npm run docker:down      # Stop containers
+npm run docker:logs      # View container logs
 ```
 
 ## Architecture
@@ -101,8 +111,40 @@ class CartItem with _$CartItem {
 class CartNotifier extends _$CartNotifier {
   @override
   List<CartItem> build() => [];
+
+  void addItem(CartItem item) {
+    state = [...state, item];
+  }
 }
 ```
+
+**Drift database tables**:
+```dart
+class Products extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  @override
+  Set<Column> get primaryKey => {id};
+}
+```
+
+### Key Dependencies
+
+**Flutter**:
+- `riverpod` - State management
+- `drift` - Local SQLite database
+- `freezed` - Immutable models
+- `go_router` - Navigation
+- `supabase_flutter` - Backend client
+- `dio` - HTTP client
+- `image_picker` & `flutter_image_compress` - Image handling
+
+**Backend**:
+- `fastify` - Web framework
+- `@supabase/supabase-js` - Database client
+- `zod` - Schema validation
+- `bullmq` - Job queue (Redis)
+- `vitest` - Testing framework
 
 ### Offline-First with Event Sourcing
 
@@ -142,7 +184,9 @@ backend/src/
 └── server.ts          # Entry point
 ```
 
-Each module follows: `schema.ts` (Zod validation) → `service.ts` (business logic) → `routes.ts`
+Each module follows: `<module>.schema.ts` (Zod validation) → `<module>.service.ts` (business logic) → `<module>.routes.ts`
+
+Example: `auth.schema.ts`, `auth.service.ts`, `auth.routes.ts`, `auth.middleware.ts`
 
 **User roles**: `owner`, `manager`, `seller`
 
@@ -158,12 +202,44 @@ Each module follows: `schema.ts` (Zod validation) → `service.ts` (business log
 |-------|---------|
 | `stores` | Store information |
 | `users` | Users (owner, manager, seller roles) |
-| `products` | Product catalog |
-| `inventory_events` | Event-sourced inventory changes |
+| `products` | Product catalog with image support (`imageUrl`, `localImagePath`, `imageSynced`) |
+| `inventory_events` | Event-sourced inventory changes (INITIAL, SALE, ADJUST, RETURN) |
 | `sales` / `sale_items` | Sales transactions |
 | `shifts` | Seller work shifts |
 | `alerts` | System alerts (low stock, etc.) |
+| `invitations` | Invite-only registration system |
+| `trusted_devices` | Device trust for OTP-free login |
 | `sync_queue` | Offline sync queue (mobile only) |
+
+### Product Images
+Products support images with offline-first capability:
+- `imageUrl`: Supabase Storage URL (cloud)
+- `localImagePath`: Local file path (offline)
+- `imageSynced`: Sync status flag
+- Images compressed before upload (flutter_image_compress)
+- Auto-sync when connection restored
+
+## Database Migrations
+
+Migrations are stored in [supabase/migrations/](supabase/migrations/):
+- `20260120072918_initial_schema_fixed.sql` - Initial schema
+- `20260120073000_rls_policies.sql` - Row Level Security policies
+- `20260124140000_add_trusted_devices.sql` - Trusted devices for OTP-free login
+- `20260126000000_add_product_image.sql` - Product image support
+- `20260126120000_add_invitations_table.sql` - Invite-only registration system
+- `20260126130000_allow_null_store_id.sql` - Allow NULL store_id for super-admin users
+
+**Running migrations**:
+```bash
+# Push to remote Supabase project
+supabase db push
+
+# Or manually via SQL editor in Supabase dashboard
+```
+
+**Database maintenance**:
+- After inventory changes, refresh materialized view: `SELECT refresh_product_stock_levels();`
+- Stock levels calculated from `inventory_events` via event sourcing
 
 ## Environment Setup
 
@@ -178,17 +254,138 @@ Required in `backend/.env`:
 - `JWT_SECRET` (change in production)
 - Optional: `PORT` (default 3000), `RATE_LIMIT_MAX`, `SMS_PROVIDER`, `SMS_API_KEY`
 
+### Local Development with Docker
+For local backend development with PostgreSQL and Redis:
+```bash
+cd backend
+npm run docker:up        # Start containers
+npm run docker:logs      # View logs
+npm run docker:down      # Stop containers
+```
+
+Docker Compose includes:
+- PostgreSQL (for local DB testing)
+- Redis (for BullMQ job queues and rate limiting)
+
+## Testing
+
+### Flutter (mocktail)
+```dart
+// Use mocktail for mocking
+import 'package:mocktail/mocktail.dart';
+
+class MockDatabase extends Mock implements AppDatabase {}
+
+test('example test', () {
+  final mockDb = MockDatabase();
+  when(() => mockDb.getProducts()).thenAnswer((_) async => []);
+  // Test implementation
+});
+```
+
+### Backend (Vitest)
+```typescript
+// Unit tests in tests/unit
+// Integration tests in tests/integration
+// E2E tests in tests/e2e
+
+describe('AuthService', () => {
+  it('should verify OTP correctly', async () => {
+    // Test implementation
+  });
+});
+```
+
 ## Localization
 
 ARB files in `lib/l10n/`:
 - `app_en.arb` - English (template)
 - `app_mn.arb` - Mongolian
 
+After modifying ARB files, run `flutter gen-l10n` to regenerate localization code.
+
 ## API Endpoints
 
+### Public Endpoints
 - `GET /health` - Health check
-- `POST /auth/send-otp` - Send OTP to phone
-- `POST /auth/verify-otp` - Verify OTP and get tokens
+
+### Authentication
+- `POST /auth/otp/request` - Request OTP via phone
+- `POST /auth/otp/verify` - Verify OTP and receive tokens (шалгана: invitation)
 - `POST /auth/refresh` - Refresh access token
-- `GET /auth/me` - Get current user
-- `/stores/:storeId/*` - Store-scoped endpoints (require `requireStore` middleware)
+- `POST /auth/logout` - Logout and invalidate tokens
+- `POST /auth/device/login` - Login with trusted device (OTP-free)
+- `GET /auth/me` - Get current user info (requires JWT)
+
+### Invite-Only Registration
+**Business Model**: Зөвхөн урилгаар owner бүртгүүлэх систем
+
+**Super-admin setup**:
+```bash
+npm run db:seed  # Test environment (creates super-admin +97694393494)
+# Production: Run backend/migrations/002_create_super_admin.sql manually
+```
+
+**Endpoints** (Admin/Super-admin only):
+- `POST /invitations` - Урилга илгээх
+  ```json
+  { "phone": "+976XXXXXXXX", "role": "owner", "expiresInDays": 7 }
+  ```
+- `GET /invitations` - Урилгын жагсаалт
+- `DELETE /invitations/:id` - Урилга цуцлах
+
+**Auth Flow**:
+1. Super-admin POST /invitations - урилга илгээх
+2. Уригдсан хүн POST /auth/otp/request - OTP хүсэх
+3. POST /auth/otp/verify - Урилга шалгагдаж, шинэ owner user үүснэ (store_id = null)
+4. Owner onboarding-оор store үүсгэнэ
+
+**Урилгагүй хүн бүртгүүлэх оролдвол**:
+```json
+{ "success": false, "error": "Та урилга авах хэрэгтэй. Администратортай холбогдоно уу." }
+```
+
+### Store-scoped Endpoints
+All store-scoped endpoints require `requireStore` middleware and follow pattern: `/stores/:storeId/*`
+
+**Stores**
+- `GET /stores/:storeId` - Get store details
+- `PATCH /stores/:storeId` - Update store
+
+**Products**
+- `GET /stores/:storeId/products` - List products
+- `POST /stores/:storeId/products` - Create product
+- `GET /stores/:storeId/products/:id` - Get product
+- `PATCH /stores/:storeId/products/:id` - Update product
+- `DELETE /stores/:storeId/products/:id` - Delete product (soft delete)
+
+**Inventory**
+- `GET /stores/:storeId/inventory/events` - List inventory events
+- `POST /stores/:storeId/inventory/events` - Create inventory event
+- `GET /stores/:storeId/inventory/stock-levels` - Get current stock levels
+
+**Sales**
+- `GET /stores/:storeId/sales` - List sales
+- `POST /stores/:storeId/sales` - Create sale transaction
+- `GET /stores/:storeId/sales/:id` - Get sale details
+
+**Shifts**
+- `GET /stores/:storeId/shifts` - List shifts
+- `POST /stores/:storeId/shifts` - Create shift
+- `PATCH /stores/:storeId/shifts/:id` - Update shift (clock out)
+
+**Alerts**
+- `GET /stores/:storeId/alerts` - List alerts
+- `POST /stores/:storeId/alerts` - Create alert
+- `PATCH /stores/:storeId/alerts/:id` - Mark as read
+
+**Sync**
+- `POST /stores/:storeId/sync` - Batch sync offline operations
+
+**Reports**
+- `GET /stores/:storeId/reports/sales` - Sales reports with filters
+
+### Authentication Middleware
+- `authenticate`: Verify JWT token
+- `authorize(roles)`: Check user role (owner, manager, seller)
+- `requireStore`: Verify user has access to store
