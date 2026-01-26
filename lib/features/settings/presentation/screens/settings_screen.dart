@@ -208,6 +208,10 @@ class SettingsScreen extends ConsumerWidget {
     String roleName;
     Color roleColor;
     switch (role) {
+      case 'super_admin':
+        roleName = 'Супер Админ';
+        roleColor = AppColors.primary;
+        break;
       case 'owner':
         roleName = 'Эзэмшигч';
         roleColor = AppColors.primary;
@@ -216,7 +220,7 @@ class SettingsScreen extends ConsumerWidget {
         roleName = 'Менежер';
         roleColor = AppColors.secondary;
         break;
-      default:
+      default:  // seller
         roleName = 'Худалдагч';
         roleColor = AppColors.gray600;
     }
