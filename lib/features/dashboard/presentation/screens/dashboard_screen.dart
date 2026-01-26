@@ -9,6 +9,7 @@ import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/core/sync/sync_provider.dart';
 import 'package:retail_control_platform/core/sync/sync_state.dart';
 import 'package:retail_control_platform/core/providers/store_provider.dart';
+import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
 import 'package:retail_control_platform/features/sales/presentation/providers/cart_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 
@@ -19,49 +20,222 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isSuperAdmin = _isSuperAdmin(ref);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
-        child: Stack(
+        child: isSuperAdmin
+            ? _buildSuperAdminView(context, ref)
+            : _buildOwnerView(context, ref),
+      ),
+    );
+  }
+
+  /// Super-admin эсэхийг шалгах
+  bool _isSuperAdmin(WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    return user?.role == 'super_admin';
+  }
+
+  /// Owner/Manager/Seller UI
+  Widget _buildOwnerView(BuildContext context, WidgetRef ref) {
+    return Stack(
+      children: [
+        // Main scrollable content with Pull-to-Refresh
+        RefreshIndicator(
+          onRefresh: () => _handleRefresh(ref),
+          color: const Color(0xFF00878F),
+          backgroundColor: Colors.white,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                _buildHeader(context, ref),
+                AppSpacing.verticalMD,
+
+                // Today's Sales Hero Card
+                _buildSalesHeroCard(ref),
+                AppSpacing.verticalLG,
+
+                // Low Stock Alerts
+                _buildLowStockSection(context, ref),
+                AppSpacing.verticalLG,
+
+                // Top Products (динамик)
+                _buildTopProductsSection(ref),
+
+                // Bottom spacing for FAB
+                const SizedBox(height: 120),
+              ],
+            ),
+          ),
+        ),
+
+        // Floating Action Button (New Sale)
+        Positioned(
+          bottom: 24,
+          left: 20,
+          right: 20,
+          child: _buildNewSaleFAB(context),
+        ),
+      ],
+    );
+  }
+
+  /// Super-admin UI (graceful empty state)
+  Widget _buildSuperAdminView(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Main scrollable content with Pull-to-Refresh
-            RefreshIndicator(
-              onRefresh: () => _handleRefresh(ref),
-              color: const Color(0xFF00878F),
-              backgroundColor: Colors.white,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Header
-                    _buildHeader(context, ref),
-                    AppSpacing.verticalMD,
+            const SizedBox(height: 60),
 
-                    // Today's Sales Hero Card
-                    _buildSalesHeroCard(ref),
-                    AppSpacing.verticalLG,
+            // Header (sync badge-тай)
+            _buildHeader(context, ref),
+            const SizedBox(height: 80),
 
-                    // Low Stock Alerts
-                    _buildLowStockSection(context, ref),
-                    AppSpacing.verticalLG,
+            // Icon
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.admin_panel_settings_outlined,
+                size: 60,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
 
-                    // Top Products (динамик)
-                    _buildTopProductsSection(ref),
+            // Title
+            const Text(
+              'Системийн админ',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textMainLight,
+              ),
+            ),
+            const SizedBox(height: 12),
 
-                    // Bottom spacing for FAB
-                    const SizedBox(height: 120),
-                  ],
+            // Description
+            Text(
+              'Та super-admin хэрэглэгч байна.\nStore-ийн мэдээлэл харуулах боломжгүй.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: AppColors.textSecondaryLight,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // User info card
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.gray200),
+              ),
+              child: Column(
+                children: [
+                  _buildInfoRow(Icons.person_outline, 'Утас', user?.phone ?? ''),
+                  const Divider(height: 24),
+                  _buildInfoRow(Icons.badge_outlined, 'Эрх', 'Super Admin'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Primary CTA
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                onPressed: () => context.push(RouteNames.settings),
+                icon: const Icon(Icons.mail_outline, size: 20),
+                label: const Text(
+                  'Урилга илгээх',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Secondary action
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton.icon(
+                onPressed: () => context.push(RouteNames.settings),
+                icon: const Icon(Icons.settings_outlined, size: 20),
+                label: const Text(
+                  'Тохиргоо',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.textSecondaryLight,
+                  side: const BorderSide(color: AppColors.gray300),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
             ),
 
-            // Floating Action Button (New Sale)
-            Positioned(
-              bottom: 24,
-              left: 20,
-              right: 20,
-              child: _buildNewSaleFAB(context),
+            const SizedBox(height: 40),
+
+            // Info box
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.successGreen.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: AppColors.successGreen,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Шинэ дэлгүүрийн эзэмшигч бүртгүүлэхийн тулд урилга илгээнэ үү',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textSecondaryLight,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -69,8 +243,36 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
+  /// Info row helper (super-admin UI)
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.gray500),
+        const SizedBox(width: 12),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 14, color: AppColors.gray500),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textMainLight,
+          ),
+        ),
+      ],
+    );
+  }
+
   /// Pull-to-refresh handler
   Future<void> _handleRefresh(WidgetRef ref) async {
+    // Super-admin бол sync хийхгүй
+    if (_isSuperAdmin(ref)) {
+      return;
+    }
+
     // Sync эхлүүлэх
     await ref.read(syncNotifierProvider.notifier).sync();
     // Providers шинэчлэх

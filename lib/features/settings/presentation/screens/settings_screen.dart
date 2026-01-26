@@ -41,31 +41,71 @@ class SettingsScreen extends ConsumerWidget {
             _buildProfileCard(context, user),
             AppSpacing.verticalLG,
 
+            // ===== Super-admin section =====
+            if (user?.role == 'super_admin') ...[
+              SettingsSection(
+                title: 'АДМИН',
+                tiles: [
+                  SettingsTile(
+                    icon: Icons.mail_outline,
+                    iconColor: AppColors.primary,
+                    title: 'Урилга илгээх',
+                    subtitle: 'Шинэ owner бүртгүүлэх',
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Урилга илгээх функц удахгүй нэмэгдэнэ'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                  SettingsTile(
+                    icon: Icons.list_alt_outlined,
+                    iconColor: AppColors.secondary,
+                    title: 'Урилгын жагсаалт',
+                    subtitle: 'Илгээсэн урилгууд',
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Урилгын жагсаалт функц удахгүй нэмэгдэнэ'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              AppSpacing.verticalMD,
+            ],
+
             // ===== Дэлгүүрийн мэдээлэл =====
-            SettingsSection(
-              title: 'ДЭЛГҮҮР',
-              tiles: [
-                SettingsTile(
-                  icon: Icons.store_outlined,
-                  title: 'Дэлгүүрийн мэдээлэл',
-                  subtitle: user?.storeId != null
-                      ? 'ID: ${user!.storeId!.substring(0, 8)}...'
-                      : null,
-                  onTap: () {
-                    // TODO: Store detail screen
-                  },
-                ),
-                SettingsTile(
-                  icon: Icons.people_outline,
-                  title: 'Ажилтнууд',
-                  subtitle: 'Худалдагч, менежер удирдах',
-                  onTap: () {
-                    // TODO: Staff management screen
-                  },
-                ),
-              ],
-            ),
-            AppSpacing.verticalMD,
+            if (user?.role != 'super_admin') ...[
+              SettingsSection(
+                title: 'ДЭЛГҮҮР',
+                tiles: [
+                  SettingsTile(
+                    icon: Icons.store_outlined,
+                    title: 'Дэлгүүрийн мэдээлэл',
+                    subtitle: user?.storeId != null
+                        ? 'ID: ${user!.storeId!.substring(0, 8)}...'
+                        : null,
+                    onTap: () {
+                      // TODO: Store detail screen
+                    },
+                  ),
+                  SettingsTile(
+                    icon: Icons.people_outline,
+                    title: 'Ажилтнууд',
+                    subtitle: 'Худалдагч, менежер удирдах',
+                    onTap: () {
+                      // TODO: Staff management screen
+                    },
+                  ),
+                ],
+              ),
+              AppSpacing.verticalMD,
+            ],
 
             // ===== Аппын тохиргоо =====
             SettingsSection(

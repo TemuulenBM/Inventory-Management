@@ -5,6 +5,7 @@ import 'package:retail_control_platform/core/providers/store_provider.dart';
 import 'package:retail_control_platform/core/sync/sync_queue_manager.dart';
 import 'package:retail_control_platform/core/sync/sync_state.dart';
 import 'package:retail_control_platform/features/alerts/presentation/providers/alert_provider.dart';
+import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 import 'package:retail_control_platform/features/shifts/presentation/providers/shift_provider.dart';
 
@@ -95,7 +96,20 @@ class SyncNotifier extends _$SyncNotifier {
     }
 
     final storeId = ref.read(storeIdProvider);
+
+    // Super-admin бол skip (silent)
     if (storeId == null) {
+      final user = ref.read(currentUserProvider);
+
+      if (user?.role == 'super_admin') {
+        state = state.copyWith(
+          status: SyncStatus.synced, // ERROR биш SYNCED
+          errorMessage: null,
+        );
+        return;
+      }
+
+      // Owner (storeId null) - error
       state = state.copyWith(
         status: SyncStatus.error,
         errorMessage: 'Store ID байхгүй байна',

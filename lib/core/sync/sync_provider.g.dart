@@ -7,7 +7,7 @@ part of 'sync_provider.dart';
 // **************************************************************************
 
 String _$connectivityStreamHash() =>
-    r'5d7df59f6e68f065b5bdf227b7dc2d6dcc73608c';
+    r'e69b5223d57f0fe901659e3d3fc45f5494d88279';
 
 /// Connectivity stream provider
 ///
@@ -59,7 +59,7 @@ final pendingSyncCountProvider = AutoDisposeProvider<int>.internal(
 );
 
 typedef PendingSyncCountRef = AutoDisposeProviderRef<int>;
-String _$syncNotifierHash() => r'bd579a5b19dcc27ecb311eba2dbf3cfdfa4af811';
+String _$syncNotifierHash() => r'672e6fb437030253b9552d35cd8afed88acd5948';
 
 /// Sync state notifier
 ///
