@@ -15,8 +15,8 @@ import { env } from '../config/env.js';
  */
 export interface JWTPayload {
   userId: string;
-  storeId: string | null; // Super-admin owner үед null байж болно
-  role: 'owner' | 'manager' | 'seller';
+  storeId: string | null; // Super-admin үед null байж болно
+  role: 'super_admin' | 'owner' | 'manager' | 'seller';
   iat?: number;
   exp?: number;
 }

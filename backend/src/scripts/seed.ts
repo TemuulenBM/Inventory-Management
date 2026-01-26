@@ -73,20 +73,56 @@ async function seedSuperAdmin() {
 
   const superAdminId = generateId();
 
-  const superAdmin = {
-    id: superAdminId,
-    phone: '+97694393494', // Temuulen - Super Admin
-    name: 'Temuulen (Admin)',
-    role: 'owner',
-    store_id: null, // Store-гүй super-admin
-    password_hash: null,
-  };
+  // Эхлээд хуучин super-admin байгаа эсэхийг шалгах
+  const { data: existingUser } = await supabase
+    .from('users')
+    .select('id')
+    .eq('phone', '+97694393494')
+    .single();
 
-  const { data, error } = await supabase.from('users').insert(superAdmin).select().single();
+  let data;
+  if (existingUser) {
+    // Байвал UPDATE хийх
+    const { data: updatedUser, error: updateError } = await supabase
+      .from('users')
+      .update({
+        name: 'Temuulen (Admin)',
+        role: 'super_admin',
+        store_id: null,
+      })
+      .eq('phone', '+97694393494')
+      .select()
+      .single();
 
-  if (error) {
-    log(`   ❌ Error: ${error.message}`, 'red');
-    throw error;
+    if (updateError) {
+      log(`   ❌ Error: ${updateError.message}`, 'red');
+      throw updateError;
+    }
+    data = updatedUser;
+    log(`   ✓ Super-admin updated: ${data.phone}`, 'green');
+  } else {
+    // Байхгүй бол INSERT хийх
+    const superAdmin = {
+      id: superAdminId,
+      phone: '+97694393494',
+      name: 'Temuulen (Admin)',
+      role: 'super_admin',
+      store_id: null,
+      password_hash: null,
+    };
+
+    const { data: newUser, error: insertError } = await supabase
+      .from('users')
+      .insert(superAdmin)
+      .select()
+      .single();
+
+    if (insertError) {
+      log(`   ❌ Error: ${insertError.message}`, 'red');
+      throw insertError;
+    }
+    data = newUser;
+    log(`   ✓ Super-admin created: ${data.phone}`, 'green');
   }
 
   log(`   ✓ Super-admin created: ${data.phone}`, 'green');

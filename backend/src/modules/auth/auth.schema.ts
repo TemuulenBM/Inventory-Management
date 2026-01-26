@@ -71,8 +71,8 @@ export interface OTPVerifyResponse {
     id: string;
     phone: string;
     name: string | null;
-    role: 'owner' | 'manager' | 'seller';
-    storeId: string;
+    role: 'super_admin' | 'owner' | 'manager' | 'seller';
+    storeId: string | null;
   };
   tokens: {
     accessToken: string;
@@ -98,8 +98,8 @@ export interface UserInfoResponse {
     id: string;
     phone: string;
     name: string | null;
-    role: 'owner' | 'manager' | 'seller';
-    storeId: string;
+    role: 'super_admin' | 'owner' | 'manager' | 'seller';
+    storeId: string | null;
     createdAt: string;
   };
 }

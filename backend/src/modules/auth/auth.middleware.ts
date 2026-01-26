@@ -42,7 +42,7 @@ export interface AuthRequest extends FastifyRequest {
  *   ]
  * }, handler)
  */
-export function authorize(allowedRoles: Array<'owner' | 'manager' | 'seller'>) {
+export function authorize(allowedRoles: Array<'super_admin' | 'owner' | 'manager' | 'seller'>) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     const authRequest = request as AuthRequest;
 
@@ -100,6 +100,11 @@ export function requireStore() {
       });
     }
 
+    // Super-admin дэлгүүр шалгалтыг давна (урилга илгээх endpoint-үүдэд хэрэгтэй)
+    if (authRequest.user.role === 'super_admin') {
+      return; // Bypass store check
+    }
+
     // storeId эсвэл id parameter-ийг авах (routes-үүд :storeId эсвэл :id ашигладаг)
     const storeIdFromParams = params.storeId || params.id;
 
@@ -146,7 +151,7 @@ export function requireStore() {
  * }, handler)
  */
 export function requireAuth(
-  allowedRoles: Array<'owner' | 'manager' | 'seller'>,
+  allowedRoles: Array<'super_admin' | 'owner' | 'manager' | 'seller'>,
   checkStore: boolean = true
 ) {
   const middlewares: any[] = [authorize(allowedRoles)];

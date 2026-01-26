@@ -71,8 +71,12 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       authState.when(
         initial: () {},
         authenticated: (user) {
-          // Store байхгүй бол → Onboarding, байвал → Dashboard
-          if (user.storeId == null) {
+          // Super-admin → Dashboard (onboarding давна)
+          if (user.role == 'super_admin') {
+            context.go(RouteNames.dashboard);
+          }
+          // Owner/Manager/Seller: Store байхгүй бол → Onboarding, байвал → Dashboard
+          else if (user.storeId == null) {
             context.go(RouteNames.onboardingWelcome);
           } else {
             context.go(RouteNames.dashboard);

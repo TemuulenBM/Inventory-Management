@@ -17,6 +17,7 @@ import {
   revokeInvitation,
 } from './invitation.service.js';
 import type { AuthRequest } from '../auth/auth.middleware.js';
+import { authorize } from '../auth/auth.middleware.js';
 
 /**
  * Invitation routes register
@@ -35,7 +36,7 @@ export async function invitationRoutes(server: FastifyInstance) {
   }>(
     '/invitations',
     {
-      onRequest: [server.authenticate], // TODO: Super-admin эрх шалгах middleware нэмэх
+      onRequest: [server.authenticate, authorize(['super_admin'])], // Зөвхөн super_admin урилга илгээнэ
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const authRequest = request as AuthRequest;
@@ -83,7 +84,7 @@ export async function invitationRoutes(server: FastifyInstance) {
   }>(
     '/invitations',
     {
-      onRequest: [server.authenticate], // TODO: Admin эрх шалгах
+      onRequest: [server.authenticate, authorize(['super_admin'])], // Зөвхөн super_admin
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       // 1. Validation
@@ -127,7 +128,7 @@ export async function invitationRoutes(server: FastifyInstance) {
   }>(
     '/invitations/:id',
     {
-      onRequest: [server.authenticate], // TODO: Admin эрх шалгах
+      onRequest: [server.authenticate, authorize(['super_admin'])], // Зөвхөн super_admin
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const authRequest = request as AuthRequest;

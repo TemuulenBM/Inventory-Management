@@ -193,7 +193,7 @@ export async function verifyOTP(
   const payload: JWTPayload = {
     userId: user.id,
     storeId: user.store_id,
-    role: user.role as 'owner' | 'manager' | 'seller',
+    role: user.role as 'super_admin' | 'owner' | 'manager' | 'seller',
   };
 
   const accessToken = server.jwt.sign(payload, { expiresIn: env.JWT_ACCESS_EXPIRY });
@@ -492,7 +492,7 @@ export async function generateTokens(
   const payload: JWTPayload = {
     userId: user.id,
     storeId: user.store_id,
-    role: user.role as 'owner' | 'manager' | 'seller',
+    role: user.role as 'super_admin' | 'owner' | 'manager' | 'seller',
   };
 
   const accessToken = server.jwt.sign(payload, { expiresIn: env.JWT_ACCESS_EXPIRY });
