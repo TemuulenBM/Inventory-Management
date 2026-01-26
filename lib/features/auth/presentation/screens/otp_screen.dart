@@ -8,7 +8,6 @@ import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
-import 'package:retail_control_platform/features/auth/domain/auth_state.dart';
 
 /// OTP Verification Screen
 /// Дизайн: design/auth_phone_&_otp/screen.png (доод хэсэг)
@@ -125,7 +124,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.primary.withOpacity(0.1),
+                    AppColors.primary.withValues(alpha: 0.1),
                     Colors.transparent,
                   ],
                 ),
@@ -164,7 +163,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.gray200.withOpacity(0.5),
+                                color: AppColors.gray200.withValues(alpha: 0.5),
                                 blurRadius: 32,
                                 offset: const Offset(0, 8),
                               ),
@@ -215,7 +214,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
           // Loading overlay
           if (authState.maybeMap(loading: (_) => true, orElse: () => false))
             Container(
-              color: Colors.black.withOpacity(0.3),
+              color: Colors.black.withValues(alpha: 0.3),
               child: const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
@@ -314,21 +313,21 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final focusedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration!.copyWith(
         border: Border.all(color: AppColors.primary, width: 2),
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha: 0.05),
       ),
     );
 
     final submittedPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration!.copyWith(
-        border: Border.all(color: AppColors.primary.withOpacity(0.5)),
-        color: AppColors.primary.withOpacity(0.05),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+        color: AppColors.primary.withValues(alpha: 0.05),
       ),
     );
 
     final errorPinTheme = defaultPinTheme.copyWith(
       decoration: defaultPinTheme.decoration!.copyWith(
         border: Border.all(color: AppColors.danger, width: 2),
-        color: AppColors.danger.withOpacity(0.05),
+        color: AppColors.danger.withValues(alpha: 0.05),
       ),
     );
 

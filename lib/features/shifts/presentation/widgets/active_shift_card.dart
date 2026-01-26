@@ -53,7 +53,7 @@ class _ActiveShiftCardState extends State<ActiveShiftCard> {
         border: Border.all(color: AppColors.secondary, width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppColors.secondary.withOpacity(0.15),
+            color: AppColors.secondary.withValues(alpha: 0.15),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -70,7 +70,7 @@ class _ActiveShiftCardState extends State<ActiveShiftCard> {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: AppColors.secondary.withOpacity(0.1),
+                    backgroundColor: AppColors.secondary.withValues(alpha: 0.1),
                     child: Text(
                       widget.shift.sellerName[0].toUpperCase(),
                       style: const TextStyle(

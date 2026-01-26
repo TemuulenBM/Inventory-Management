@@ -168,10 +168,7 @@ class SyncNotifier extends _$SyncNotifier {
 @riverpod
 Stream<ConnectivityResult> connectivityStream(ConnectivityStreamRef ref) {
   return Connectivity().onConnectivityChanged.map((results) {
-    if (results is List<ConnectivityResult>) {
-      return results.isNotEmpty ? results.first : ConnectivityResult.none;
-    }
-    return results as ConnectivityResult;
+    return results.isNotEmpty ? results.first : ConnectivityResult.none;
   });
 }
 

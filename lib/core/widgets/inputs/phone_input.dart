@@ -41,7 +41,7 @@ class PhoneInput extends StatelessWidget {
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.gray100.withOpacity(0.5),
+                  color: AppColors.gray100.withValues(alpha: 0.5),
                   borderRadius: AppRadius.radiusSM,
                 ),
                 child: const Text(

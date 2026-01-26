@@ -49,7 +49,7 @@ class BottomActionSheet extends StatelessWidget {
       padding: padding ?? AppSpacing.paddingLG,
       decoration: BoxDecoration(
         color: hasGlassEffect
-            ? AppColors.surfaceLight.withOpacity(0.95)
+            ? AppColors.surfaceLight.withValues(alpha: 0.95)
             : AppColors.surfaceLight,
         borderRadius: AppRadius.bottomSheetRadius,
       ),

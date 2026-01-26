@@ -70,7 +70,7 @@ class InventoryEventCard extends StatelessWidget {
           borderRadius: AppRadius.radiusLG,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 12,
               offset: const Offset(0, 2),
             ),
@@ -100,7 +100,7 @@ class InventoryEventCard extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: _eventColor.withOpacity(0.1),
+                            color: _eventColor.withValues(alpha: 0.1),
                             borderRadius: AppRadius.radiusSM,
                           ),
                           child: Text(
@@ -224,7 +224,7 @@ class InventoryEventCard extends StatelessWidget {
       width: 44,
       height: 44,
       decoration: BoxDecoration(
-        color: _eventColor.withOpacity(0.1),
+        color: _eventColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Icon(

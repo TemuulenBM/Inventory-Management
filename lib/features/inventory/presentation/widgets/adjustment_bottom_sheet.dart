@@ -290,7 +290,7 @@ class _ToggleButton extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: AppSpacing.paddingMD,
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : AppColors.gray100,
+          color: isSelected ? color.withValues(alpha: 0.1) : AppColors.gray100,
           borderRadius: AppRadius.radiusMD,
           border: Border.all(
             color: isSelected ? color : Colors.transparent,

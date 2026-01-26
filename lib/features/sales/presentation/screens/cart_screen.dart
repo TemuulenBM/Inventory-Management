@@ -106,7 +106,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         borderRadius: AppRadius.radiusXL,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -284,7 +284,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 24,
             offset: const Offset(0, -4),
           ),
@@ -350,7 +350,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
               color: const Color(0xFF00878F),
               borderRadius: AppRadius.radiusXL,
               elevation: 4,
-              shadowColor: const Color(0xFF00878F).withOpacity(0.3),
+              shadowColor: const Color(0xFF00878F).withValues(alpha: 0.3),
               child: InkWell(
                 onTap: _isCheckingOut ? null : () => _showCheckoutSheet(),
                 borderRadius: AppRadius.radiusXL,

@@ -47,8 +47,8 @@ class AppTheme {
     platform: TargetPlatform.android,
 
     // Splash color
-    splashColor: AppColorSchemes.lightColorScheme.primary.withOpacity(0.1),
-    highlightColor: AppColorSchemes.lightColorScheme.primary.withOpacity(0.05),
+    splashColor: AppColorSchemes.lightColorScheme.primary.withValues(alpha: 0.1),
+    highlightColor: AppColorSchemes.lightColorScheme.primary.withValues(alpha: 0.05),
 
     // Font family fallback
     fontFamily: 'Noto Sans',
@@ -114,8 +114,8 @@ class AppTheme {
     platform: TargetPlatform.android,
 
     // Splash color
-    splashColor: AppColorSchemes.darkColorScheme.primary.withOpacity(0.1),
-    highlightColor: AppColorSchemes.darkColorScheme.primary.withOpacity(0.05),
+    splashColor: AppColorSchemes.darkColorScheme.primary.withValues(alpha: 0.1),
+    highlightColor: AppColorSchemes.darkColorScheme.primary.withValues(alpha: 0.05),
 
     // Font family fallback
     fontFamily: 'Noto Sans',

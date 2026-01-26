@@ -15,7 +15,7 @@ class AppShadows {
 
   /// Soft shadow (дизайн: 0 4px 20px -2px rgba(194,117,91,0.1))
   static BoxShadow soft = BoxShadow(
-    color: AppColors.primary.withOpacity(0.1),
+    color: AppColors.primary.withValues(alpha: 0.1),
     offset: const Offset(0, 4),
     blurRadius: 20,
     spreadRadius: -2,
@@ -23,7 +23,7 @@ class AppShadows {
 
   /// Glass shadow (дизайн: 0 8px 32px 0 rgba(31,38,135,0.05))
   static BoxShadow glass = BoxShadow(
-    color: const Color(0xFF1F2687).withOpacity(0.05),
+    color: const Color(0xFF1F2687).withValues(alpha: 0.05),
     offset: const Offset(0, 8),
     blurRadius: 32,
     spreadRadius: 0,
@@ -31,7 +31,7 @@ class AppShadows {
 
   /// Glow shadow (floating effect)
   static BoxShadow glow = BoxShadow(
-    color: AppColors.primary.withOpacity(0.25),
+    color: AppColors.primary.withValues(alpha: 0.25),
     offset: const Offset(0, 0),
     blurRadius: 25,
     spreadRadius: -5,
@@ -47,7 +47,7 @@ class AppShadows {
 
   /// Strong shadow (modals, dialogs)
   static BoxShadow strong = BoxShadow(
-    color: AppColors.black.withOpacity(0.15),
+    color: AppColors.black.withValues(alpha: 0.15),
     offset: const Offset(0, 12),
     blurRadius: 40,
     spreadRadius: -8,
@@ -66,7 +66,7 @@ class AppGradients {
     colors: [
       AppColors.primary,
       AppColors.primaryLight,
-      AppColors.primary.withOpacity(0.5),
+      AppColors.primary.withValues(alpha: 0.5),
       Colors.transparent,
     ],
     stops: const [0.0, 0.3, 0.7, 1.0],
@@ -155,7 +155,7 @@ BoxDecoration glassDecorationDark({
     ),
     boxShadow: [
       BoxShadow(
-        color: AppColors.black.withOpacity(0.3),
+        color: AppColors.black.withValues(alpha: 0.3),
         offset: const Offset(0, 8),
         blurRadius: 32,
       ),

@@ -42,7 +42,7 @@ class OnboardingPageWrapper extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.primary.withOpacity(0.12),
+                    AppColors.primary.withValues(alpha: 0.12),
                     Colors.transparent,
                   ],
                 ),
@@ -60,7 +60,7 @@ class OnboardingPageWrapper extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Colors.orange.withOpacity(0.08),
+                    Colors.orange.withValues(alpha: 0.08),
                     Colors.transparent,
                   ],
                 ),

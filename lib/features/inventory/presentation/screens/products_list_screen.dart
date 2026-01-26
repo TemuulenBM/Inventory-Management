@@ -126,11 +126,11 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.6),
+          color: Colors.white.withValues(alpha: 0.6),
           borderRadius: AppRadius.radiusXL,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -146,7 +146,7 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
             hintText: 'Бараа хайх (нэр, SKU, код)...',
             hintStyle: TextStyle(
               fontSize: 15,
-              color: AppColors.textSecondaryLight.withOpacity(0.7),
+              color: AppColors.textSecondaryLight.withValues(alpha: 0.7),
             ),
             prefixIcon: const Icon(
               Icons.search,
@@ -172,7 +172,7 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.radiusXL,
               borderSide: BorderSide(
-                color: AppColors.primary.withOpacity(0.3),
+                color: AppColors.primary.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -365,13 +365,13 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
         child: Container(
           decoration: BoxDecoration(
             border: Border.all(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha: 0.5),
               width: 1,
             ),
             borderRadius: AppRadius.radiusXL,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 16,
                 offset: const Offset(0, 4),
               ),

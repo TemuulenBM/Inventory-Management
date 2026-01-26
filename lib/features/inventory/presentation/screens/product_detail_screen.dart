@@ -353,7 +353,7 @@ class ProductDetailScreen extends ConsumerWidget {
                 color: Colors.white,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 20,
                     offset: const Offset(0, -4),
                   ),
@@ -373,7 +373,7 @@ class ProductDetailScreen extends ConsumerWidget {
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           side: BorderSide(
-                            color: AppColors.primary.withOpacity(0.3),
+                            color: AppColors.primary.withValues(alpha: 0.3),
                             width: 2,
                           ),
                           shape: RoundedRectangleBorder(
@@ -457,7 +457,7 @@ class ProductDetailScreen extends ConsumerWidget {
         borderRadius: AppRadius.radiusXXL,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -515,7 +515,7 @@ class ProductDetailScreen extends ConsumerWidget {
         borderRadius: AppRadius.radiusXXL,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -559,7 +559,7 @@ class ProductDetailScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
+              color: statusColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
@@ -603,7 +603,7 @@ class ProductDetailScreen extends ConsumerWidget {
         borderRadius: AppRadius.radiusLG,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -667,7 +667,6 @@ class ProductDetailScreen extends ConsumerWidget {
         color = const Color(0xFF3B82F6); // цэнхэр
         break;
       case InventoryEventType.adjust:
-      default:
         icon = Icons.edit_outlined;
         color = event.qtyChange >= 0
             ? const Color(0xFF059669) // ногоон (нэмэх)
@@ -709,7 +708,7 @@ class ProductDetailScreen extends ConsumerWidget {
         borderRadius: AppRadius.radiusLG,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -722,7 +721,7 @@ class ProductDetailScreen extends ConsumerWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(

@@ -89,7 +89,7 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
@@ -197,7 +197,7 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.primary.withOpacity(0.1),
+                    AppColors.primary.withValues(alpha: 0.1),
                     Colors.transparent,
                   ],
                 ),
@@ -214,7 +214,7 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Colors.orange.withOpacity(0.08),
+                    Colors.orange.withValues(alpha: 0.08),
                     Colors.transparent,
                   ],
                 ),
@@ -281,7 +281,7 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen> {
             borderRadius: AppRadius.radiusLG,
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.3),
+                color: AppColors.primary.withValues(alpha: 0.3),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -306,7 +306,7 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen> {
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -418,18 +418,18 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.6),
-            Colors.white.withOpacity(0.3),
+            Colors.white.withValues(alpha: 0.6),
+            Colors.white.withValues(alpha: 0.3),
           ],
         ),
         borderRadius: AppRadius.radiusLG,
         border: Border.all(
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withValues(alpha: 0.8),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -451,7 +451,7 @@ class _PhoneAuthScreenState extends ConsumerState<PhoneAuthScreen> {
               decoration: BoxDecoration(
                 color: _trustDevice
                     ? AppColors.primary
-                    : Colors.white.withOpacity(0.5),
+                    : Colors.white.withValues(alpha: 0.5),
                 borderRadius: AppRadius.radiusSM,
                 border: Border.all(
                   color: _trustDevice ? AppColors.primary : AppColors.gray300,

@@ -107,7 +107,7 @@ class ProductCard extends StatelessWidget {
                               color: AppColors.secondary,
                               style: IconButton.styleFrom(
                                 backgroundColor: stockQuantity > 0
-                                    ? AppColors.secondary.withOpacity(0.1)
+                                    ? AppColors.secondary.withValues(alpha: 0.1)
                                     : AppColors.gray200,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: AppRadius.radiusSM,

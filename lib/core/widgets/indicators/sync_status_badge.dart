@@ -24,8 +24,8 @@ class SyncStatusBadge extends StatelessWidget {
           : const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: isSynced
-            ? AppColors.statusActive.withOpacity(0.1)
-            : AppColors.warningOrange.withOpacity(0.1),
+            ? AppColors.statusActive.withValues(alpha: 0.1)
+            : AppColors.warningOrange.withValues(alpha: 0.1),
         borderRadius: AppRadius.radiusFull,
         border: Border.all(
           color: isSynced ? AppColors.statusActive : AppColors.warningOrange,
@@ -105,7 +105,7 @@ class _PulsingDotState extends State<_PulsingDot>
           height: widget.size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: widget.color.withOpacity(_animation.value),
+            color: widget.color.withValues(alpha: _animation.value),
           ),
         );
       },

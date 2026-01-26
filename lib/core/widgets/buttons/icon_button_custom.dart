@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/utils/style_helpers.dart';
 

@@ -151,7 +151,7 @@ class ShiftManagementScreen extends ConsumerWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: AppColors.secondary.withOpacity(0.1),
+              color: AppColors.secondary.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(

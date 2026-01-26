@@ -27,7 +27,7 @@ class OnboardingWelcomeScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.primary.withOpacity(0.15),
+                    AppColors.primary.withValues(alpha: 0.15),
                     Colors.transparent,
                   ],
                 ),
@@ -44,7 +44,7 @@ class OnboardingWelcomeScreen extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Colors.orange.withOpacity(0.1),
+                    Colors.orange.withValues(alpha: 0.1),
                     Colors.transparent,
                   ],
                 ),
@@ -69,18 +69,18 @@ class OnboardingWelcomeScreen extends StatelessWidget {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Colors.white.withOpacity(0.7),
-                          Colors.white.withOpacity(0.4),
+                          Colors.white.withValues(alpha: 0.7),
+                          Colors.white.withValues(alpha: 0.4),
                         ],
                       ),
                       borderRadius: AppRadius.radiusXXL,
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         width: 2,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.2),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                           blurRadius: 40,
                           offset: const Offset(0, 10),
                         ),
@@ -95,7 +95,7 @@ class OnboardingWelcomeScreen extends StatelessWidget {
                           borderRadius: AppRadius.radiusXL,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.4),
+                              color: AppColors.primary.withValues(alpha: 0.4),
                               blurRadius: 20,
                               offset: const Offset(0, 4),
                             ),

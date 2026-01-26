@@ -87,7 +87,7 @@ class AlertCard extends StatelessWidget {
                 width: 4,
               ),
             ),
-            color: isRead ? null : _backgroundColor.withOpacity(0.3),
+            color: isRead ? null : _backgroundColor.withValues(alpha: 0.3),
           ),
           child: Padding(
             padding: AppSpacing.paddingMD,
@@ -99,7 +99,7 @@ class AlertCard extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: _severityColor.withOpacity(0.1),
+                    color: _severityColor.withValues(alpha: 0.1),
                     borderRadius: AppRadius.radiusSM,
                   ),
                   child: Icon(

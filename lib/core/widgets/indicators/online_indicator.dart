@@ -78,7 +78,7 @@ class _AnimatedDotState extends State<_AnimatedDot>
               height: 12,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: color.withOpacity(0.3 * (1 - _controller.value)),
+                color: color.withValues(alpha: 0.3 * (1 - _controller.value)),
               ),
             ),
             // Inner dot

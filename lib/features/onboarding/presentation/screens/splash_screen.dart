@@ -5,7 +5,6 @@ import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
-import 'package:retail_control_platform/features/auth/domain/auth_state.dart';
 
 /// Splash & Initialization Screen
 /// Дизайн: design/splash_&_init_screen/screen.png
@@ -123,7 +122,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.primary.withOpacity(0.15),
+                    AppColors.primary.withValues(alpha: 0.15),
                     Colors.transparent,
                   ],
                 ),
@@ -140,7 +139,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Colors.orange.withOpacity(0.1),
+                    Colors.orange.withValues(alpha: 0.1),
                     Colors.transparent,
                   ],
                 ),
@@ -166,18 +165,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.white.withOpacity(0.7),
-                            Colors.white.withOpacity(0.4),
+                            Colors.white.withValues(alpha: 0.7),
+                            Colors.white.withValues(alpha: 0.4),
                           ],
                         ),
                         borderRadius: AppRadius.radiusXXL,
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.8),
+                          color: Colors.white.withValues(alpha: 0.8),
                           width: 2,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.2),
+                            color: AppColors.primary.withValues(alpha: 0.2),
                             blurRadius: 40,
                             offset: const Offset(0, 10),
                           ),
@@ -192,7 +191,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                             borderRadius: AppRadius.radiusXL,
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.4),
+                                color: AppColors.primary.withValues(alpha: 0.4),
                                 blurRadius: 20,
                                 offset: const Offset(0, 4),
                               ),
@@ -237,7 +236,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       height: 32,
                       child: CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primary.withOpacity(0.6),
+                          AppColors.primary.withValues(alpha: 0.6),
                         ),
                         strokeWidth: 3,
                       ),

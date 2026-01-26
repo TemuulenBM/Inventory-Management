@@ -189,7 +189,7 @@ class SettingsScreen extends ConsumerWidget {
         border: Border.all(color: AppColors.gray200),
         boxShadow: [
           BoxShadow(
-            color: AppColors.gray200.withOpacity(0.5),
+            color: AppColors.gray200.withValues(alpha: 0.5),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -200,7 +200,7 @@ class SettingsScreen extends ConsumerWidget {
           // Avatar
           CircleAvatar(
             radius: 28,
-            backgroundColor: AppColors.primary.withOpacity(0.1),
+            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
             child: Text(
               name[0].toUpperCase(),
               style: const TextStyle(
@@ -241,7 +241,7 @@ class SettingsScreen extends ConsumerWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: roleColor.withOpacity(0.1),
+                    color: roleColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(

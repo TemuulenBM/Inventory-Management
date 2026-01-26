@@ -400,7 +400,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.02),
+                  color: Colors.black.withValues(alpha: 0.02),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -539,7 +539,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(Icons.camera_alt, color: AppColors.primary),
@@ -560,7 +560,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(Icons.photo_library, color: AppColors.primary),
@@ -698,7 +698,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             borderRadius: AppRadius.radiusMD,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.02),
+                color: Colors.black.withValues(alpha: 0.02),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -737,7 +737,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               focusedBorder: OutlineInputBorder(
                 borderRadius: AppRadius.radiusMD,
                 borderSide: BorderSide(
-                  color: AppColors.primary.withOpacity(0.3),
+                  color: AppColors.primary.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
@@ -793,7 +793,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),

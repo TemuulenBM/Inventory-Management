@@ -87,7 +87,7 @@ class _SimpleProductFormState extends State<SimpleProductForm> {
           border: Border.all(color: AppColors.gray200),
           boxShadow: [
             BoxShadow(
-              color: AppColors.gray200.withOpacity(0.5),
+              color: AppColors.gray200.withValues(alpha: 0.5),
               blurRadius: 12,
               offset: const Offset(0, 4),
             ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
-import 'package:retail_control_platform/core/constants/app_spacing.dart';
 
 /// Quantity selector with +/- buttons
 /// Дизайн: [-] [12] [+] layout
@@ -97,7 +96,7 @@ class _QuantityButton extends StatelessWidget {
         color: onPressed != null ? AppColors.primary : AppColors.gray400,
         style: IconButton.styleFrom(
           backgroundColor:
-              onPressed != null ? AppColors.primary.withOpacity(0.1) : AppColors.gray200,
+              onPressed != null ? AppColors.primary.withValues(alpha: 0.1) : AppColors.gray200,
           shape: RoundedRectangleBorder(
             borderRadius: AppRadius.radiusSM,
           ),

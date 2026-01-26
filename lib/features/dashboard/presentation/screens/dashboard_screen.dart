@@ -136,12 +136,12 @@ class DashboardScreen extends ConsumerWidget {
                     color: _getSyncBgColor(syncState.status),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: _getSyncColor(syncState.status).withOpacity(0.1),
+                      color: _getSyncColor(syncState.status).withValues(alpha: 0.1),
                       width: 1,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
+                        color: Colors.black.withValues(alpha: 0.02),
                         blurRadius: 4,
                         offset: const Offset(0, 2),
                       ),
@@ -350,12 +350,12 @@ class DashboardScreen extends ConsumerWidget {
           color: Colors.white,
           borderRadius: AppRadius.radiusXL,
           border: Border.all(
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 40,
               offset: const Offset(0, 10),
             ),
@@ -374,7 +374,7 @@ class DashboardScreen extends ConsumerWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFFC96F53).withOpacity(0.05),
+                      const Color(0xFFC96F53).withValues(alpha: 0.05),
                       Colors.transparent,
                     ],
                   ),
@@ -391,7 +391,7 @@ class DashboardScreen extends ConsumerWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      const Color(0xFFFEEBC8).withOpacity(0.2),
+                      const Color(0xFFFEEBC8).withValues(alpha: 0.2),
                       Colors.transparent,
                     ],
                   ),
@@ -517,7 +517,7 @@ class DashboardScreen extends ConsumerWidget {
           borderRadius: AppRadius.radiusXL,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 40,
               offset: const Offset(0, 10),
             ),
@@ -544,7 +544,7 @@ class DashboardScreen extends ConsumerWidget {
           borderRadius: AppRadius.radiusXL,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 40,
               offset: const Offset(0, 10),
             ),
@@ -731,7 +731,7 @@ class DashboardScreen extends ConsumerWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -966,7 +966,7 @@ class DashboardScreen extends ConsumerWidget {
         borderRadius: AppRadius.radiusLG,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -996,7 +996,7 @@ class DashboardScreen extends ConsumerWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 4,
                         ),
                       ],
@@ -1058,7 +1058,7 @@ class DashboardScreen extends ConsumerWidget {
       color: const Color(0xFF00878F),
       borderRadius: AppRadius.radiusXL,
       elevation: 8,
-      shadowColor: const Color(0xFF00878F).withOpacity(0.4),
+      shadowColor: const Color(0xFF00878F).withValues(alpha: 0.4),
       child: InkWell(
         onTap: () {
           context.push(RouteNames.quickSaleSelect);

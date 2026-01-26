@@ -129,7 +129,7 @@ class _QuickSaleSelectScreenState
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF10B981).withOpacity(0.5),
+                            color: const Color(0xFF10B981).withValues(alpha: 0.5),
                             blurRadius: 4,
                             spreadRadius: 1,
                           ),
@@ -201,7 +201,7 @@ class _QuickSaleSelectScreenState
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.6),
+          color: Colors.white.withValues(alpha: 0.6),
           borderRadius: AppRadius.radiusXL,
           border: Border.all(
             color: Colors.transparent,
@@ -209,7 +209,7 @@ class _QuickSaleSelectScreenState
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -225,7 +225,7 @@ class _QuickSaleSelectScreenState
             hintText: 'Бараа хайх, код уншуулах...',
             hintStyle: TextStyle(
               fontSize: 15,
-              color: AppColors.textSecondaryLight.withOpacity(0.7),
+              color: AppColors.textSecondaryLight.withValues(alpha: 0.7),
             ),
             prefixIcon: const Icon(
               Icons.search,
@@ -237,7 +237,7 @@ class _QuickSaleSelectScreenState
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.radiusXL,
               borderSide: BorderSide(
-                color: AppColors.primary.withOpacity(0.3),
+                color: AppColors.primary.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -302,7 +302,7 @@ class _QuickSaleSelectScreenState
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
+                            color: AppColors.primary.withValues(alpha: 0.3),
                             blurRadius: 12,
                             offset: const Offset(0, 4),
                           ),
@@ -435,12 +435,12 @@ class _QuickSaleSelectScreenState
         color: Colors.white,
         borderRadius: AppRadius.radiusXL,
         border: Border.all(
-          color: inCart ? AppColors.primary : Colors.white.withOpacity(0.5),
+          color: inCart ? AppColors.primary : Colors.white.withValues(alpha: 0.5),
           width: inCart ? 2 : 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -479,11 +479,11 @@ class _QuickSaleSelectScreenState
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 4,
                       ),
                     ],
@@ -556,7 +556,7 @@ class _QuickSaleSelectScreenState
                       Material(
                         color: inCart
                             ? AppColors.primary
-                            : AppColors.primary.withOpacity(0.1),
+                            : AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                         child: InkWell(
                           onTap: () {
@@ -608,7 +608,7 @@ class _QuickSaleSelectScreenState
       color: const Color(0xFF00878F),
       borderRadius: AppRadius.radiusXL,
       elevation: 8,
-      shadowColor: const Color(0xFF00878F).withOpacity(0.4),
+      shadowColor: const Color(0xFF00878F).withValues(alpha: 0.4),
       child: InkWell(
         onTap: () {
           context.push(RouteNames.quickSaleCart);

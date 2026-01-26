@@ -152,7 +152,7 @@ class _OtpInputState extends State<OtpInput> {
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: hasDigit ? AppColors.primary.withOpacity(0.05) : AppColors.surfaceLight,
+          color: hasDigit ? AppColors.primary.withValues(alpha: 0.05) : AppColors.surfaceLight,
           borderRadius: AppRadius.radiusMD,
           border: Border.all(
             color: hasError
@@ -160,7 +160,7 @@ class _OtpInputState extends State<OtpInput> {
                 : isFocused
                     ? AppColors.primary
                     : hasDigit
-                        ? AppColors.primary.withOpacity(0.3)
+                        ? AppColors.primary.withValues(alpha: 0.3)
                         : AppColors.gray300,
             width: isFocused || hasDigit ? 2 : 1.5,
           ),
