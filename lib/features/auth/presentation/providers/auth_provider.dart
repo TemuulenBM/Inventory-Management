@@ -35,17 +35,10 @@ class AuthNotifier extends _$AuthNotifier {
   /// Current user info авах
   Future<void> _fetchCurrentUser() async {
     try {
-      print('🔍 Auth: Fetching current user from /auth/me');
       final response = await apiClient.get(ApiEndpoints.me);
-
-      print('   /auth/me response: ${response.data}');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         final userData = response.data['user'];
-        print('   User data from /auth/me: $userData');
-        print('   Role from /auth/me: ${userData['role']}');
-        print('   StoreId from /auth/me: ${userData['storeId']}');
-
         final user = UserModel(
           id: userData['id'],
           phone: userData['phone'],
@@ -56,7 +49,6 @@ class AuthNotifier extends _$AuthNotifier {
               ? DateTime.parse(userData['createdAt'])
               : null,
         );
-        print('   UserModel from /auth/me: role=${user.role}, storeId=${user.storeId}');
         state = AuthState.authenticated(user);
       } else {
         await apiClient.clearTokens();
@@ -119,10 +111,6 @@ class AuthNotifier extends _$AuthNotifier {
       );
 
       if (response.statusCode == 200 && response.data['success'] == true) {
-        // Debug: Backend response шалгах
-        print('🔍 Auth: Backend response received');
-        print('   Full response: ${response.data}');
-
         // Save tokens
         final tokens = response.data['tokens'];
         await apiClient.saveTokens(
@@ -137,10 +125,6 @@ class AuthNotifier extends _$AuthNotifier {
 
         // Get user data
         final userData = response.data['user'];
-        print('   User data: $userData');
-        print('   Role: ${userData['role']}');
-        print('   StoreId: ${userData['storeId']}');
-
         final user = UserModel(
           id: userData['id'],
           phone: userData['phone'],
@@ -152,7 +136,6 @@ class AuthNotifier extends _$AuthNotifier {
               : null,
         );
 
-        print('   UserModel created: role=${user.role}, storeId=${user.storeId}');
         state = AuthState.authenticated(user);
       } else {
         state = AuthState.error(

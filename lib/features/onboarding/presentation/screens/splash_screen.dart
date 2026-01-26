@@ -73,25 +73,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
           context.go(RouteNames.authPhone);
         },
         authenticated: (user) {
-          // Debug logs
-          print('🔍 Splash: User authenticated');
-          print('   Role: ${user.role}');
-          print('   StoreId: ${user.storeId}');
-
-          // Super-admin логик нэмэх
+          // Super-admin → Dashboard (onboarding давна)
           if (user.role == 'super_admin') {
-            print('✅ Super-admin detected → Dashboard');
-            // Super-admin → Dashboard (onboarding давна)
             context.go(RouteNames.dashboard);
           }
-          // Owner/Manager/Seller логик
+          // Owner/Manager/Seller: Store байхгүй бол → Onboarding, байвал → Dashboard
           else if (user.storeId == null) {
-            print('⚠️ Owner without store → Onboarding');
-            // Store байхгүй бол → Onboarding
             context.go(RouteNames.onboardingWelcome);
           } else {
-            print('✅ Owner with store → Dashboard');
-            // Store байвал → Dashboard
             context.go(RouteNames.dashboard);
           }
         },
