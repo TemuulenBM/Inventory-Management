@@ -51,28 +51,14 @@ class SettingsScreen extends ConsumerWidget {
                     iconColor: AppColors.primary,
                     title: 'Урилга илгээх',
                     subtitle: 'Шинэ owner бүртгүүлэх',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Урилга илгээх функц удахгүй нэмэгдэнэ'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    },
+                    onTap: () => context.push(RouteNames.createInvitation),
                   ),
                   SettingsTile(
                     icon: Icons.list_alt_outlined,
                     iconColor: AppColors.secondary,
                     title: 'Урилгын жагсаалт',
                     subtitle: 'Илгээсэн урилгууд',
-                    onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Урилгын жагсаалт функц удахгүй нэмэгдэнэ'),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                    },
+                    onTap: () => context.push(RouteNames.invitations),
                   ),
                 ],
               ),

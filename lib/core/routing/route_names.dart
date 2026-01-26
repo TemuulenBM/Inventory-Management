@@ -44,6 +44,10 @@ class RouteNames {
   static const String settings = '/settings';
   static const String profile = '/settings/profile';
 
+  // Invitations (super-admin only)
+  static const String invitations = '/invitations';
+  static const String createInvitation = '/invitations/create';
+
   // Helper method to build product detail route
   static String productDetailPath(String productId) {
     return '/product/$productId';

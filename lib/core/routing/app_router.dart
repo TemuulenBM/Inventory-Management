@@ -20,6 +20,8 @@ import 'package:retail_control_platform/features/inventory/presentation/screens/
 import 'package:retail_control_platform/features/settings/presentation/screens/settings_screen.dart';
 import 'package:retail_control_platform/features/alerts/presentation/screens/alerts_screen.dart';
 import 'package:retail_control_platform/features/shifts/presentation/screens/shift_management_screen.dart';
+import 'package:retail_control_platform/features/invitation/presentation/screens/invitation_list_screen.dart';
+import 'package:retail_control_platform/features/invitation/presentation/screens/invitation_form_screen.dart';
 
 /// GoRouter configuration for app navigation
 /// Auth guards, deep linking, route transitions
@@ -86,6 +88,18 @@ final GoRouter appRouter = GoRouter(
         final storeId = state.extra as String? ?? '';
         return OnboardingInviteScreen(storeId: storeId);
       },
+    ),
+
+    // ===== INVITATIONS (super-admin only, гадна bottom nav) =====
+    GoRoute(
+      path: RouteNames.invitations,
+      name: 'invitations',
+      builder: (context, state) => const InvitationListScreen(),
+    ),
+    GoRoute(
+      path: RouteNames.createInvitation,
+      name: 'create-invitation',
+      builder: (context, state) => const InvitationFormScreen(),
     ),
 
     // ===== MAIN APP with Bottom Navigation =====

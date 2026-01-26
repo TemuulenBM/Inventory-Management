@@ -58,6 +58,10 @@ class ApiEndpoints {
   static const String sync = '/sync';
   static String changes(String storeId) => '/stores/$storeId/changes';
 
+  // Invitations (super-admin only)
+  static const String invitations = '/invitations';
+  static String invitation(String invitationId) => '/invitations/$invitationId';
+
   // Health
   static const String health = '/health';
 }
