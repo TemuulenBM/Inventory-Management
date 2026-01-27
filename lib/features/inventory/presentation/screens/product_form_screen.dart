@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
+import 'package:retail_control_platform/core/constants/product_categories.dart';
 import 'package:retail_control_platform/core/services/image_service.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 
@@ -35,7 +36,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final _thresholdController = TextEditingController();
   final _locationController = TextEditingController();
 
-  String _selectedCategory = 'ХУВЦАС';
+  String _selectedCategory = ProductCategories.defaultCategory;
   bool _isSaving = false;
 
   // Зургийн state
@@ -43,13 +44,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   String? _existingImageUrl;
   final ImageService _imageService = ImageService();
 
-  final List<String> _categories = [
-    'ХУВЦАС',
-    'ХҮНС',
-    'УНДАА',
-    'ГЭР АХУЙ',
-    'БУСАД',
-  ];
+  // Категориудын жагсаалт (constants-аас)
+  final List<String> _categories = ProductCategories.values;
 
   @override
   void initState() {

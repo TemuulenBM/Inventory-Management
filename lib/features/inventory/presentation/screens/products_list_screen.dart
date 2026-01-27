@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
+import 'package:retail_control_platform/core/constants/product_categories.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 
@@ -191,20 +192,28 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
   }
 
   Widget _buildFilterPills() {
-    // Бодит барааны категориудыг provider-аас авах
+    // Бодит барааны категориудыг provider-аас авах (backward compatibility)
     final productsAsync = ref.watch(productListProvider());
 
-    // Динамик категориудыг үүсгэх
+    // Hybrid approach: Constants + нэмэлт database категориуд
     final filters = productsAsync.whenOrNull(
       data: (products) {
-        final categories = products
-            .map((p) => p.category ?? 'Бусад')
-            .toSet()
-            .toList()
-          ..sort();
+        // 1. Constants-аас үндсэн категориуд
+        final categorySet = ProductCategories.values.toSet();
+
+        // 2. Database-аас нэмэлт категориуд (constants дээр байхгүй бол)
+        for (final product in products) {
+          if (product.category != null && product.category!.isNotEmpty) {
+            categorySet.add(product.category!);
+          }
+        }
+
+        // 3. Эрэмбэлэх
+        final categories = categorySet.toList()..sort();
+
         return ['Бүгд', 'Бага үлдэгдэл', ...categories];
       },
-    ) ?? ['Бүгд', 'Бага үлдэгдэл']; // Fallback
+    ) ?? ['Бүгд', 'Бага үлдэгдэл', ...ProductCategories.values]; // Fallback
 
     return SizedBox(
       height: 40,
