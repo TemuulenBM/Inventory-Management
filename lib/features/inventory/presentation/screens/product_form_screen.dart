@@ -37,7 +37,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final _thresholdController = TextEditingController();
   final _locationController = TextEditingController();
 
-  String _selectedCategory = ProductCategories.defaultCategory;
+  String _selectedCategory = ''; // Empty - database-аас ачаалсны дараа сонгогдоно
   bool _isSaving = false;
 
   // Зургийн state
@@ -45,8 +45,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   String? _existingImageUrl;
   final ImageService _imageService = ImageService();
 
-  // Категориудын жагсаалт (constants-аас)
-  List<String> _categories = ProductCategories.values;
+  // Категориудын жагсаалт (database-аас ачаална)
+  List<String> _categories = [];
 
   @override
   void initState() {
@@ -91,13 +91,13 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     }
   }
 
-  /// Database-аас бүх категориудыг ачаалж, predefined + custom нэгтгэх
+  /// Database-аас бүх категориудыг ачаалах (database-only approach)
   Future<void> _loadCategories() async {
     try {
       final products = await ref.read(productListProvider().future);
 
-      // Predefined + custom categories
-      final categorySet = ProductCategories.values.toSet();
+      // Зөвхөн database-аас категориуд цуглуулах
+      final categorySet = <String>{}; // Empty set
       for (final product in products) {
         if (product.category != null && product.category!.isNotEmpty) {
           categorySet.add(product.category!);
@@ -107,6 +107,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       if (mounted) {
         setState(() {
           _categories = categorySet.toList()..sort();
+
+          // Default category автоматаар сонгох (зөвхөн шинэ бараа үед)
+          if (_selectedCategory.isEmpty && _categories.isNotEmpty) {
+            _selectedCategory = _categories.first;
+          }
         });
       }
     } catch (e) {
