@@ -78,6 +78,7 @@ export async function getProducts(storeId: string, query: ProductQueryParams) {
     costPrice: p.cost_price,
     sellPrice: p.sell_price,
     lowStockThreshold: p.low_stock_threshold,
+    category: p.category ?? null,
     imageUrl: p.image_url ?? null,
     currentStock: stockMap[p.id]?.currentStock || 0,
     isLowStock: stockMap[p.id]?.isLowStock || false,
@@ -143,6 +144,7 @@ export async function getProduct(productId: string, storeId: string) {
     costPrice: product.cost_price ?? 0,
     sellPrice: product.sell_price,
     lowStockThreshold: product.low_stock_threshold,
+    category: product.category ?? null,
     imageUrl: product.image_url ?? null,
     currentStock: stockData?.current_stock ?? 0,
     isLowStock: stockData?.is_low_stock ?? false,
@@ -188,6 +190,7 @@ export async function createProduct(storeId: string, data: CreateProductBody) {
       cost_price: data.costPrice,
       sell_price: data.sellPrice,
       low_stock_threshold: data.lowStockThreshold ?? null,
+      category: data.category ?? null,
     })
     .select()
     .single();
@@ -210,6 +213,7 @@ export async function createProduct(storeId: string, data: CreateProductBody) {
       costPrice: product.cost_price ?? 0,
       sellPrice: product.sell_price,
       lowStockThreshold: product.low_stock_threshold,
+      category: product.category ?? null,
       imageUrl: product.image_url ?? null,
       createdAt: product.created_at ?? new Date().toISOString(),
     },
@@ -250,6 +254,7 @@ export async function updateProduct(productId: string, storeId: string, data: Up
       ...(data.costPrice !== undefined && { cost_price: data.costPrice }),
       ...(data.sellPrice !== undefined && { sell_price: data.sellPrice }),
       ...(data.lowStockThreshold !== undefined && { low_stock_threshold: data.lowStockThreshold }),
+      ...(data.category !== undefined && { category: data.category }),
     })
     .eq('id', productId)
     .eq('store_id', storeId)
@@ -272,6 +277,7 @@ export async function updateProduct(productId: string, storeId: string, data: Up
       costPrice: product.cost_price ?? 0,
       sellPrice: product.sell_price,
       lowStockThreshold: product.low_stock_threshold,
+      category: product.category ?? null,
       imageUrl: product.image_url ?? null,
       createdAt: product.created_at ?? new Date().toISOString(),
     },
@@ -347,6 +353,7 @@ export async function bulkCreateProducts(storeId: string, products: CreateProduc
     cost_price: p.costPrice,
     sell_price: p.sellPrice,
     low_stock_threshold: p.lowStockThreshold ?? null,
+    category: p.category ?? null,
   }));
 
   const { data: created, error } = await supabase.from('products').insert(productsData).select();
@@ -367,6 +374,7 @@ export async function bulkCreateProducts(storeId: string, products: CreateProduc
     costPrice: p.cost_price ?? 0,
     sellPrice: p.sell_price,
     lowStockThreshold: p.low_stock_threshold,
+    category: p.category ?? null,
     imageUrl: p.image_url ?? null,
     createdAt: p.created_at ?? new Date().toISOString(),
   }));

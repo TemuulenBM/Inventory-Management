@@ -17,6 +17,7 @@ export const createProductSchema = z.object({
   costPrice: z.number().min(0).describe('Өртөг (авсан үнэ)'),
   sellPrice: z.number().min(0).describe('Зарах үнэ'),
   lowStockThreshold: z.number().int().min(0).optional().describe('Бага үлдэгдлийн босго'),
+  category: z.string().min(1).max(100).optional().describe('Барааны ангилал'),
 });
 
 export type CreateProductBody = z.infer<typeof createProductSchema>;
@@ -32,6 +33,7 @@ export const updateProductSchema = z.object({
   costPrice: z.number().min(0).optional().describe('Өртөг'),
   sellPrice: z.number().min(0).optional().describe('Зарах үнэ'),
   lowStockThreshold: z.number().int().min(0).optional().describe('Бага үлдэгдлийн босго'),
+  category: z.string().min(1).max(100).optional().describe('Барааны ангилал'),
 });
 
 export type UpdateProductBody = z.infer<typeof updateProductSchema>;
@@ -74,6 +76,7 @@ export interface ProductInfo {
   costPrice: number;
   sellPrice: number;
   lowStockThreshold: number | null;
+  category: string | null;
   imageUrl: string | null;
   createdAt: string;
 }

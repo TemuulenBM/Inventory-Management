@@ -120,6 +120,7 @@ class ProductActions extends _$ProductActions {
     double? costPrice,
     int? lowStockThreshold,
     int? initialStock,
+    String? category, // Барааны ангилал
     File? imageFile,
   }) async {
     state = const AsyncValue.loading();
@@ -143,6 +144,7 @@ class ProductActions extends _$ProductActions {
       costPrice: costPrice,
       lowStockThreshold: lowStockThreshold,
       initialStock: initialStock,
+      category: category, // Category дамжуулах
     );
 
     if (result.isError) {
@@ -171,6 +173,7 @@ class ProductActions extends _$ProductActions {
     double? sellPrice,
     double? costPrice,
     int? lowStockThreshold,
+    String? category, // Барааны ангилал
     File? imageFile,
   }) async {
     state = const AsyncValue.loading();
@@ -191,6 +194,7 @@ class ProductActions extends _$ProductActions {
       sellPrice: sellPrice,
       costPrice: costPrice,
       lowStockThreshold: lowStockThreshold,
+      category: category, // Category дамжуулах
     );
 
     if (result.isError) {

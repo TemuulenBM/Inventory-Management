@@ -45,7 +45,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final ImageService _imageService = ImageService();
 
   // Категориудын жагсаалт (constants-аас)
-  final List<String> _categories = ProductCategories.values;
+  List<String> _categories = ProductCategories.values;
 
   @override
   void initState() {
@@ -73,6 +73,15 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           _thresholdController.text =
               (product.lowStockThreshold ?? 10).toString();
           _existingImageUrl = product.imageUrl;
+
+          // Category ачаалах
+          if (product.category != null && product.category!.isNotEmpty) {
+            _selectedCategory = product.category!;
+            // Хэрэв custom category бол _categories list-д нэмэх
+            if (!_categories.contains(product.category!)) {
+              _categories = [..._categories, product.category!];
+            }
+          }
         });
       }
     } catch (e) {
@@ -124,6 +133,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               ? double.tryParse(_costPriceController.text)
               : null,
           lowStockThreshold: int.tryParse(_thresholdController.text),
+          category: _selectedCategory,
           imageFile: _selectedImage,
         );
         success = productId != null;
@@ -138,6 +148,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               ? double.tryParse(_costPriceController.text)
               : null,
           lowStockThreshold: int.tryParse(_thresholdController.text),
+          category: _selectedCategory,
           imageFile: _selectedImage,
         );
       }

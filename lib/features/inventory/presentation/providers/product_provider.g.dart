@@ -656,7 +656,7 @@ class _SearchProductsProviderElement
   String get query => (origin as SearchProductsProvider).query;
 }
 
-String _$productActionsHash() => r'81bce5311a39c739cb25b7068eeac55a20e0c4de';
+String _$productActionsHash() => r'97f829fed766107959a97318fd1926208d5cb021';
 
 /// Product actions (create, update, delete)
 ///

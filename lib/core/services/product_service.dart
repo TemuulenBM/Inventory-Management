@@ -339,6 +339,7 @@ class ProductService extends BaseService {
         isLowStock: stock <= p.lowStockThreshold,
         storeId: p.storeId,
         unit: p.unit,
+        category: p.category, // Category map нэмэх
         imageUrl: p.localImagePath ?? p.imageUrl,
         lowStockThreshold: p.lowStockThreshold,
         createdAt: p.createdAt,
@@ -367,6 +368,7 @@ class ProductService extends BaseService {
       isLowStock: stock <= product.lowStockThreshold,
       storeId: product.storeId,
       unit: product.unit,
+      category: product.category, // Category map нэмэх
       imageUrl: product.localImagePath ?? product.imageUrl,
       lowStockThreshold: product.lowStockThreshold,
       createdAt: product.createdAt,
