@@ -5,6 +5,7 @@ import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
+import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 
 /// Products List Screen (Inventory)
 /// Pattern-based design (consistency with Quick Sale Select + Dashboard)
