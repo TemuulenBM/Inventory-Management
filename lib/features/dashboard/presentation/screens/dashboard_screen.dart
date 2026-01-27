@@ -12,6 +12,7 @@ import 'package:retail_control_platform/core/providers/store_provider.dart';
 import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
 import 'package:retail_control_platform/features/sales/presentation/providers/cart_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
+import 'package:retail_control_platform/features/store/presentation/providers/current_store_provider.dart';
 
 /// Owner Dashboard Screen
 /// Дизайн: design/owner_dashboard/screen.png
@@ -288,6 +289,8 @@ class DashboardScreen extends ConsumerWidget {
 
     // Watch sync state
     final syncState = ref.watch(syncNotifierProvider);
+    // Watch current store
+    final currentStoreAsync = ref.watch(currentStoreProvider);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
@@ -295,7 +298,7 @@ class DashboardScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Time + Greeting
+          // Time + Greeting + Store Name
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -318,6 +321,24 @@ class DashboardScreen extends ConsumerWidget {
                   color: AppColors.textMainLight,
                   fontFamily: 'Epilogue',
                 ),
+              ),
+              // Store name (dynamic)
+              currentStoreAsync.when(
+                data: (store) => store != null
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          store.name,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textSecondaryLight,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
               ),
             ],
           ),

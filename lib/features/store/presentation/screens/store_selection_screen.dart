@@ -10,11 +10,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/widgets/buttons/primary_button.dart';
 import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
+import 'package:retail_control_platform/features/store/domain/store_info.dart';
 import 'package:retail_control_platform/features/store/presentation/providers/user_stores_provider.dart';
 
 /// Дэлгүүр сонгох screen
@@ -275,10 +275,22 @@ class StoreSelectionScreen extends ConsumerWidget {
         // Success: Settings screen руу буцах
         context.pop();
 
-        // Success message
+        // Success message with store name
+        final stores = ref.read(userStoresProvider).valueOrNull ?? [];
+        StoreInfo? selectedStore;
+        try {
+          selectedStore = stores.firstWhere((s) => s.id == storeId);
+        } catch (e) {
+          selectedStore = null;
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Дэлгүүр амжилттай солигдлоо'),
+          SnackBar(
+            content: Text(
+              selectedStore != null
+                  ? '${selectedStore.name} руу амжилттай шилжлээ'
+                  : 'Дэлгүүр амжилттай солигдлоо',
+            ),
             backgroundColor: AppColors.success,
           ),
         );

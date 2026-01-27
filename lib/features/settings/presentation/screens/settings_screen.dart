@@ -7,6 +7,7 @@ import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/core/widgets/modals/confirm_dialog.dart';
 import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
 import 'package:retail_control_platform/features/settings/presentation/widgets/settings_section.dart';
+import 'package:retail_control_platform/features/store/presentation/providers/current_store_provider.dart';
 
 /// Тохиргооны дэлгэц
 /// Profile, дэлгүүрийн мэдээлэл, аппын тохиргоо, logout
@@ -67,33 +68,76 @@ class SettingsScreen extends ConsumerWidget {
 
             // ===== Дэлгүүрийн мэдээлэл =====
             if (user?.role != 'super_admin') ...[
-              SettingsSection(
-                title: 'ДЭЛГҮҮР',
-                tiles: [
-                  // Multi-store: Owner үед дэлгүүр солих товч
-                  if (user?.role == 'owner')
-                    SettingsTile(
-                      icon: Icons.swap_horiz,
-                      iconColor: AppColors.secondary,
-                      title: 'Дэлгүүр солих',
-                      subtitle: 'Олон дэлгүүрийн хооронд солих',
-                      onTap: () => context.push(RouteNames.storeSelection),
-                    ),
-                  SettingsTile(
-                    icon: Icons.store_outlined,
-                    title: 'Дэлгүүрийн мэдээлэл',
-                    subtitle: user?.storeId != null
-                        ? 'ID: ${user!.storeId!.substring(0, 8)}...'
-                        : null,
-                    onTap: () => context.push(RouteNames.storeEdit),
-                  ),
-                  SettingsTile(
-                    icon: Icons.people_outline,
-                    title: 'Ажилтнууд',
-                    subtitle: 'Худалдагч, менежер удирдах',
-                    onTap: () => context.push(RouteNames.employees),
-                  ),
-                ],
+              Consumer(
+                builder: (context, ref, child) {
+                  final currentStoreAsync = ref.watch(currentStoreProvider);
+
+                  return SettingsSection(
+                    title: 'ДЭЛГҮҮР',
+                    tiles: [
+                      // Multi-store: Owner үед дэлгүүр солих товч
+                      if (user?.role == 'owner')
+                        currentStoreAsync.when(
+                          data: (store) => SettingsTile(
+                            icon: Icons.swap_horiz,
+                            iconColor: AppColors.secondary,
+                            title: 'Дэлгүүр солих',
+                            subtitle: store != null
+                                ? 'Одоогийн: ${store.name}'
+                                : 'Олон дэлгүүрийн хооронд солих',
+                            onTap: () => context.push(RouteNames.storeSelection),
+                          ),
+                          loading: () => SettingsTile(
+                            icon: Icons.swap_horiz,
+                            iconColor: AppColors.secondary,
+                            title: 'Дэлгүүр солих',
+                            subtitle: 'Ачаалж байна...',
+                            onTap: () => context.push(RouteNames.storeSelection),
+                          ),
+                          error: (_, __) => SettingsTile(
+                            icon: Icons.swap_horiz,
+                            iconColor: AppColors.secondary,
+                            title: 'Дэлгүүр солих',
+                            subtitle: 'Олон дэлгүүрийн хооронд солих',
+                            onTap: () => context.push(RouteNames.storeSelection),
+                          ),
+                        ),
+                      // Дэлгүүрийн мэдээлэл tile
+                      currentStoreAsync.when(
+                        data: (store) => SettingsTile(
+                          icon: Icons.store_outlined,
+                          title: 'Дэлгүүрийн мэдээлэл',
+                          subtitle: store != null
+                              ? '${store.name}${store.location != null ? ' • ${store.location}' : ''}'
+                              : (user?.storeId != null
+                                  ? 'ID: ${user!.storeId!.substring(0, 8)}...'
+                                  : null),
+                          onTap: () => context.push(RouteNames.storeEdit),
+                        ),
+                        loading: () => SettingsTile(
+                          icon: Icons.store_outlined,
+                          title: 'Дэлгүүрийн мэдээлэл',
+                          subtitle: 'Ачаалж байна...',
+                          onTap: () => context.push(RouteNames.storeEdit),
+                        ),
+                        error: (_, __) => SettingsTile(
+                          icon: Icons.store_outlined,
+                          title: 'Дэлгүүрийн мэдээлэл',
+                          subtitle: user?.storeId != null
+                              ? 'ID: ${user!.storeId!.substring(0, 8)}...'
+                              : null,
+                          onTap: () => context.push(RouteNames.storeEdit),
+                        ),
+                      ),
+                      SettingsTile(
+                        icon: Icons.people_outline,
+                        title: 'Ажилтнууд',
+                        subtitle: 'Худалдагч, менежер удирдах',
+                        onTap: () => context.push(RouteNames.employees),
+                      ),
+                    ],
+                  );
+                },
               ),
               AppSpacing.verticalMD,
             ],
