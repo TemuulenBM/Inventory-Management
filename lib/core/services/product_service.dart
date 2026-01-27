@@ -117,6 +117,7 @@ class ProductService extends BaseService {
     int? lowStockThreshold,
     int? initialStock,
     String? note,
+    String? category, // Барааны ангилал (Хүнс, Ундаа, гэх мэт)
   }) async {
     final productId = const Uuid().v4();
     final now = DateTime.now();
@@ -132,6 +133,7 @@ class ProductService extends BaseService {
       costPrice: Value(costPrice),
       lowStockThreshold: Value(lowStockThreshold ?? 10),
       note: Value(note),
+      category: Value(category), // Category талбар нэмэх
       createdAt: Value(now),
       updatedAt: Value(now),
     );
@@ -163,6 +165,7 @@ class ProductService extends BaseService {
           'sellPrice': sellPrice,
           'costPrice': costPrice,
           'lowStockThreshold': lowStockThreshold ?? 10,
+          if (category != null) 'category': category, // Category нэмэх
         });
       } else {
         await enqueueOperation(
@@ -178,6 +181,7 @@ class ProductService extends BaseService {
             'cost_price': costPrice,
             'low_stock_threshold': lowStockThreshold ?? 10,
             'initial_stock': initialStock,
+            if (category != null) 'category': category, // Category нэмэх
           },
         );
       }
@@ -193,6 +197,7 @@ class ProductService extends BaseService {
         isLowStock: (initialStock ?? 0) <= (lowStockThreshold ?? 10),
         storeId: storeId,
         unit: unit,
+        category: category, // Category нэмэх
         lowStockThreshold: lowStockThreshold ?? 10,
         createdAt: now,
         updatedAt: now,
@@ -216,6 +221,7 @@ class ProductService extends BaseService {
     double? costPrice,
     int? lowStockThreshold,
     String? note,
+    String? category, // Барааны ангилал
   }) async {
     try {
       // 1. Local DB-д засах
@@ -229,6 +235,7 @@ class ProductService extends BaseService {
           lowStockThreshold:
               lowStockThreshold != null ? Value(lowStockThreshold) : const Value.absent(),
           note: note != null ? Value(note) : const Value.absent(),
+          category: category != null ? Value(category) : const Value.absent(), // Category нэмэх
           updatedAt: Value(DateTime.now()),
         ),
       );
@@ -241,6 +248,7 @@ class ProductService extends BaseService {
       if (sellPrice != null) updateData['sellPrice'] = sellPrice;
       if (costPrice != null) updateData['costPrice'] = costPrice;
       if (lowStockThreshold != null) updateData['lowStockThreshold'] = lowStockThreshold;
+      if (category != null) updateData['category'] = category; // Category нэмэх
 
       if (await isOnline) {
         await _syncProductToApi(storeId, productId, 'update', updateData);

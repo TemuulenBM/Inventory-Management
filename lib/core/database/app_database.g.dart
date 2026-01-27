@@ -840,6 +840,12 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
       defaultConstraints: GeneratedColumn.constraintIsAlways(
           'CHECK ("image_synced" IN (0, 1))'),
       defaultValue: const Constant(true));
+  static const VerificationMeta _categoryMeta =
+      const VerificationMeta('category');
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+      'category', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -856,7 +862,8 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         isDeleted,
         imageUrl,
         localImagePath,
-        imageSynced
+        imageSynced,
+        category
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -945,6 +952,10 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           imageSynced.isAcceptableOrUnknown(
               data['image_synced']!, _imageSyncedMeta));
     }
+    if (data.containsKey('category')) {
+      context.handle(_categoryMeta,
+          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
+    }
     return context;
   }
 
@@ -984,6 +995,8 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           DriftSqlType.string, data['${effectivePrefix}local_image_path']),
       imageSynced: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}image_synced'])!,
+      category: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category']),
     );
   }
 
@@ -1009,6 +1022,7 @@ class Product extends DataClass implements Insertable<Product> {
   final String? imageUrl;
   final String? localImagePath;
   final bool imageSynced;
+  final String? category;
   const Product(
       {required this.id,
       required this.storeId,
@@ -1024,7 +1038,8 @@ class Product extends DataClass implements Insertable<Product> {
       required this.isDeleted,
       this.imageUrl,
       this.localImagePath,
-      required this.imageSynced});
+      required this.imageSynced,
+      this.category});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1051,6 +1066,9 @@ class Product extends DataClass implements Insertable<Product> {
       map['local_image_path'] = Variable<String>(localImagePath);
     }
     map['image_synced'] = Variable<bool>(imageSynced);
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
     return map;
   }
 
@@ -1077,6 +1095,9 @@ class Product extends DataClass implements Insertable<Product> {
           ? const Value.absent()
           : Value(localImagePath),
       imageSynced: Value(imageSynced),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
     );
   }
 
@@ -1099,6 +1120,7 @@ class Product extends DataClass implements Insertable<Product> {
       imageUrl: serializer.fromJson<String?>(json['imageUrl']),
       localImagePath: serializer.fromJson<String?>(json['localImagePath']),
       imageSynced: serializer.fromJson<bool>(json['imageSynced']),
+      category: serializer.fromJson<String?>(json['category']),
     );
   }
   @override
@@ -1120,6 +1142,7 @@ class Product extends DataClass implements Insertable<Product> {
       'imageUrl': serializer.toJson<String?>(imageUrl),
       'localImagePath': serializer.toJson<String?>(localImagePath),
       'imageSynced': serializer.toJson<bool>(imageSynced),
+      'category': serializer.toJson<String?>(category),
     };
   }
 
@@ -1138,7 +1161,8 @@ class Product extends DataClass implements Insertable<Product> {
           bool? isDeleted,
           Value<String?> imageUrl = const Value.absent(),
           Value<String?> localImagePath = const Value.absent(),
-          bool? imageSynced}) =>
+          bool? imageSynced,
+          Value<String?> category = const Value.absent()}) =>
       Product(
         id: id ?? this.id,
         storeId: storeId ?? this.storeId,
@@ -1156,6 +1180,7 @@ class Product extends DataClass implements Insertable<Product> {
         localImagePath:
             localImagePath.present ? localImagePath.value : this.localImagePath,
         imageSynced: imageSynced ?? this.imageSynced,
+        category: category.present ? category.value : this.category,
       );
   Product copyWithCompanion(ProductsCompanion data) {
     return Product(
@@ -1179,6 +1204,7 @@ class Product extends DataClass implements Insertable<Product> {
           : this.localImagePath,
       imageSynced:
           data.imageSynced.present ? data.imageSynced.value : this.imageSynced,
+      category: data.category.present ? data.category.value : this.category,
     );
   }
 
@@ -1199,7 +1225,8 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('isDeleted: $isDeleted, ')
           ..write('imageUrl: $imageUrl, ')
           ..write('localImagePath: $localImagePath, ')
-          ..write('imageSynced: $imageSynced')
+          ..write('imageSynced: $imageSynced, ')
+          ..write('category: $category')
           ..write(')'))
         .toString();
   }
@@ -1220,7 +1247,8 @@ class Product extends DataClass implements Insertable<Product> {
       isDeleted,
       imageUrl,
       localImagePath,
-      imageSynced);
+      imageSynced,
+      category);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1239,7 +1267,8 @@ class Product extends DataClass implements Insertable<Product> {
           other.isDeleted == this.isDeleted &&
           other.imageUrl == this.imageUrl &&
           other.localImagePath == this.localImagePath &&
-          other.imageSynced == this.imageSynced);
+          other.imageSynced == this.imageSynced &&
+          other.category == this.category);
 }
 
 class ProductsCompanion extends UpdateCompanion<Product> {
@@ -1258,6 +1287,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<String?> imageUrl;
   final Value<String?> localImagePath;
   final Value<bool> imageSynced;
+  final Value<String?> category;
   final Value<int> rowid;
   const ProductsCompanion({
     this.id = const Value.absent(),
@@ -1275,6 +1305,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.imageUrl = const Value.absent(),
     this.localImagePath = const Value.absent(),
     this.imageSynced = const Value.absent(),
+    this.category = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ProductsCompanion.insert({
@@ -1293,6 +1324,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.imageUrl = const Value.absent(),
     this.localImagePath = const Value.absent(),
     this.imageSynced = const Value.absent(),
+    this.category = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         storeId = Value(storeId),
@@ -1316,6 +1348,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<String>? imageUrl,
     Expression<String>? localImagePath,
     Expression<bool>? imageSynced,
+    Expression<String>? category,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1334,6 +1367,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (imageUrl != null) 'image_url': imageUrl,
       if (localImagePath != null) 'local_image_path': localImagePath,
       if (imageSynced != null) 'image_synced': imageSynced,
+      if (category != null) 'category': category,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1354,6 +1388,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       Value<String?>? imageUrl,
       Value<String?>? localImagePath,
       Value<bool>? imageSynced,
+      Value<String?>? category,
       Value<int>? rowid}) {
     return ProductsCompanion(
       id: id ?? this.id,
@@ -1371,6 +1406,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       imageUrl: imageUrl ?? this.imageUrl,
       localImagePath: localImagePath ?? this.localImagePath,
       imageSynced: imageSynced ?? this.imageSynced,
+      category: category ?? this.category,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1423,6 +1459,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (imageSynced.present) {
       map['image_synced'] = Variable<bool>(imageSynced.value);
     }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1447,6 +1486,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('imageUrl: $imageUrl, ')
           ..write('localImagePath: $localImagePath, ')
           ..write('imageSynced: $imageSynced, ')
+          ..write('category: $category, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5136,6 +5176,7 @@ typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   Value<String?> imageUrl,
   Value<String?> localImagePath,
   Value<bool> imageSynced,
+  Value<String?> category,
   Value<int> rowid,
 });
 typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
@@ -5154,6 +5195,7 @@ typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<String?> imageUrl,
   Value<String?> localImagePath,
   Value<bool> imageSynced,
+  Value<String?> category,
   Value<int> rowid,
 });
 
@@ -5273,6 +5315,9 @@ class $$ProductsTableFilterComposer
 
   ColumnFilters<bool> get imageSynced => $composableBuilder(
       column: $table.imageSynced, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnFilters(column));
 
   $$StoresTableFilterComposer get storeId {
     final $$StoresTableFilterComposer composer = $composerBuilder(
@@ -5411,6 +5456,9 @@ class $$ProductsTableOrderingComposer
   ColumnOrderings<bool> get imageSynced => $composableBuilder(
       column: $table.imageSynced, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnOrderings(column));
+
   $$StoresTableOrderingComposer get storeId {
     final $$StoresTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -5482,6 +5530,9 @@ class $$ProductsTableAnnotationComposer
 
   GeneratedColumn<bool> get imageSynced => $composableBuilder(
       column: $table.imageSynced, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
 
   $$StoresTableAnnotationComposer get storeId {
     final $$StoresTableAnnotationComposer composer = $composerBuilder(
@@ -5609,6 +5660,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String?> imageUrl = const Value.absent(),
             Value<String?> localImagePath = const Value.absent(),
             Value<bool> imageSynced = const Value.absent(),
+            Value<String?> category = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductsCompanion(
@@ -5627,6 +5679,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             imageUrl: imageUrl,
             localImagePath: localImagePath,
             imageSynced: imageSynced,
+            category: category,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -5645,6 +5698,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String?> imageUrl = const Value.absent(),
             Value<String?> localImagePath = const Value.absent(),
             Value<bool> imageSynced = const Value.absent(),
+            Value<String?> category = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductsCompanion.insert(
@@ -5663,6 +5717,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             imageUrl: imageUrl,
             localImagePath: localImagePath,
             imageSynced: imageSynced,
+            category: category,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

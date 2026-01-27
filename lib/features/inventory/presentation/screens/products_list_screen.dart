@@ -190,13 +190,20 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
   }
 
   Widget _buildFilterPills() {
-    final filters = [
-      'Бүгд',
-      'Бага үлдэгдэл',
-      'Хүнс',
-      'Ундаа',
-      'Гэр ахуй',
-    ];
+    // Бодит барааны категориудыг provider-аас авах
+    final productsAsync = ref.watch(productListProvider());
+
+    // Динамик категориудыг үүсгэх
+    final filters = productsAsync.whenOrNull(
+      data: (products) {
+        final categories = products
+            .map((p) => p.category ?? 'Бусад')
+            .toSet()
+            .toList()
+          ..sort();
+        return ['Бүгд', 'Бага үлдэгдэл', ...categories];
+      },
+    ) ?? ['Бүгд', 'Бага үлдэгдэл']; // Fallback
 
     return SizedBox(
       height: 40,
@@ -269,81 +276,95 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
   }
 
   Widget _buildProductsGrid() {
-    // Mock products data
-    final products = [
-      {
-        'name': 'Coca Cola 500мл',
-        'sku': 'BEV-001',
-        'price': 2000,
-        'stock': 156,
-        'isLowStock': false,
-        'category': 'Ундаа',
-      },
-      {
-        'name': 'Талх Атар',
-        'sku': 'FOD-023',
-        'price': 2400,
-        'stock': 12,
-        'isLowStock': false,
-        'category': 'Хүнс',
-      },
-      {
-        'name': 'Сүү ІЛ 1л',
-        'sku': 'BEV-045',
-        'price': 3200,
-        'stock': 8,
-        'isLowStock': true,
-        'category': 'Ундаа',
-      },
-      {
-        'name': 'Зөгийн бал',
-        'sku': 'FOD-089',
-        'price': 15000,
-        'stock': 5,
-        'isLowStock': true,
-        'category': 'Хүнс',
-      },
-      {
-        'name': 'Шампунь',
-        'sku': 'HSE-012',
-        'price': 8500,
-        'stock': 24,
-        'isLowStock': false,
-        'category': 'Гэр ахуй',
-      },
-      {
-        'name': 'Угаалгын нунтаг',
-        'sku': 'HSE-034',
-        'price': 12000,
-        'stock': 18,
-        'isLowStock': false,
-        'category': 'Гэр ахуй',
-      },
-    ];
+    // Provider-аас бодит өгөгдөл авах
+    final productsAsync = ref.watch(productListProvider());
 
-    return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.7,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: products.length,
-      itemBuilder: (context, index) {
-        final product = products[index];
-        return _buildProductCard(
-          name: product['name'] as String,
-          sku: product['sku'] as String,
-          price: product['price'] as int,
-          stock: product['stock'] as int,
-          isLowStock: product['isLowStock'] as bool,
-          onTap: () {
-            // Navigate to product detail
-            context.push(RouteNames.productDetailPath('mock-id-$index'));
+    return productsAsync.when(
+      // ДАТА ИРСЭН
+      data: (products) {
+        // "Бага үлдэгдэл" filter (client-side)
+        final filtered = _selectedFilter == 'Бага үлдэгдэл'
+            ? products.where((p) => p.isLowStock).toList()
+            : products;
+
+        // Empty state - бараа байхгүй
+        if (filtered.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 64,
+                  color: Colors.grey[300],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Бараа байхгүй байна',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // GridView - барааны жагсаалт
+        return GridView.builder(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.7,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: filtered.length,
+          itemBuilder: (context, index) {
+            final product = filtered[index];
+            return _buildProductCard(
+              name: product.name,
+              sku: product.sku,
+              price: product.sellPrice.toInt(),
+              stock: product.stockQuantity,
+              isLowStock: product.isLowStock,
+              onTap: () {
+                context.push(RouteNames.productDetailPath(product.id));
+              },
+            );
           },
         );
       },
+
+      // LOADING STATE
+      loading: () => const Center(
+        child: CircularProgressIndicator(),
+      ),
+
+      // ERROR STATE
+      error: (error, stack) => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.error_outline,
+              size: 48,
+              color: Colors.red,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Алдаа гарлаа: $error',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => ref.invalidate(productListProvider()),
+              child: const Text('Дахин оролдох'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

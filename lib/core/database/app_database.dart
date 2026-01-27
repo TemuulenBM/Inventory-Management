@@ -55,6 +55,9 @@ class Products extends Table {
   BoolColumn get imageSynced =>
       boolean().withDefault(const Constant(true))(); // Зураг sync хийгдсэн эсэх
 
+  // Ангилал талбар
+  TextColumn get category => text().nullable()(); // Барааны ангилал (Хүнс, Ундаа, Гэр ахуй гэх мэт)
+
   @override
   Set<Column> get primaryKey => {id};
 }
