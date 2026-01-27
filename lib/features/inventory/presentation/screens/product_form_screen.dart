@@ -10,6 +10,7 @@ import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/constants/product_categories.dart';
 import 'package:retail_control_platform/core/services/image_service.dart';
+import 'package:retail_control_platform/core/widgets/modals/custom_category_dialog.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 
 /// Product Form Screen (Add/Edit)
@@ -51,6 +52,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   void initState() {
     super.initState();
     _loadProductData();
+    _loadCategories();
   }
 
   /// Бараа засах үед бодит data ачаалах
@@ -86,6 +88,29 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       }
     } catch (e) {
       debugPrint('_loadProductData error: $e');
+    }
+  }
+
+  /// Database-аас бүх категориудыг ачаалж, predefined + custom нэгтгэх
+  Future<void> _loadCategories() async {
+    try {
+      final products = await ref.read(productListProvider().future);
+
+      // Predefined + custom categories
+      final categorySet = ProductCategories.values.toSet();
+      for (final product in products) {
+        if (product.category != null && product.category!.isNotEmpty) {
+          categorySet.add(product.category!);
+        }
+      }
+
+      if (mounted) {
+        setState(() {
+          _categories = categorySet.toList()..sort();
+        });
+      }
+    } catch (e) {
+      debugPrint('_loadCategories error: $e');
     }
   }
 
@@ -611,22 +636,108 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     });
   }
 
+  /// Шинэ категори нэмэх dialog харуулах
+  Future<void> _showAddCategoryDialog() async {
+    final categoryName = await CustomCategoryDialog.show(context);
+
+    if (categoryName != null && categoryName.isNotEmpty && mounted) {
+      // Duplicate check (case-insensitive)
+      final isDuplicate = _categories.any(
+        (cat) => cat.toLowerCase() == categoryName.toLowerCase(),
+      );
+
+      if (isDuplicate) {
+        // Warning snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Энэ категори аль хэдийн байна',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: const Color(0xFFF59E0B),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: AppRadius.radiusMD,
+            ),
+          ),
+        );
+        return;
+      }
+
+      // Add to list and select
+      setState(() {
+        _categories = [..._categories, categoryName];
+        _selectedCategory = categoryName;
+      });
+
+      // Success snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '"$categoryName" категори нэмэгдлээ',
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: const Color(0xFF059669),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: AppRadius.radiusMD,
+          ),
+        ),
+      );
+    }
+  }
+
   Widget _buildCategorySelector() {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: _categories.map((category) {
-        final isSelected = _selectedCategory == category;
-        return Material(
-          color: isSelected ? AppColors.primary : Colors.white,
+      children: [
+        // Existing category pills
+        ..._categories.map((category) {
+          final isSelected = _selectedCategory == category;
+          return Material(
+            color: isSelected ? AppColors.primary : Colors.white,
+            borderRadius: AppRadius.radiusLG,
+            elevation: 0,
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedCategory = category;
+                });
+              },
+              borderRadius: AppRadius.radiusLG,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: isSelected ? Colors.transparent : AppColors.gray200,
+                    width: 1.5,
+                  ),
+                  borderRadius: AppRadius.radiusLG,
+                ),
+                child: Text(
+                  category,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? Colors.white : AppColors.gray600,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+
+        // "Шинэ категори" pill
+        Material(
+          color: Colors.white,
           borderRadius: AppRadius.radiusLG,
           elevation: 0,
           child: InkWell(
-            onTap: () {
-              setState(() {
-                _selectedCategory = category;
-              });
-            },
+            onTap: _showAddCategoryDialog,
             borderRadius: AppRadius.radiusLG,
             child: Container(
               padding: const EdgeInsets.symmetric(
@@ -635,23 +746,34 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               ),
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: isSelected ? Colors.transparent : AppColors.gray200,
+                  color: AppColors.primary,
                   width: 1.5,
                 ),
                 borderRadius: AppRadius.radiusLG,
               ),
-              child: Text(
-                category,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: isSelected ? Colors.white : AppColors.gray600,
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.add_circle_outline,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Шинэ категори',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-        );
-      }).toList(),
+        ),
+      ],
     );
   }
 
