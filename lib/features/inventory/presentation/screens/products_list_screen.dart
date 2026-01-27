@@ -195,13 +195,13 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
     // Бодит барааны категориудыг provider-аас авах (backward compatibility)
     final productsAsync = ref.watch(productListProvider());
 
-    // Hybrid approach: Constants + нэмэлт database категориуд
+    // Dynamic-only approach: Зөвхөн database-аас категориуд
     final filters = productsAsync.whenOrNull(
       data: (products) {
-        // 1. Constants-аас үндсэн категориуд
-        final categorySet = ProductCategories.values.toSet();
+        // Зөвхөн database-аас категориуд авах
+        final categorySet = <String>{};
 
-        // 2. Database-аас нэмэлт категориуд (constants дээр байхгүй бол)
+        // Database-аас бүх категориуд цуглуулах
         for (final product in products) {
           if (product.category != null && product.category!.isNotEmpty) {
             categorySet.add(product.category!);
@@ -213,7 +213,7 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
 
         return ['Бүгд', 'Бага үлдэгдэл', ...categories];
       },
-    ) ?? ['Бүгд', 'Бага үлдэгдэл', ...ProductCategories.values]; // Fallback
+    ) ?? ['Бүгд', 'Бага үлдэгдэл']; // Fallback - зөвхөн special filters
 
     return SizedBox(
       height: 40,
