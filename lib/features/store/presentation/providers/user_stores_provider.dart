@@ -7,6 +7,7 @@
  * - Owner олон дэлгүүртэй байх боломжтой
  */
 
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:retail_control_platform/core/api/api_client.dart';
 import 'package:retail_control_platform/core/api/api_endpoints.dart';
@@ -61,9 +62,12 @@ class UserStores extends _$UserStores {
     try {
       final response = await apiClient.post(
         ApiEndpoints.selectStore(user.id, storeId),
+        data: {}, // Fastify JSON parser-д body хоосон байх ёсгүй
       );
 
-      if (response.statusCode == 200 && response.data['success'] == true) {
+      if (response.statusCode == 200 &&
+          response.data != null &&
+          response.data['success'] == true) {
         // User state шинэчлэх (storeId өөрчлөгдсөн тул)
         await ref.read(authNotifierProvider.notifier).refreshCurrentUser();
 
@@ -74,7 +78,9 @@ class UserStores extends _$UserStores {
       }
 
       return false;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('❌ Store selection error: $e');
+      debugPrint('Stack trace: $stackTrace');
       return false;
     }
   }
