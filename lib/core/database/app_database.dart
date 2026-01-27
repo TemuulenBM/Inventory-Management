@@ -266,11 +266,22 @@ class AppDatabase extends _$AppDatabase {
     return result.fold<double>(0, (sum, sale) => sum + sale.totalAmount);
   }
 
-  /// Шилдэг борлуулалттай бараанууд (Top 5)
-  Future<List<Map<String, dynamic>>> getTopSellingProducts(String storeId,
-      {int limit = 5}) async {
+  /// Шилдэг борлуулалттай бараанууд
+  ///
+  /// [dateRange] options:
+  /// - 'today': Өнөөдөр борлуулсан (default)
+  /// - 'week': 7 хоногийн
+  /// - 'month': Сарын
+  /// - 'all': Бүх цагийн
+  Future<List<Map<String, dynamic>>> getTopSellingProducts(
+    String storeId, {
+    int limit = 5,
+    String dateRange = 'all',
+  }) async {
     // Join: Sales → SaleItems → Products
     // Group by product, sum quantities
+    final whereClause = _getDateFilter(dateRange);
+
     final query = customSelect(
       '''
       SELECT
@@ -282,7 +293,7 @@ class AppDatabase extends _$AppDatabase {
       INNER JOIN sales s ON si.sale_id = s.id
       INNER JOIN products p ON si.product_id = p.id
       WHERE s.store_id = ?
-        AND s.timestamp >= date('now', 'start of day')
+        $whereClause
       GROUP BY p.id
       ORDER BY total_quantity DESC
       LIMIT ?
@@ -292,6 +303,21 @@ class AppDatabase extends _$AppDatabase {
 
     final result = await query.get();
     return result.map((row) => row.data).toList();
+  }
+
+  /// Date filter helper for getTopSellingProducts
+  String _getDateFilter(String dateRange) {
+    switch (dateRange) {
+      case 'today':
+        return "AND s.timestamp >= date('now', 'start of day')";
+      case 'week':
+        return "AND s.timestamp >= date('now', '-7 days')";
+      case 'month':
+        return "AND s.timestamp >= date('now', '-1 month')";
+      case 'all':
+      default:
+        return ''; // No date filter
+    }
   }
 
   // ============================================================================

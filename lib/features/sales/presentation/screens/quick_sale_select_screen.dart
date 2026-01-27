@@ -6,6 +6,7 @@ import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
+import 'package:retail_control_platform/features/inventory/presentation/providers/top_selling_provider.dart';
 import 'package:retail_control_platform/features/sales/presentation/providers/cart_provider.dart';
 import 'package:retail_control_platform/features/inventory/domain/product_with_stock.dart';
 import 'package:retail_control_platform/features/sales/domain/cart_item.dart';
@@ -36,6 +37,7 @@ class _QuickSaleSelectScreenState
   Widget build(BuildContext context) {
     // Provider-уудаас дата авах
     final productsAsync = ref.watch(productListProvider());
+    final topSellingIdsAsync = ref.watch(topSellingProductIdsProvider);
     final cartItems = ref.watch(cartNotifierProvider);
     final cartCount = ref.watch(cartItemCountProvider);
     final cartTotal = ref.watch(cartTotalProvider);
@@ -66,7 +68,11 @@ class _QuickSaleSelectScreenState
                 // Product grid
                 Expanded(
                   child: productsAsync.when(
-                    data: (products) => _buildProductGrid(products, cartItems),
+                    data: (products) => _buildProductGrid(
+                      products,
+                      cartItems,
+                      topSellingIdsAsync,
+                    ),
                     loading: () => const Center(child: CircularProgressIndicator()),
                     error: (e, _) => Center(
                       child: Column(
@@ -103,66 +109,101 @@ class _QuickSaleSelectScreenState
   }
 
   Widget _buildHeader() {
+    final canGoBack = GoRouter.of(context).canPop();
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Title + sync badge
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Sync indicator
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF10B981),
-                      shape: BoxShape.circle,
+          // Back button (зүүн өнцөг)
+          if (canGoBack) ...[
+            Material(
+              color: Colors.white,
+              borderRadius: AppRadius.radiusLG,
+              elevation: 0,
+              child: InkWell(
+                onTap: () => context.pop(),
+                borderRadius: AppRadius.radiusLG,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: AppColors.gray100,
+                      width: 1,
                     ),
-                    child: Container(
-                      margin: const EdgeInsets.all(1.5),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF10B981),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.5),
-                            blurRadius: 4,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                    ),
+                    borderRadius: AppRadius.radiusLG,
                   ),
-                  const SizedBox(width: 6),
-                  const Text(
-                    'SYNCED',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF059669),
-                      letterSpacing: 0.8,
-                    ),
+                  child: const Icon(
+                    Icons.arrow_back,
+                    color: AppColors.textMainLight,
+                    size: 24,
                   ),
-                ],
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Хурдан борлуулалт',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textMainLight,
-                  fontFamily: 'Epilogue',
                 ),
               ),
-            ],
+            ),
+            const SizedBox(width: 12),
+          ],
+
+          // Title + sync badge (expand to fill)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Sync indicator
+                Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF10B981),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Container(
+                        margin: const EdgeInsets.all(1.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF10B981),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF10B981).withValues(alpha: 0.5),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'SYNCED',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF059669),
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Хурдан борлуулалт',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textMainLight,
+                    fontFamily: 'Epilogue',
+                  ),
+                ),
+              ],
+            ),
           ),
 
-          // Barcode scanner button
+          const SizedBox(width: 12),
+
+          // Barcode scanner button (баруун өнцөг)
           Material(
             color: Colors.white,
             borderRadius: AppRadius.radiusLG,
@@ -378,19 +419,57 @@ class _QuickSaleSelectScreenState
     );
   }
 
-  Widget _buildProductGrid(List<ProductWithStock> products, List<CartItem> cartItems) {
-    // Category filter
+  Widget _buildProductGrid(
+    List<ProductWithStock> products,
+    List<CartItem> cartItems,
+    AsyncValue<List<String>> topSellingIdsAsync,
+  ) {
+    // 1. Category filter
     final filtered = _selectedCategory == 'Бүгд'
         ? products
         : products.where((p) => p.category == _selectedCategory).toList();
 
-    // Search filter
+    // 2. Search filter
     final searchText = _searchController.text.toLowerCase();
     final searchFiltered = searchText.isEmpty
         ? filtered
         : filtered.where((p) => p.name.toLowerCase().contains(searchText)).toList();
 
-    if (searchFiltered.isEmpty) {
+    // 3. TAB FILTER (Онцлох/Сүүлд)
+    List<ProductWithStock> tabFiltered;
+
+    if (_selectedTab == 'Онцлох') {
+      // "Онцлох" = Top-selling products
+      final topSellingIds = topSellingIdsAsync.valueOrNull ?? [];
+
+      if (topSellingIds.isEmpty) {
+        // Sales data байхгүй үед бүх барааг харуулах (fallback)
+        tabFiltered = searchFiltered;
+      } else {
+        // Top-selling products filter + sort
+        tabFiltered = searchFiltered
+            .where((p) => topSellingIds.contains(p.id))
+            .toList();
+
+        // Борлуулалтын дараалал дагуу эрэмбэлэх
+        tabFiltered.sort((a, b) {
+          final aIndex = topSellingIds.indexOf(a.id);
+          final bIndex = topSellingIds.indexOf(b.id);
+          return aIndex.compareTo(bIndex);
+        });
+      }
+    } else {
+      // "Сүүлд" = Recently added products (createdAt DESC)
+      tabFiltered = searchFiltered;
+      tabFiltered.sort((a, b) {
+        final aTime = a.createdAt ?? DateTime(1970);
+        final bTime = b.createdAt ?? DateTime(1970);
+        return bTime.compareTo(aTime); // Newest first
+      });
+    }
+
+    // Empty state
+    if (tabFiltered.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -406,6 +485,7 @@ class _QuickSaleSelectScreenState
       );
     }
 
+    // Grid view
     return GridView.builder(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -414,9 +494,9 @@ class _QuickSaleSelectScreenState
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
-      itemCount: searchFiltered.length,
+      itemCount: tabFiltered.length,
       itemBuilder: (context, index) {
-        final product = searchFiltered[index];
+        final product = tabFiltered[index];
         final inCart = cartItems.any((item) => item.product.id == product.id);
         return _buildProductCard(product: product, inCart: inCart);
       },
