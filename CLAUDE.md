@@ -8,6 +8,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 2. **Сургалтын зорилготой** - Код бичихдээ яагаад ийм шийдэл сонгосон, ямар pattern ашигласан, юу сурч болох талаар тайлбарлаж өг. Хэрэглэгчийн суурь мэдлэгийг дээшлүүлэхэд туслах
 3. **Git commit** - Commit message-д "Co-Authored-By" мөр хэзээ ч бүү нэм
 4. **Код дээрх тайлбар монголоор** - Docblock, comment, TODO зэрэг кодын тайлбаруудыг монгол хэлээр бич
+5. **Junior Developer Support** - Танд туслах үед:
+   - **Best Practices тайлбарлах**: Clean code зарчим, SOLID principles, design patterns-уудыг яагаад ашигласан талаар тайлбарлах
+   - **Code Quality Checklist**: Код бичсний дараа дараах зүйлсийг заавал шалгах
+     - Type safety: Бүх variable болон parameter-үүд зөв type-тай эсэхийг шалгах
+     - Error handling: Try-catch, null checks зэргийг зөв хийсэн эсэхийг шалгах
+     - Tests: Unit болон integration тестүүд бичсэн эсэхийг шалгах
+     - Performance: Memory leak, unnecessary re-renders байхгүй эсэхийг шалгах
+   - **Алдааны тайлбар**: Хэрэв код дээр алдаа олдвол эсвэл сайжруулалт хийвэл:
+     - Яагаад хуучин код буруу байсан талаар тайлбарлах
+     - Яаж сайжруулсан, ямар principle ашигласан талаар тайлбарлах
+     - Ирээдүйд ийм алдаанаас хэрхэн зайлсхийх талаар зөвлөмж өгөх
+   - **Альтернатив шийдлүүд**: Нэг асуудлыг хэд хэдэн аргаар шийдэж болох бол:
+     - Сонгосон шийдлийн давуу ба сул талуудыг тайлбарлах (trade-offs)
+     - Бусад хувилбаруудыг яагаад сонгоогүй талаар тайлбарлах
+     - Энэ тохиолдолд яагаад энэ шийдэл хамгийн тохиромжтой талаар тайлбарлах
 
 ## Project Overview
 
@@ -30,14 +45,16 @@ flutter test test/path/to/test_file.dart                     # Run single test
 flutter analyze                                              # Static analysis
 flutter gen-l10n                                             # Regenerate localization
 
-# iOS specific
+# macOS/iOS specific
 cd ios && pod install && cd ..                               # Install iOS dependencies
+cd macos && pod install && cd ..                             # Install macOS dependencies
 ```
 
 **IMPORTANT**:
 - After modifying `*.dart` files with `@freezed`, `@riverpod`, or Drift tables, always run `build_runner build`
 - Use `build_runner watch` during active development to auto-regenerate on file changes
-- Run `pod install` after adding new iOS dependencies
+- Run `pod install` after adding new iOS/macOS dependencies
+- **macOS Xcode 26 Compatibility**: Firebase packages are temporarily disabled in `pubspec.yaml` (commented out) for Xcode 26 compatibility. Sentry is used instead for monitoring.
 
 ### Backend (Node.js)
 
@@ -62,6 +79,15 @@ npm run docker:logs      # View container logs
 ```
 
 ## Architecture
+
+### Product Category System
+
+Products are categorized using a centralized constant system:
+- Category values defined in [lib/core/constants/product_categories.dart](lib/core/constants/product_categories.dart)
+- Ensures consistency across Product Form, Products List, and database
+- Categories: 'Хувцас', 'Хүнс', 'Ундаа', 'Гэр ахуй', 'Бусад'
+- ALWAYS use `ProductCategories.values` for category dropdowns
+- NEVER hardcode category strings
 
 ### Flutter App Structure
 
@@ -138,6 +164,9 @@ class Products extends Table {
 - `supabase_flutter` - Backend client
 - `dio` - HTTP client
 - `image_picker` & `flutter_image_compress` - Image handling
+- `pinput` - OTP input widget
+- `flutter_secure_storage` - Secure token storage
+- `flutter_animate` - Animations
 
 **Backend**:
 - `fastify` - Web framework

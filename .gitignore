@@ -58,3 +58,7 @@ supabase/.temp
 backend/node_modules
 backend/dist
 backend/.env
+
+# Backend test files (local testing only)
+backend/test-*.sh
+backend/test-*.sql

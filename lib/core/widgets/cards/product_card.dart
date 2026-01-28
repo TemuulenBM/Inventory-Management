@@ -67,26 +67,30 @@ class ProductCard extends StatelessWidget {
             // Product info
             Expanded(
               child: Padding(
-                padding: AppSpacing.paddingSM,
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Product name
-                    Text(
-                      name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        height: 1.3,
+                    Flexible(
+                      child: Text(
+                        name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          height: 1.2,
+                        ),
                       ),
                     ),
-                    const Spacer(),
+                    const SizedBox(height: 4),
 
                     // Price and add button
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
                           '₮${price.toStringAsFixed(0)}',
@@ -98,12 +102,12 @@ class ProductCard extends StatelessWidget {
                         ),
                         if (onAddToCart != null)
                           SizedBox(
-                            width: 32,
-                            height: 32,
+                            width: 28,
+                            height: 28,
                             child: IconButton(
                               onPressed: stockQuantity > 0 ? onAddToCart : null,
                               icon: const Icon(Icons.add_shopping_cart),
-                              iconSize: 18,
+                              iconSize: 16,
                               color: AppColors.secondary,
                               style: IconButton.styleFrom(
                                 backgroundColor: stockQuantity > 0

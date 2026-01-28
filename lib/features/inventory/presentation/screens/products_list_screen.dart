@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
-import 'package:retail_control_platform/core/constants/product_categories.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 
@@ -58,33 +57,28 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
     );
   }
 
+  /// Header - Title болон Sync badge
+  ///
+  /// Back button устгасан учир:
+  /// - Энэ screen нь Bottom Navigation tab screen юм
+  /// - Tab screen-үүд routing stack дээр push хийгдэхгүй, зөвхөн replace хийгддэг
+  /// - Тиймээс context.pop() хийх боломжгүй (stack хоосон байдаг)
+  /// - Хэрэглэгч bottom navigation дээр дарж өөр tab руу шилжинэ
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Back button + Title
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: AppColors.textMainLight,
-                ),
-                onPressed: () => context.pop(),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Барааны жагсаалт',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textMainLight,
-                  fontFamily: 'Epilogue',
-                ),
-              ),
-            ],
+          // Title (Back button-гүй болсон - bottom navigation pattern)
+          const Text(
+            'Барааны жагсаалт',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textMainLight,
+              fontFamily: 'Epilogue',
+            ),
           ),
 
           // Sync badge
@@ -339,6 +333,7 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
               price: product.sellPrice.toInt(),
               stock: product.stockQuantity,
               isLowStock: product.isLowStock,
+              imageUrl: product.imageUrl,
               onTap: () {
                 context.push(RouteNames.productDetailPath(product.id));
               },
@@ -385,6 +380,7 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
     required int stock,
     required bool isLowStock,
     required VoidCallback onTap,
+    String? imageUrl,
   }) {
     return Material(
       color: Colors.white,
@@ -411,24 +407,47 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Product image placeholder
+              // Product image
               Stack(
                 children: [
                   Container(
                     height: 140,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppColors.gray100,
-                      borderRadius: const BorderRadius.only(
+                      borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(24),
                         topRight: Radius.circular(24),
                       ),
                     ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.inventory_2_outlined,
-                        size: 48,
-                        color: AppColors.gray300,
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
                       ),
+                      child: (imageUrl != null && imageUrl.isNotEmpty)
+                          ? Image.network(
+                              imageUrl,
+                              height: 140,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                // Зураг ачаалагдаагүй бол placeholder харуулах
+                                return _buildImagePlaceholder();
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                // Зураг ачаалж байх үед loading indicator харуулах
+                                return Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                );
+                              },
+                            )
+                          : _buildImagePlaceholder(),
                     ),
                   ),
                   // Stock badge
@@ -485,41 +504,44 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
               // Product info
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // SKU
                       Text(
                         sku,
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: AppColors.gray400,
-                          letterSpacing: 0.5,
+                          letterSpacing: 0.3,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 3),
 
                       // Product name
-                      Text(
-                        name,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textMainLight,
-                          height: 1.2,
+                      Flexible(
+                        child: Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textMainLight,
+                            height: 1.15,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                      const Spacer(),
+                      const SizedBox(height: 2),
 
                       // Price
                       Text(
-                        '${price}₮',
+                        '$price₮',
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 16,
                           fontWeight: FontWeight.w800,
                           color: AppColors.primary,
                           fontFamily: 'Epilogue',
@@ -555,6 +577,16 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
           fontWeight: FontWeight.w700,
           color: Colors.white,
         ),
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder() {
+    return const Center(
+      child: Icon(
+        Icons.inventory_2_outlined,
+        size: 48,
+        color: AppColors.gray300,
       ),
     );
   }
