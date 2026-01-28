@@ -143,33 +143,37 @@ class SettingsScreen extends ConsumerWidget {
             ],
 
             // ===== Аппын тохиргоо =====
-            SettingsSection(
-              title: 'АППЛКЕЙШН',
-              tiles: [
-                SettingsTile(
-                  icon: Icons.access_time_outlined,
-                  iconColor: AppColors.secondary,
-                  title: 'Ээлж',
-                  subtitle: 'Ээлжийн удирдлага',
-                  onTap: () => context.go(RouteNames.shifts),
-                ),
-                SettingsTile(
-                  icon: Icons.notifications_outlined,
-                  iconColor: AppColors.warningOrange,
-                  title: 'Сэрэмжлүүлэг',
-                  subtitle: 'Мэдэгдэл, анхааруулга',
-                  onTap: () => context.go(RouteNames.alerts),
-                ),
-                SettingsTile(
-                  icon: Icons.sync_outlined,
-                  iconColor: AppColors.successGreen,
-                  title: 'Синк',
-                  subtitle: 'Offline/Online синхрончлол',
-                  onTap: () => context.go(RouteNames.syncConflicts),
-                ),
-              ],
-            ),
-            AppSpacing.verticalMD,
+            // Super-admin-д store-specific features (Ээлж, Синк, Сэрэмжлүүлэг) хэрэггүй
+            // Учир нь super-admin нь storeId = null (дэлгүүргүй)
+            if (user?.role != 'super_admin') ...[
+              SettingsSection(
+                title: 'АППЛКЕЙШН',
+                tiles: [
+                  SettingsTile(
+                    icon: Icons.access_time_outlined,
+                    iconColor: AppColors.secondary,
+                    title: 'Ээлж',
+                    subtitle: 'Ээлжийн удирдлага',
+                    onTap: () => context.go(RouteNames.shifts),
+                  ),
+                  SettingsTile(
+                    icon: Icons.notifications_outlined,
+                    iconColor: AppColors.warningOrange,
+                    title: 'Сэрэмжлүүлэг',
+                    subtitle: 'Мэдэгдэл, анхааруулга',
+                    onTap: () => context.go(RouteNames.alerts),
+                  ),
+                  SettingsTile(
+                    icon: Icons.sync_outlined,
+                    iconColor: AppColors.successGreen,
+                    title: 'Синк',
+                    subtitle: 'Offline/Online синхрончлол',
+                    onTap: () => context.go(RouteNames.syncConflicts),
+                  ),
+                ],
+              ),
+              AppSpacing.verticalMD,
+            ],
 
             // ===== Тусламж =====
             SettingsSection(
