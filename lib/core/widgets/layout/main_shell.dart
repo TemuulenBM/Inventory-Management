@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
+import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
 
 /// Main Shell - Bottom Navigation Bar агуулсан wrapper
 /// Dashboard, Quick Sale, Inventory, Settings дэлгэцүүдэд хамаарна
-class MainShell extends StatelessWidget {
+/// Role-based navigation: super-admin зөвхөн Dashboard болон Settings харна
+class MainShell extends ConsumerWidget {
   final Widget child;
   final int currentIndex;
 
@@ -15,7 +18,14 @@ class MainShell extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Super-admin эсэхийг шалгах
+    final user = ref.watch(currentUserProvider);
+    final isSuperAdmin = user?.role == 'super_admin';
+
+    // Role-д тохирсон navigation items үүсгэх
+    final navItems = _buildNavigationItems(isSuperAdmin);
+
     return Scaffold(
       body: child,
       bottomNavigationBar: Container(
@@ -34,41 +44,72 @@ class MainShell extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(
+              children: navItems.map((item) {
+                return _buildNavItem(
                   context,
-                  index: 0,
-                  icon: Icons.storefront_outlined,
-                  activeIcon: Icons.storefront,
-                  label: 'Нүүр',
-                ),
-                _buildNavItem(
-                  context,
-                  index: 1,
-                  icon: Icons.inventory_2_outlined,
-                  activeIcon: Icons.inventory_2,
-                  label: 'Бараа',
-                ),
-                _buildNavItem(
-                  context,
-                  index: 2,
-                  icon: Icons.history_outlined,
-                  activeIcon: Icons.history,
-                  label: 'Түүх',
-                ),
-                _buildNavItem(
-                  context,
-                  index: 3,
-                  icon: Icons.settings_outlined,
-                  activeIcon: Icons.settings,
-                  label: 'Тохиргоо',
-                ),
-              ],
+                  index: item['index'] as int,
+                  icon: item['icon'] as IconData,
+                  activeIcon: item['activeIcon'] as IconData,
+                  label: item['label'] as String,
+                );
+              }).toList(),
             ),
           ),
         ),
       ),
     );
+  }
+
+  /// Role-д тохирсон navigation items буцаах
+  /// Super-admin: Dashboard (index 0), Settings (index 3)
+  /// Owner/Manager/Seller: Dashboard (0), Inventory (1), History (2), Settings (3)
+  List<Map<String, dynamic>> _buildNavigationItems(bool isSuperAdmin) {
+    if (isSuperAdmin) {
+      // Super-admin: зөвхөн Нүүр болон Тохиргоо
+      // Index values нь _onItemTapped switch statement-тай таарч байх ёстой
+      return [
+        {
+          'index': 0, // /dashboard
+          'icon': Icons.storefront_outlined,
+          'activeIcon': Icons.storefront,
+          'label': 'Нүүр',
+        },
+        {
+          'index': 3, // /settings (switch statement-д index 3 = settings)
+          'icon': Icons.settings_outlined,
+          'activeIcon': Icons.settings,
+          'label': 'Тохиргоо',
+        },
+      ];
+    } else {
+      // Owner/Manager/Seller: бүх tabs
+      return [
+        {
+          'index': 0,
+          'icon': Icons.storefront_outlined,
+          'activeIcon': Icons.storefront,
+          'label': 'Нүүр',
+        },
+        {
+          'index': 1,
+          'icon': Icons.inventory_2_outlined,
+          'activeIcon': Icons.inventory_2,
+          'label': 'Бараа',
+        },
+        {
+          'index': 2,
+          'icon': Icons.history_outlined,
+          'activeIcon': Icons.history,
+          'label': 'Түүх',
+        },
+        {
+          'index': 3,
+          'icon': Icons.settings_outlined,
+          'activeIcon': Icons.settings,
+          'label': 'Тохиргоо',
+        },
+      ];
+    }
   }
 
   Widget _buildNavItem(
@@ -116,6 +157,8 @@ class MainShell extends StatelessWidget {
   void _onItemTapped(BuildContext context, int index) {
     if (index == currentIndex) return; // Аль хэдийн тэр дэлгэц дээр байвал алгасах
 
+    // Index → route mapping (role-independent, одоогийн navigation items-аас хамаарна)
+    // Navigation items-ын index нь _buildNavigationItems-ээс ирнэ
     switch (index) {
       case 0:
         context.go('/dashboard');

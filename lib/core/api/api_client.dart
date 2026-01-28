@@ -39,6 +39,14 @@ class ApiClient {
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
+
+          // DELETE request body байхгүй үед Content-Type header устгах
+          // Fastify "Body cannot be empty when content-type is set" алдаа өгөхөөс сэргийлнэ
+          if (options.method == 'DELETE' && options.data == null) {
+            options.headers.remove('Content-Type');
+            options.headers.remove('content-type');
+          }
+
           if (kDebugMode) {
             print('📤 ${options.method} ${options.uri}');
           }
@@ -203,7 +211,14 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
   }) {
-    return _dio.delete<T>(path, data: data, queryParameters: queryParameters, options: options);
+    // DELETE request interceptor дээр Content-Type header устгана
+    // (body байхгүй үед, Fastify алдаа өгөхгүй байх)
+    return _dio.delete<T>(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
   }
 }
 

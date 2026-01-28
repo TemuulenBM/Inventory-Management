@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:retail_control_platform/core/routing/placeholder_screens.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/core/widgets/layout/main_shell.dart';
+import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
 import 'package:retail_control_platform/features/auth/presentation/screens/phone_auth_screen.dart';
 import 'package:retail_control_platform/features/auth/presentation/screens/otp_screen.dart';
 import 'package:retail_control_platform/features/onboarding/presentation/screens/splash_screen.dart';
@@ -30,6 +32,12 @@ import 'package:retail_control_platform/features/employees/presentation/screens/
 
 /// GoRouter configuration for app navigation
 /// Auth guards, deep linking, route transitions
+/// RBAC: Super-admin role restrictions implemented
+
+/// Global reference ашиглаж auth state-г route guard-д шалгах
+/// Note: Энэ нь anti-pattern, гэхдээ GoRouter-ын redirect function нь
+/// Riverpod ref-д хандах боломжгүй тул түр шийдэл болгон ашиглана
+final _routerAuthContainer = ProviderContainer();
 
 final GoRouter appRouter = GoRouter(
   initialLocation: RouteNames.splash,
@@ -282,24 +290,52 @@ final GoRouter appRouter = GoRouter(
 );
 
 /// Auth guard redirect logic
-/// TODO: Үе Шат 3-д auth provider-тэй холбох
+/// Super-admin хязгаарлалт: дэлгүүрийн функцүүдэд хандахыг блоклоно
 String? _authGuard(BuildContext context, GoRouterState state) {
-  // For now, allow all routes (will implement proper auth check in Phase 3)
-  // Splash screen always allowed
-  if (state.uri.toString() == RouteNames.splash) {
+  final location = state.uri.path;
+
+  // Public routes (бүгдэд нээлттэй)
+  if (location == RouteNames.splash ||
+      location.startsWith('/auth') ||
+      location.startsWith('/onboarding')) {
     return null;
   }
 
-  // Auth routes always allowed
-  if (state.uri.toString().startsWith('/auth')) {
+  // Хэрэглэгчийн мэдээлэл авах
+  final user = _routerAuthContainer.read(currentUserProvider);
+
+  // Super-admin эсэхийг шалгах
+  final isSuperAdmin = user?.role == 'super_admin';
+
+  if (isSuperAdmin) {
+    // Super-admin-д хориглогдсон route-ууд
+    final restrictedRoutes = [
+      '/inventory',
+      '/product',
+      '/history',
+      '/cart',
+      '/quick-sale',
+      '/shifts',
+      '/alerts',
+      '/employees',
+      '/store-edit',
+      '/store-selection',
+      '/profile-edit',
+    ];
+
+    // Хэрэв хориглогдсон route руу орохыг оролдвол → redirect to dashboard
+    for (final restrictedRoute in restrictedRoutes) {
+      if (location.startsWith(restrictedRoute)) {
+        // SnackBar харуулах боломжгүй (redirect function дотор)
+        // Энэ нь зөвхөн redirect хийнэ, мессеж нь dashboard screen дээр харуулагдана
+        return RouteNames.dashboard;
+      }
+    }
+
+    // Зөвшөөрөгдсөн routes: /dashboard, /settings, /invitations, /create-invitation
     return null;
   }
 
-  // TODO: Check if user is authenticated
-  // final isAuthenticated = // check auth provider
-  // if (!isAuthenticated) {
-  //   return RouteNames.authPhone;
-  // }
-
-  return null; // Allow navigation for now
+  // Owner/Manager/Seller-д бүх routes нээлттэй
+  return null;
 }
