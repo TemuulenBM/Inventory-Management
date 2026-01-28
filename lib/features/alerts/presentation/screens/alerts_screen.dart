@@ -183,7 +183,7 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
     );
   }
 
-  /// Filter chips (AlertType enum-ээр)
+  /// Filter chips (AlertType enum-ээр - backend-тэй тохирсон)
   Widget _buildFilterChips() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -195,18 +195,13 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
           _buildChip(
               AlertType.lowStock, 'Бага үлдэгдэл', Icons.inventory_2_outlined),
           const SizedBox(width: 8),
-          _buildChip(
-              AlertType.negativeStock, 'Сөрөг', Icons.error_outline),
+          _buildChip(AlertType.negativeStock, 'Сөрөг', Icons.error_outline),
           const SizedBox(width: 8),
-          _buildChip(AlertType.expiringSoon, 'Хугацаа', Icons.schedule),
-          const SizedBox(width: 8),
-          _buildChip(AlertType.priceChange, 'Үнэ', Icons.trending_up),
+          _buildChip(AlertType.suspiciousActivity, 'Сэжигтэй',
+              Icons.security_outlined),
           const SizedBox(width: 8),
           _buildChip(
-              AlertType.syncConflict, 'Синк', Icons.sync_problem),
-          const SizedBox(width: 8),
-          _buildChip(AlertType.systemIssue, 'Систем',
-              Icons.warning_amber_outlined),
+              AlertType.systemIssue, 'Систем', Icons.warning_amber_outlined),
         ],
       ),
     );
@@ -290,10 +285,8 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
         return alert_ui.AlertSeverity.lowStock;
       case AlertType.negativeStock:
         return alert_ui.AlertSeverity.negative;
-      case AlertType.expiringSoon:
-      case AlertType.priceChange:
+      case AlertType.suspiciousActivity:
         return alert_ui.AlertSeverity.suspicious;
-      case AlertType.syncConflict:
       case AlertType.systemIssue:
         if (alert.severity == AlertSeverity.critical ||
             alert.severity == AlertSeverity.high) {

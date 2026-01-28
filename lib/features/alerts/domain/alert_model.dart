@@ -12,14 +12,13 @@ enum AlertSeverity {
   critical,
 }
 
-/// Alert type categories
+/// Alert type categories (backend-тэй тохирсон)
+/// Backend alert_type: low_stock, negative_inventory, suspicious_activity, system
 enum AlertType {
-  lowStock,
-  negativeStock,
-  expiringSoon,
-  priceChange,
-  systemIssue,
-  syncConflict,
+  lowStock,           // low_stock
+  negativeStock,      // negative_inventory
+  suspiciousActivity, // suspicious_activity
+  systemIssue,        // system
 }
 
 /// Alert model

@@ -29,6 +29,8 @@ import {
 } from './inventory.service.js';
 import { authorize, requireStore } from '../auth/auth.middleware.js';
 import type { AuthRequest } from '../auth/auth.middleware.js';
+// Alert triggers - Inventory өөрчлөлтийн үед automatic alert үүсгэх
+import { checkLowStock, checkNegativeStock } from '../alerts/alerts.service.js';
 
 /**
  * Inventory routes register
@@ -121,6 +123,15 @@ export async function inventoryRoutes(server: FastifyInstance) {
           message: result.error,
         });
       }
+
+      // ✅ Alert triggers - Бага үлдэгдэл болон сөрөг үлдэгдэл шалгах
+      // Background дээр ажиллана (await хийхгүй бол API response саадлахгүй)
+      checkLowStock(params.storeId, parseResult.data.product_id).catch((err) => {
+        server.log.error({ err, productId: parseResult.data.product_id }, 'Low stock check failed');
+      });
+      checkNegativeStock(params.storeId, parseResult.data.product_id).catch((err) => {
+        server.log.error({ err, productId: parseResult.data.product_id }, 'Negative stock check failed');
+      });
 
       return reply.status(201).send({
         success: true,

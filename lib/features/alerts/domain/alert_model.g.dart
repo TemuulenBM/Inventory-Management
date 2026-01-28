@@ -47,10 +47,8 @@ Map<String, dynamic> _$$AlertModelImplToJson(_$AlertModelImpl instance) =>
 const _$AlertTypeEnumMap = {
   AlertType.lowStock: 'lowStock',
   AlertType.negativeStock: 'negativeStock',
-  AlertType.expiringSoon: 'expiringSoon',
-  AlertType.priceChange: 'priceChange',
+  AlertType.suspiciousActivity: 'suspiciousActivity',
   AlertType.systemIssue: 'systemIssue',
-  AlertType.syncConflict: 'syncConflict',
 };
 
 const _$AlertSeverityEnumMap = {

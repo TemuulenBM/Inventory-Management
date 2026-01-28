@@ -244,14 +244,10 @@ class AlertService extends BaseService {
         return 'low_stock';
       case AlertType.negativeStock:
         return 'negative_inventory';
-      case AlertType.expiringSoon:
-        return 'expiring_soon';
-      case AlertType.priceChange:
-        return 'price_change';
+      case AlertType.suspiciousActivity:
+        return 'suspicious_activity';
       case AlertType.systemIssue:
         return 'system';
-      case AlertType.syncConflict:
-        return 'sync_conflict';
     }
   }
 
@@ -261,15 +257,12 @@ class AlertService extends BaseService {
         return AlertType.lowStock;
       case 'negative_inventory':
         return AlertType.negativeStock;
-      case 'expiring_soon':
-        return AlertType.expiringSoon;
-      case 'price_change':
-        return AlertType.priceChange;
+      case 'suspicious_activity':
+        return AlertType.suspiciousActivity;
       case 'system':
         return AlertType.systemIssue;
-      case 'sync_conflict':
-        return AlertType.syncConflict;
       default:
+        // Backend-аас танихгүй type ирвэл systemIssue болгон хувиргана
         return AlertType.systemIssue;
     }
   }
@@ -280,14 +273,10 @@ class AlertService extends BaseService {
         return 'Бага үлдэгдэл';
       case 'negative_inventory':
         return 'Сөрөг үлдэгдэл';
-      case 'expiring_soon':
-        return 'Хугацаа дуусаж байна';
-      case 'price_change':
-        return 'Үнэ өөрчлөгдсөн';
+      case 'suspicious_activity':
+        return 'Сэжигтэй үйлдэл';
       case 'system':
         return 'Системийн мэдэгдэл';
-      case 'sync_conflict':
-        return 'Синхрон зөрчил';
       default:
         return 'Мэдэгдэл';
     }

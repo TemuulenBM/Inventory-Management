@@ -24,7 +24,7 @@ import { authorize, requireStore } from '../auth/auth.middleware.js';
 export async function alertsRoutes(server: FastifyInstance) {
   /**
    * GET /stores/:storeId/alerts
-   * Сэрэмжлүүлэг жагсаалт харах (owner, manager)
+   * Сэрэмжлүүлэг жагсаалт харах (owner, manager, seller - read-only)
    */
   server.get<{
     Params: { storeId: string };
@@ -33,7 +33,7 @@ export async function alertsRoutes(server: FastifyInstance) {
   }>(
     '/stores/:storeId/alerts',
     {
-      onRequest: [server.authenticate, authorize(['owner', 'manager']), requireStore()],
+      onRequest: [server.authenticate, authorize(['owner', 'manager', 'seller']), requireStore()],
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const params = request.params as { storeId: string };
@@ -74,7 +74,7 @@ export async function alertsRoutes(server: FastifyInstance) {
 
   /**
    * GET /stores/:storeId/alerts/:alertId
-   * Сэрэмжлүүлэг дэлгэрэнгүй харах (owner, manager)
+   * Сэрэмжлүүлэг дэлгэрэнгүй харах (owner, manager, seller - read-only)
    */
   server.get<{
     Params: { storeId: string; alertId: string };
@@ -82,7 +82,7 @@ export async function alertsRoutes(server: FastifyInstance) {
   }>(
     '/stores/:storeId/alerts/:alertId',
     {
-      onRequest: [server.authenticate, authorize(['owner', 'manager']), requireStore()],
+      onRequest: [server.authenticate, authorize(['owner', 'manager', 'seller']), requireStore()],
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const params = request.params as { storeId: string; alertId: string };
