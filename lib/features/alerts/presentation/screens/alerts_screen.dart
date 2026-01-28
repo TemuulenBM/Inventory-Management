@@ -7,6 +7,9 @@ import 'package:retail_control_platform/core/widgets/cards/alert_card.dart'
     as alert_ui;
 import 'package:retail_control_platform/features/alerts/domain/alert_model.dart';
 import 'package:retail_control_platform/features/alerts/presentation/providers/alert_provider.dart';
+import 'package:retail_control_platform/features/inventory/domain/product_with_stock.dart';
+import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
+import 'package:retail_control_platform/core/providers/store_provider.dart';
 
 /// Сэрэмжлүүлгийн жагсаалт дэлгэц
 /// Filter chips, alert cards, resolve/dismiss actions
@@ -23,12 +26,15 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final storeId = ref.watch(storeIdProvider);
     final alertsAsync = ref.watch(
       alertListProvider(
         typeFilter: _selectedType,
         unresolvedOnly: _unresolvedOnly ? true : null,
       ),
     );
+    final lowStockAsync =
+        storeId != null ? ref.watch(lowStockProductsProvider(storeId)) : null;
 
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
@@ -69,26 +75,62 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
           // ===== Alert жагсаалт =====
           Expanded(
             child: alertsAsync.when(
-              data: (alerts) {
-                if (alerts.isEmpty) {
-                  return _buildEmptyState();
+              data: (serverAlerts) {
+                // Low stock products хослуулах
+                if (lowStockAsync == null) {
+                  // storeId байхгүй бол зөвхөн server alerts
+                  if (serverAlerts.isEmpty) {
+                    return _buildEmptyState();
+                  }
+                  return _buildAlertList(serverAlerts, []);
                 }
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    ref.invalidate(alertListProvider);
+
+                return lowStockAsync.when(
+                  data: (lowStockProducts) {
+                    // Server alerts + low stock products хослуулах
+                    final combinedItems = <dynamic>[];
+
+                    // 1. Server alerts нэмэх
+                    combinedItems.addAll(serverAlerts);
+
+                    // 2. Low stock products нэмэх (зөвхөн "Бүгд" эсвэл "Бага үлдэгдэл" filter)
+                    if (_selectedType == null ||
+                        _selectedType == AlertType.lowStock) {
+                      combinedItems.addAll(lowStockProducts);
+                    }
+
+                    // 3. Sort by date
+                    combinedItems.sort((a, b) {
+                      final dateA = a is AlertModel
+                          ? a.createdAt
+                          : (a as ProductWithStock).updatedAt;
+                      final dateB = b is AlertModel
+                          ? b.createdAt
+                          : (b as ProductWithStock).updatedAt;
+                      return (dateB ?? DateTime.now())
+                          .compareTo(dateA ?? DateTime.now());
+                    });
+
+                    if (combinedItems.isEmpty) {
+                      return _buildEmptyState();
+                    }
+
+                    return _buildAlertList(
+                      serverAlerts,
+                      lowStockProducts,
+                      combinedItems: combinedItems,
+                    );
                   },
-                  color: AppColors.primary,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
-                    itemCount: alerts.length,
-                    itemBuilder: (context, index) {
-                      final alert = alerts[index];
-                      return _buildAlertItem(alert);
-                    },
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: AppColors.primary),
                   ),
+                  error: (_, __) {
+                    // Low stock алдаа - зөвхөн server alerts харуулах
+                    if (serverAlerts.isEmpty) {
+                      return _buildEmptyState();
+                    }
+                    return _buildAlertList(serverAlerts, []);
+                  },
                 );
               },
               loading: () => const Center(
@@ -98,6 +140,45 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Alert list builder (server alerts + low stock products)
+  Widget _buildAlertList(
+    List<AlertModel> serverAlerts,
+    List<ProductWithStock> lowStockProducts, {
+    List<dynamic>? combinedItems,
+  }) {
+    final items = combinedItems ??
+        <dynamic>[...serverAlerts, ...lowStockProducts];
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(alertListProvider);
+        final storeId = ref.read(storeIdProvider);
+        if (storeId != null) {
+          ref.invalidate(lowStockProductsProvider(storeId));
+        }
+      },
+      color: AppColors.primary,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 8,
+          vertical: 8,
+        ),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final item = items[index];
+
+          if (item is AlertModel) {
+            return _buildAlertItem(item);
+          } else if (item is ProductWithStock) {
+            return _buildLowStockItem(item);
+          }
+
+          return const SizedBox.shrink();
+        },
       ),
     );
   }
@@ -180,6 +261,23 @@ class _AlertsScreenState extends ConsumerState<AlertsScreen> {
               ),
             ]
           : null,
+    );
+  }
+
+  /// Low stock product item (client-generated alert)
+  Widget _buildLowStockItem(ProductWithStock product) {
+    return alert_ui.AlertCard(
+      title: product.name,
+      subtitle:
+          '${product.unit ?? product.category ?? ''} • ${product.stockQuantity} үлдсэн',
+      severity: alert_ui.AlertSeverity.lowStock,
+      productImageUrl: product.imageUrl,
+      productLocalImagePath: product.localImagePath,
+      isRead: false, // Low stock items үргэлж unread
+      onTap: () {
+        // Future: Product detail руу очих
+        // context.push('/products/${product.id}');
+      },
     );
   }
 

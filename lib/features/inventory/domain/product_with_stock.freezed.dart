@@ -29,6 +29,8 @@ mixin _$ProductWithStock {
   bool get isLowStock => throw _privateConstructorUsedError;
   String get storeId => throw _privateConstructorUsedError;
   String? get imageUrl => throw _privateConstructorUsedError;
+  String? get localImagePath => throw _privateConstructorUsedError;
+  bool? get imageSynced => throw _privateConstructorUsedError;
   String? get unit => throw _privateConstructorUsedError;
   String? get category => throw _privateConstructorUsedError;
   int? get lowStockThreshold => throw _privateConstructorUsedError;
@@ -57,6 +59,8 @@ abstract class $ProductWithStockCopyWith<$Res> {
       bool isLowStock,
       String storeId,
       String? imageUrl,
+      String? localImagePath,
+      bool? imageSynced,
       String? unit,
       String? category,
       int? lowStockThreshold,
@@ -86,6 +90,8 @@ class _$ProductWithStockCopyWithImpl<$Res, $Val extends ProductWithStock>
     Object? isLowStock = null,
     Object? storeId = null,
     Object? imageUrl = freezed,
+    Object? localImagePath = freezed,
+    Object? imageSynced = freezed,
     Object? unit = freezed,
     Object? category = freezed,
     Object? lowStockThreshold = freezed,
@@ -129,6 +135,14 @@ class _$ProductWithStockCopyWithImpl<$Res, $Val extends ProductWithStock>
           ? _value.imageUrl
           : imageUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      localImagePath: freezed == localImagePath
+          ? _value.localImagePath
+          : localImagePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageSynced: freezed == imageSynced
+          ? _value.imageSynced
+          : imageSynced // ignore: cast_nullable_to_non_nullable
+              as bool?,
       unit: freezed == unit
           ? _value.unit
           : unit // ignore: cast_nullable_to_non_nullable
@@ -171,6 +185,8 @@ abstract class _$$ProductWithStockImplCopyWith<$Res>
       bool isLowStock,
       String storeId,
       String? imageUrl,
+      String? localImagePath,
+      bool? imageSynced,
       String? unit,
       String? category,
       int? lowStockThreshold,
@@ -198,6 +214,8 @@ class __$$ProductWithStockImplCopyWithImpl<$Res>
     Object? isLowStock = null,
     Object? storeId = null,
     Object? imageUrl = freezed,
+    Object? localImagePath = freezed,
+    Object? imageSynced = freezed,
     Object? unit = freezed,
     Object? category = freezed,
     Object? lowStockThreshold = freezed,
@@ -241,6 +259,14 @@ class __$$ProductWithStockImplCopyWithImpl<$Res>
           ? _value.imageUrl
           : imageUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      localImagePath: freezed == localImagePath
+          ? _value.localImagePath
+          : localImagePath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      imageSynced: freezed == imageSynced
+          ? _value.imageSynced
+          : imageSynced // ignore: cast_nullable_to_non_nullable
+              as bool?,
       unit: freezed == unit
           ? _value.unit
           : unit // ignore: cast_nullable_to_non_nullable
@@ -278,6 +304,8 @@ class _$ProductWithStockImpl implements _ProductWithStock {
       required this.isLowStock,
       required this.storeId,
       this.imageUrl,
+      this.localImagePath,
+      this.imageSynced,
       this.unit,
       this.category,
       this.lowStockThreshold,
@@ -306,6 +334,10 @@ class _$ProductWithStockImpl implements _ProductWithStock {
   @override
   final String? imageUrl;
   @override
+  final String? localImagePath;
+  @override
+  final bool? imageSynced;
+  @override
   final String? unit;
   @override
   final String? category;
@@ -318,7 +350,7 @@ class _$ProductWithStockImpl implements _ProductWithStock {
 
   @override
   String toString() {
-    return 'ProductWithStock(id: $id, name: $name, sku: $sku, sellPrice: $sellPrice, costPrice: $costPrice, stockQuantity: $stockQuantity, isLowStock: $isLowStock, storeId: $storeId, imageUrl: $imageUrl, unit: $unit, category: $category, lowStockThreshold: $lowStockThreshold, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ProductWithStock(id: $id, name: $name, sku: $sku, sellPrice: $sellPrice, costPrice: $costPrice, stockQuantity: $stockQuantity, isLowStock: $isLowStock, storeId: $storeId, imageUrl: $imageUrl, localImagePath: $localImagePath, imageSynced: $imageSynced, unit: $unit, category: $category, lowStockThreshold: $lowStockThreshold, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -340,6 +372,10 @@ class _$ProductWithStockImpl implements _ProductWithStock {
             (identical(other.storeId, storeId) || other.storeId == storeId) &&
             (identical(other.imageUrl, imageUrl) ||
                 other.imageUrl == imageUrl) &&
+            (identical(other.localImagePath, localImagePath) ||
+                other.localImagePath == localImagePath) &&
+            (identical(other.imageSynced, imageSynced) ||
+                other.imageSynced == imageSynced) &&
             (identical(other.unit, unit) || other.unit == unit) &&
             (identical(other.category, category) ||
                 other.category == category) &&
@@ -364,6 +400,8 @@ class _$ProductWithStockImpl implements _ProductWithStock {
       isLowStock,
       storeId,
       imageUrl,
+      localImagePath,
+      imageSynced,
       unit,
       category,
       lowStockThreshold,
@@ -396,6 +434,8 @@ abstract class _ProductWithStock implements ProductWithStock {
       required final bool isLowStock,
       required final String storeId,
       final String? imageUrl,
+      final String? localImagePath,
+      final bool? imageSynced,
       final String? unit,
       final String? category,
       final int? lowStockThreshold,
@@ -423,6 +463,10 @@ abstract class _ProductWithStock implements ProductWithStock {
   String get storeId;
   @override
   String? get imageUrl;
+  @override
+  String? get localImagePath;
+  @override
+  bool? get imageSynced;
   @override
   String? get unit;
   @override

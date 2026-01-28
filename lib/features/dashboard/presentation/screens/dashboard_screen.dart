@@ -13,6 +13,7 @@ import 'package:retail_control_platform/features/auth/presentation/providers/aut
 import 'package:retail_control_platform/features/sales/presentation/providers/cart_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 import 'package:retail_control_platform/features/store/presentation/providers/current_store_provider.dart';
+import 'package:retail_control_platform/core/widgets/cards/alert_card.dart';
 
 /// Owner Dashboard Screen
 /// Дизайн: design/owner_dashboard/screen.png
@@ -869,13 +870,18 @@ class DashboardScreen extends ConsumerWidget {
                 children: products.take(3).map((product) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildAlertCard(
-                      icon: Icons.inventory_2_outlined,
-                      iconColor: const Color(0xFFE65100),
-                      iconBg: const Color(0xFFFFF4E6),
+                    child: AlertCard(
                       title: product.name,
-                      subtitle: product.unit ?? product.category ?? '',
-                      stockCount: product.stockQuantity,
+                      subtitle:
+                          '${product.unit ?? product.category ?? ''} • ${product.stockQuantity} үлдсэн',
+                      severity: AlertSeverity.lowStock,
+                      productImageUrl: product.imageUrl,
+                      productLocalImagePath: product.localImagePath,
+                      isRead: false,
+                      onTap: () {
+                        // Future: Бүтээгдэхүүний дэлгэрэнгүй рүү очих
+                        // context.push('/products/${product.id}');
+                      },
                     ),
                   );
                 }).toList(),
@@ -943,98 +949,6 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAlertCard({
-    required IconData icon,
-    required Color iconColor,
-    required Color iconBg,
-    required String title,
-    required String subtitle,
-    required int stockCount,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: AppRadius.radiusLG,
-        border: Border.all(
-          color: AppColors.gray100,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Icon
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: iconBg,
-              borderRadius: AppRadius.radiusSM,
-            ),
-            child: Icon(
-              icon,
-              size: 20,
-              color: iconColor,
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Text
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textMainLight,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: AppColors.gray500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Stock count badge
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-              vertical: 6,
-            ),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFEBEE),
-              borderRadius: AppRadius.radiusSM,
-            ),
-            child: Text(
-              '$stockCount үлдсэн',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFFC62828),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildTopProductsSection(WidgetRef ref) {
     final topProductsAsync = ref.watch(topProductsProvider);

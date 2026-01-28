@@ -16,6 +16,8 @@ class ProductWithStock with _$ProductWithStock {
     required bool isLowStock,
     required String storeId,
     String? imageUrl,
+    String? localImagePath,
+    bool? imageSynced,
     String? unit,
     String? category,
     int? lowStockThreshold,

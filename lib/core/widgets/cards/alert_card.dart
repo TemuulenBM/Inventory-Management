@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
@@ -18,6 +20,7 @@ class AlertCard extends StatelessWidget {
   final String subtitle;
   final AlertSeverity severity;
   final String? productImageUrl;
+  final String? productLocalImagePath;
   final VoidCallback? onTap;
   final List<Widget>? actions;
   final bool isRead;
@@ -28,6 +31,7 @@ class AlertCard extends StatelessWidget {
     required this.subtitle,
     required this.severity,
     this.productImageUrl,
+    this.productLocalImagePath,
     this.onTap,
     this.actions,
     this.isRead = false,
@@ -94,21 +98,18 @@ class AlertCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Icon
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: _severityColor.withValues(alpha: 0.1),
-                    borderRadius: AppRadius.radiusSM,
+                // Product image (зүүн талд) - offline-first
+                if (productImageUrl != null || productLocalImagePath != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: _buildProductImage(),
+                  )
+                else
+                  // Зураг байхгүй үед placeholder
+                  Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: _buildPlaceholderIcon(),
                   ),
-                  child: Icon(
-                    _icon,
-                    color: _severityColor,
-                    size: 24,
-                  ),
-                ),
-                AppSpacing.horizontalMD,
 
                 // Content
                 Expanded(
@@ -147,37 +148,83 @@ class AlertCard extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // Product image (optional)
-                if (productImageUrl != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: ClipRRect(
-                      borderRadius: AppRadius.radiusSM,
-                      child: SizedBox(
-                        width: 48,
-                        height: 48,
-                        child: Image.network(
-                          productImageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: AppColors.gray200,
-                              child: const Icon(
-                                Icons.inventory_2_outlined,
-                                size: 24,
-                                color: AppColors.gray400,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// Бүтээгдэхүүний зураг харуулах - Offline-first pattern
+  Widget _buildProductImage() {
+    // 1. Local зураг байвал түрүүлж харуулах (хамгийн хурдан)
+    if (productLocalImagePath != null && productLocalImagePath!.isNotEmpty) {
+      return _buildImageContainer(
+        Image.file(
+          File(productLocalImagePath!),
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // Local зураг алдаатай бол network руу fallback
+            return _buildNetworkImage();
+          },
+        ),
+      );
+    }
+
+    // 2. Local байхгүй бол network оролдох
+    return _buildNetworkImage();
+  }
+
+  /// Network зураг ачаалах
+  Widget _buildNetworkImage() {
+    if (productImageUrl != null && productImageUrl!.isNotEmpty) {
+      return _buildImageContainer(
+        Image.network(
+          productImageUrl!,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            // Ачаалж байгаа үед placeholder
+            return _buildPlaceholderIcon();
+          },
+          errorBuilder: (context, error, stackTrace) {
+            // Network алдаа - placeholder icon
+            return _buildPlaceholderIcon();
+          },
+        ),
+      );
+    }
+
+    // Зураг огт байхгүй бол placeholder
+    return _buildPlaceholderIcon();
+  }
+
+  /// Image container wrapper (48x48px, дугуй булан)
+  Widget _buildImageContainer(Widget child) {
+    return ClipRRect(
+      borderRadius: AppRadius.radiusSM,
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: child,
+      ),
+    );
+  }
+
+  /// Placeholder icon (зураг байхгүй үед)
+  Widget _buildPlaceholderIcon() {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppColors.gray200,
+        borderRadius: AppRadius.radiusSM,
+      ),
+      child: const Icon(
+        Icons.inventory_2_outlined,
+        size: 24,
+        color: AppColors.gray400,
       ),
     );
   }
