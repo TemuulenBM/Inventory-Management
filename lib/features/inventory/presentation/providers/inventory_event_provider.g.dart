@@ -202,7 +202,7 @@ class _ProductInventoryEventsProviderElement
 }
 
 String _$allInventoryEventsHash() =>
-    r'e4a2b82285a37ca78a26379e1a6bf54b1ba5a3d2';
+    r'a9ae084cfcc6bc6e049381b35a07dd4522ce489e';
 
 /// Бүх барааны events (dashboard/global view)
 ///

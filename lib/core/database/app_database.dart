@@ -176,7 +176,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -187,6 +187,10 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(products, products.imageUrl);
             await m.addColumn(products, products.localImagePath);
             await m.addColumn(products, products.imageSynced);
+          }
+          if (from < 3) {
+            // Version 3: Products table-д ангилал (category) нэмэх
+            await m.addColumn(products, products.category);
           }
         },
       );

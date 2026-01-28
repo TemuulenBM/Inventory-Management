@@ -139,7 +139,7 @@ class InventoryEventsScreen extends ConsumerWidget {
                               Text(
                                 filter.hasDateRange
                                     ? _formatDateRange(filter.startDate, filter.endDate)
-                                    : 'Өнөөдөр',
+                                    : 'Бүх огноо',
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
