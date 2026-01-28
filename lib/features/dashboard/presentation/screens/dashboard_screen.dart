@@ -92,15 +92,13 @@ class DashboardScreen extends ConsumerWidget {
 
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 60),
-
-            // Header (sync badge-тай)
+            // Header (өөрөө top padding агуулдаг - нэмэлт зай хэрэггүй)
             _buildHeader(context, ref),
-            const SizedBox(height: 80),
+            const SizedBox(height: 24),
 
             // Icon
             Container(
@@ -296,52 +294,62 @@ class DashboardScreen extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Time + Greeting + Store Name
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                currentTime,
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondaryLight,
-                  letterSpacing: 0.5,
+          // Time + Greeting + Store Name (Expanded widget ашиглах - overflow засах)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  currentTime,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textSecondaryLight,
+                    letterSpacing: 0.5,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Сайн байна уу,\nДэлгүүр',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  height: 1.1,
-                  color: AppColors.textMainLight,
-                  fontFamily: 'Epilogue',
+                const SizedBox(height: 4),
+                const Text(
+                  'Сайн байна уу,\nДэлгүүр',
+                  style: TextStyle(
+                    fontSize: 24, // 28 → 24 (responsive - жижиг дэлгэцэнд багтах)
+                    fontWeight: FontWeight.w800,
+                    height: 1.1,
+                    color: AppColors.textMainLight,
+                    fontFamily: 'Epilogue',
+                  ),
+                  maxLines: 2, // 2 мөр (newline агуулсан тул)
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              // Store name (dynamic)
-              currentStoreAsync.when(
-                data: (store) => store != null
-                    ? Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Text(
-                          store.name,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondaryLight,
+                // Store name (dynamic)
+                currentStoreAsync.when(
+                  data: (store) => store != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: Text(
+                            store.name,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondaryLight,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      )
-                    : const SizedBox.shrink(),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
-            ],
+                        )
+                      : const SizedBox.shrink(),
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
+              ],
+            ),
           ),
+
+          // Spacing хооронд (spaceBetween-ийн оронд explicit spacing)
+          const SizedBox(width: 12),
 
           // Sync status badge - tap-to-retry нэмсэн
           Column(
