@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -258,6 +260,9 @@ class _QuickSaleSelectScreenState
         ),
         child: TextField(
           controller: _searchController,
+          onChanged: (value) {
+            setState(() {}); // UI-г шинэчлэх
+          },
           style: const TextStyle(
             fontSize: 15,
             color: AppColors.textMainLight,
@@ -490,7 +495,7 @@ class _QuickSaleSelectScreenState
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 0.75,
+        childAspectRatio: 0.7,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
@@ -507,9 +512,6 @@ class _QuickSaleSelectScreenState
     required ProductWithStock product,
     required bool inCart,
   }) {
-    // Барааны өнгө (category-аас хамаарч)
-    final bgColor = _getProductColor(product.category);
-
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -529,26 +531,11 @@ class _QuickSaleSelectScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Product image placeholder with stock badge
+          // Бүтээгдэхүүний зураг эсвэл placeholder with stock badge
           Stack(
             children: [
-              Container(
-                height: 130,
-                decoration: BoxDecoration(
-                  color: bgColor,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(24),
-                    topRight: Radius.circular(24),
-                  ),
-                ),
-                child: const Center(
-                  child: Icon(
-                    Icons.inventory_2_outlined,
-                    size: 48,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+              // Зураг харуулах (offline-first pattern ашиглана)
+              _buildProductImage(product),
               // Stock badge
               Positioned(
                 top: 12,
@@ -681,6 +668,88 @@ class _QuickSaleSelectScreenState
       default:
         return const Color(0xFFD4E4FF);
     }
+  }
+
+  /// Бүтээгдэхүүний зураг харуулах (offline-first pattern)
+  /// 1. localImagePath байвал Image.file() ашиглах
+  /// 2. imageUrl байвал Image.network() ашиглах
+  /// 3. Хоёулаа байхгүй бол category өнгө + icon placeholder харуулах
+  Widget _buildProductImage(ProductWithStock product) {
+    const borderRadius = BorderRadius.only(
+      topLeft: Radius.circular(24),
+      topRight: Radius.circular(24),
+    );
+
+    // 1. Орон нутгийн зураг эхлээд шалгах (offline-first)
+    if (product.localImagePath != null && product.localImagePath!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: borderRadius,
+        child: SizedBox(
+          height: 140,
+          child: Image.file(
+            File(product.localImagePath!),
+            height: 140,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              // Файл олдохгүй бол cloud зураг эсвэл placeholder руу шилжинэ
+              return _buildImagePlaceholder(product.category);
+            },
+          ),
+        ),
+      );
+    }
+
+    // 2. Cloud зураг fallback (imageUrl байвал)
+    if (product.imageUrl != null && product.imageUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: borderRadius,
+        child: SizedBox(
+          height: 140,
+          child: Image.network(
+            product.imageUrl!,
+            height: 140,
+            width: double.infinity,
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              // Ачаалж байх үед placeholder харуулах
+              if (loadingProgress == null) return child;
+              return _buildImagePlaceholder(product.category);
+            },
+            errorBuilder: (context, error, stackTrace) {
+              // Network алдаа гарвал placeholder харуулах
+              return _buildImagePlaceholder(product.category);
+            },
+          ),
+        ),
+      );
+    }
+
+    // 3. Fallback: Category өнгө + icon placeholder
+    return _buildImagePlaceholder(product.category);
+  }
+
+  /// Зураг байхгүй үед харуулах placeholder (category өнгө + icon)
+  Widget _buildImagePlaceholder(String? category) {
+    final bgColor = _getProductColor(category);
+
+    return Container(
+      height: 140,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.inventory_2_outlined,
+          size: 48,
+          color: Colors.white,
+        ),
+      ),
+    );
   }
 
   Widget _buildCartSummary(int cartCount, double cartTotal) {
