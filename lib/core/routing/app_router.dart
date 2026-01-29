@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:retail_control_platform/core/routing/placeholder_screens.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/core/widgets/layout/main_shell.dart';
 import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
@@ -28,6 +27,7 @@ import 'package:retail_control_platform/features/settings/presentation/screens/p
 import 'package:retail_control_platform/features/settings/presentation/screens/store_edit_screen.dart';
 import 'package:retail_control_platform/features/store/presentation/screens/store_selection_screen.dart';
 import 'package:retail_control_platform/features/employees/presentation/screens/employee_list_screen.dart';
+import 'package:retail_control_platform/features/sync/presentation/screens/sync_screen.dart';
 import 'package:retail_control_platform/features/employees/presentation/screens/employee_form_screen.dart';
 
 /// GoRouter configuration for app navigation
@@ -259,7 +259,7 @@ final GoRouter appRouter = GoRouter(
         GoRoute(
           path: RouteNames.syncConflicts,
           name: 'sync-conflicts',
-          builder: (context, state) => const SyncConflictsScreen(),
+          builder: (context, state) => const SyncScreen(),
         ),
       ],
     ),

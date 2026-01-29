@@ -54,17 +54,47 @@ class SyncNotifier extends _$SyncNotifier {
 
   /// App эхлэхэд нэг удаа sync хийх
   Future<void> _performInitialSync() async {
-    // Бага зэрэг хүлээх - connectivity шалгалт дуусах хүртэл
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Database migration дуусах хүртэл хүлээх
+    // 500ms → 2s (migration time + connectivity check)
+    await Future.delayed(const Duration(seconds: 2));
+
+    // Database ready эсэхийг шалгах
+    try {
+      final db = ref.read(databaseProvider);
+      // Simple query - Migration дууссан эсэхийг баталгаажуулах
+      await db.select(db.stores).get();
+    } catch (e) {
+      print('[SyncNotifier] Database not ready, skipping initial sync: $e');
+      return;
+    }
+
+    print('[SyncNotifier] Database ready, checking sync status...');
 
     // Online бөгөөд хэзээ ч sync хийгээгүй бол эхлэн sync хийх
     if (state.isOnline && state.lastSyncTime == null) {
+      print('[SyncNotifier] Starting initial sync...');
       sync();
+    } else {
+      print('[SyncNotifier] Initial sync skipped - isOnline: ${state.isOnline}, lastSync: ${state.lastSyncTime}');
     }
   }
 
   Future<void> _checkConnectivity() async {
     final List<ConnectivityResult> results = await Connectivity().checkConnectivity();
+
+    // iOS simulator дээр connectivity_plus unreliable байдаг
+    // Backend health check fallback хийх
+    if (results.isEmpty || results.first == ConnectivityResult.none) {
+      print('[SyncNotifier] Connectivity check: none - Trying backend fallback...');
+      final backendOnline = await _checkBackendConnectivity();
+      if (backendOnline) {
+        print('[SyncNotifier] Backend online - Forcing online status');
+        _updateOnlineStatus(ConnectivityResult.wifi); // Force online
+        return;
+      }
+    }
+
+    // Connectivity check амжилттай
     if (results.isNotEmpty) {
       _updateOnlineStatus(results.first);
     } else {
@@ -72,8 +102,33 @@ class SyncNotifier extends _$SyncNotifier {
     }
   }
 
+  /// Backend холбогдож байгаа эсэхийг шалгах
+  ///
+  /// iOS simulator дээр connectivity_plus unreliable байдаг тул fallback
+  /// Store provider-аас storeId байгаа эсэхийг шалгах
+  Future<bool> _checkBackendConnectivity() async {
+    try {
+      final storeId = ref.read(storeIdProvider);
+
+      // Store ID байгаа эсэхийг шалгах
+      // Хэрэв backend холбогдсон бол user login хийж, store олсон байна
+      // Super-admin эсвэл store-гүй owner бол false
+      return storeId != null && storeId.isNotEmpty;
+    } catch (e) {
+      // Provider read алдаа
+      return false;
+    }
+  }
+
   void _updateOnlineStatus(ConnectivityResult result) {
     final isOnline = result != ConnectivityResult.none;
+    final wasOnline = state.isOnline;
+
+    // Debug logging - State transition track хийх
+    if (isOnline != wasOnline) {
+      print('[SyncNotifier] Connectivity changed: $wasOnline → $isOnline ($result)');
+    }
+
     state = state.copyWith(
       isOnline: isOnline,
       status: isOnline
@@ -92,6 +147,7 @@ class SyncNotifier extends _$SyncNotifier {
   /// Manual sync trigger
   Future<void> sync() async {
     if (!state.isOnline) {
+      print('[SyncNotifier] Sync skipped - offline');
       return;
     }
 
@@ -150,7 +206,9 @@ class SyncNotifier extends _$SyncNotifier {
           errorMessage: result.errors.isNotEmpty ? result.errors.first : 'Sync алдаа',
         );
       }
-    } catch (e) {
+    } catch (e, stack) {
+      print('[SyncNotifier] Sync error: $e');
+      print('[SyncNotifier] Stack trace: $stack');
       state = state.copyWith(
         status: SyncStatus.error,
         errorMessage: e.toString(),

@@ -252,7 +252,27 @@ class AppDatabase extends _$AppDatabase {
           if (from < 6) {
             // Version 6: alerts.resolved_at нэмэх
             // Alert хэзээ шийдэгдсэнийг timestamp-аар хадгалах
-            await m.addColumn(alerts, alerts.resolvedAt);
+            //
+            // Идемпотент migration - Column байгаа эсэхийг шалгах
+            // SQLite-д IF NOT EXISTS syntax байхгүй тул manual шалгалт хийнэ
+            try {
+              final result = await customSelect(
+                "SELECT COUNT(*) as count FROM pragma_table_info('alerts') WHERE name='resolved_at'"
+              ).getSingle();
+
+              final hasColumn = result.data['count'] as int;
+              if (hasColumn == 0) {
+                await m.addColumn(alerts, alerts.resolvedAt);
+              }
+            } catch (e) {
+              // Column шалгалт fail хийвэл - addColumn оролдох
+              // Шинэ install үед pragma_table_info ажиллахгүй байж болно
+              try {
+                await m.addColumn(alerts, alerts.resolvedAt);
+              } catch (_) {
+                // Аль хэдийн байгаа - skip
+              }
+            }
           }
 
           if (from < 7) {

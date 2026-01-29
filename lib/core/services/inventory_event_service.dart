@@ -320,7 +320,7 @@ class InventoryEventService extends BaseService {
           // User байхгүй бол шинээр нэмэх
           await db.into(db.users).insert(UsersCompanion.insert(
                 id: actorId,
-                storeId: storeId,
+                storeId: Value(storeId),
                 name: actorName,
                 role: 'seller', // Default role
               ));

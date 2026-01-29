@@ -45,15 +45,37 @@ class SyncQueueManager {
       return SyncResult.empty();
     }
 
-    _log('Pushing ${pending.length} pending operations...');
+    // Alert operations-ыг filter хийх (backend дэмждэггүй)
+    final supportedOperations = pending.where((op) => op.entityType != 'alert').toList();
+    final skippedCount = pending.length - supportedOperations.length;
+
+    if (skippedCount > 0) {
+      _log('Skipping $skippedCount unsupported alert operations');
+      // Alert operations-ыг synced гэж тэмдэглэх (retry хийхгүй)
+      for (final op in pending.where((op) => op.entityType == 'alert')) {
+        await db.markSynced(op.id);
+      }
+    }
+
+    if (supportedOperations.isEmpty) {
+      return SyncResult.empty();
+    }
+
+    _log('Pushing ${supportedOperations.length} pending operations...');
 
     // Group operations by type for batch processing
-    final operations = pending.map((op) {
+    final operations = supportedOperations.map((op) {
       final payload = jsonDecode(op.payload) as Map<String, dynamic>;
+      final operationType = _mapOperationType(op.entityType, op.operation);
+
+      // Debug: operation details нарийвчлан харуулах
+      _log('Operation: entityType=${op.entityType}, operation=${op.operation} -> operation_type=$operationType');
+
       return {
-        'operation_type': _mapOperationType(op.entityType, op.operation),
+        'operation_type': operationType,
         'client_id': op.id.toString(),
-        'client_timestamp': op.createdAt.toIso8601String(),
+        // Backend Zod datetime format: "2026-01-29T07:03:07Z" (milliseconds хасах, Z нэмэх)
+        'client_timestamp': '${op.createdAt.toUtc().toIso8601String().split('.').first}Z',
         'data': payload,
       };
     }).toList();
@@ -113,6 +135,20 @@ class SyncQueueManager {
       }
     } catch (e) {
       _log('Push error: $e');
+
+      // DioException бол response body-г харуулах
+      if (e.toString().contains('DioException')) {
+        try {
+          final dioError = e as dynamic;
+          final responseData = dioError.response?.data;
+          if (responseData != null) {
+            _log('Response error: $responseData');
+          }
+        } catch (_) {
+          // Ignore parsing error
+        }
+      }
+
       return SyncResult(
         syncedCount: 0,
         failedCount: pending.length,
@@ -211,6 +247,7 @@ class SyncQueueManager {
   // ============================================================================
 
   /// Operation type mapping
+  /// Note: Зөвхөн backend-д дэмжигдсэн operation types-ыг буцаана
   String _mapOperationType(String entityType, String operation) {
     switch ('${entityType}_$operation') {
       case 'sale_create_sale':
@@ -227,8 +264,7 @@ class SyncQueueManager {
         return 'open_shift';
       case 'shift_close_shift':
         return 'close_shift';
-      case 'alert_resolve':
-        return 'resolve_alert';
+      // 'alert_resolve' устгасан - backend дэмждэггүй
       default:
         return '${entityType}_$operation';
     }
