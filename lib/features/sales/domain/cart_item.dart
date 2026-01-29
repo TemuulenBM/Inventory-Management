@@ -18,5 +18,5 @@ class CartItem with _$CartItem {
       _$CartItemFromJson(json);
 
   /// Calculate subtotal for this cart item
-  double get subtotal => product.sellPrice * quantity;
+  int get subtotal => product.sellPrice * quantity;
 }

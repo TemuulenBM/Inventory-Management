@@ -218,13 +218,13 @@ class _SalesHistoryProviderElement
   int get limit => (origin as SalesHistoryProvider).limit;
 }
 
-String _$todaySalesTotalHash() => r'd876ee447a8b859316c3498fe078a2b572ef1836';
+String _$todaySalesTotalHash() => r'4070fa7081be874717c2084586189c90cca994f9';
 
 /// Today's sales total
 ///
 /// Copied from [todaySalesTotal].
 @ProviderFor(todaySalesTotal)
-final todaySalesTotalProvider = AutoDisposeFutureProvider<double>.internal(
+final todaySalesTotalProvider = AutoDisposeFutureProvider<int>.internal(
   todaySalesTotal,
   name: r'todaySalesTotalProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -234,15 +234,15 @@ final todaySalesTotalProvider = AutoDisposeFutureProvider<double>.internal(
   allTransitiveDependencies: null,
 );
 
-typedef TodaySalesTotalRef = AutoDisposeFutureProviderRef<double>;
+typedef TodaySalesTotalRef = AutoDisposeFutureProviderRef<int>;
 String _$yesterdaySalesTotalHash() =>
-    r'701f8c088b72532e659e6a208a4dad4bcfb79213';
+    r'ea50411f12e40966059e0c5e477aff87076cedcd';
 
 /// Yesterday's sales total (for growth comparison)
 ///
 /// Copied from [yesterdaySalesTotal].
 @ProviderFor(yesterdaySalesTotal)
-final yesterdaySalesTotalProvider = AutoDisposeFutureProvider<double>.internal(
+final yesterdaySalesTotalProvider = AutoDisposeFutureProvider<int>.internal(
   yesterdaySalesTotal,
   name: r'yesterdaySalesTotalProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -252,7 +252,7 @@ final yesterdaySalesTotalProvider = AutoDisposeFutureProvider<double>.internal(
   allTransitiveDependencies: null,
 );
 
-typedef YesterdaySalesTotalRef = AutoDisposeFutureProviderRef<double>;
+typedef YesterdaySalesTotalRef = AutoDisposeFutureProviderRef<int>;
 String _$topProductsHash() => r'21e95a59fb5a956859cec3b3d4182edb3e0cc57f';
 
 /// Өнөөдрийн шилдэг борлуулалттай бүтээгдэхүүнүүд (Top 5)

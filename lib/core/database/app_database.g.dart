@@ -770,15 +770,15 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
   static const VerificationMeta _sellPriceMeta =
       const VerificationMeta('sellPrice');
   @override
-  late final GeneratedColumn<double> sellPrice = GeneratedColumn<double>(
+  late final GeneratedColumn<int> sellPrice = GeneratedColumn<int>(
       'sell_price', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _costPriceMeta =
       const VerificationMeta('costPrice');
   @override
-  late final GeneratedColumn<double> costPrice = GeneratedColumn<double>(
+  late final GeneratedColumn<int> costPrice = GeneratedColumn<int>(
       'cost_price', aliasedName, true,
-      type: DriftSqlType.double, requiredDuringInsert: false);
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _lowStockThresholdMeta =
       const VerificationMeta('lowStockThreshold');
   @override
@@ -976,9 +976,9 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
       unit: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}unit'])!,
       sellPrice: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}sell_price'])!,
+          .read(DriftSqlType.int, data['${effectivePrefix}sell_price'])!,
       costPrice: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}cost_price']),
+          .read(DriftSqlType.int, data['${effectivePrefix}cost_price']),
       lowStockThreshold: attachedDatabase.typeMapping.read(
           DriftSqlType.int, data['${effectivePrefix}low_stock_threshold'])!,
       note: attachedDatabase.typeMapping
@@ -1012,8 +1012,8 @@ class Product extends DataClass implements Insertable<Product> {
   final String name;
   final String sku;
   final String unit;
-  final double sellPrice;
-  final double? costPrice;
+  final int sellPrice;
+  final int? costPrice;
   final int lowStockThreshold;
   final String? note;
   final DateTime createdAt;
@@ -1048,9 +1048,9 @@ class Product extends DataClass implements Insertable<Product> {
     map['name'] = Variable<String>(name);
     map['sku'] = Variable<String>(sku);
     map['unit'] = Variable<String>(unit);
-    map['sell_price'] = Variable<double>(sellPrice);
+    map['sell_price'] = Variable<int>(sellPrice);
     if (!nullToAbsent || costPrice != null) {
-      map['cost_price'] = Variable<double>(costPrice);
+      map['cost_price'] = Variable<int>(costPrice);
     }
     map['low_stock_threshold'] = Variable<int>(lowStockThreshold);
     if (!nullToAbsent || note != null) {
@@ -1110,8 +1110,8 @@ class Product extends DataClass implements Insertable<Product> {
       name: serializer.fromJson<String>(json['name']),
       sku: serializer.fromJson<String>(json['sku']),
       unit: serializer.fromJson<String>(json['unit']),
-      sellPrice: serializer.fromJson<double>(json['sellPrice']),
-      costPrice: serializer.fromJson<double?>(json['costPrice']),
+      sellPrice: serializer.fromJson<int>(json['sellPrice']),
+      costPrice: serializer.fromJson<int?>(json['costPrice']),
       lowStockThreshold: serializer.fromJson<int>(json['lowStockThreshold']),
       note: serializer.fromJson<String?>(json['note']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
@@ -1132,8 +1132,8 @@ class Product extends DataClass implements Insertable<Product> {
       'name': serializer.toJson<String>(name),
       'sku': serializer.toJson<String>(sku),
       'unit': serializer.toJson<String>(unit),
-      'sellPrice': serializer.toJson<double>(sellPrice),
-      'costPrice': serializer.toJson<double?>(costPrice),
+      'sellPrice': serializer.toJson<int>(sellPrice),
+      'costPrice': serializer.toJson<int?>(costPrice),
       'lowStockThreshold': serializer.toJson<int>(lowStockThreshold),
       'note': serializer.toJson<String?>(note),
       'createdAt': serializer.toJson<DateTime>(createdAt),
@@ -1152,8 +1152,8 @@ class Product extends DataClass implements Insertable<Product> {
           String? name,
           String? sku,
           String? unit,
-          double? sellPrice,
-          Value<double?> costPrice = const Value.absent(),
+          int? sellPrice,
+          Value<int?> costPrice = const Value.absent(),
           int? lowStockThreshold,
           Value<String?> note = const Value.absent(),
           DateTime? createdAt,
@@ -1277,8 +1277,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<String> name;
   final Value<String> sku;
   final Value<String> unit;
-  final Value<double> sellPrice;
-  final Value<double?> costPrice;
+  final Value<int> sellPrice;
+  final Value<int?> costPrice;
   final Value<int> lowStockThreshold;
   final Value<String?> note;
   final Value<DateTime> createdAt;
@@ -1314,7 +1314,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     required String name,
     required String sku,
     required String unit,
-    required double sellPrice,
+    required int sellPrice,
     this.costPrice = const Value.absent(),
     this.lowStockThreshold = const Value.absent(),
     this.note = const Value.absent(),
@@ -1338,8 +1338,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<String>? name,
     Expression<String>? sku,
     Expression<String>? unit,
-    Expression<double>? sellPrice,
-    Expression<double>? costPrice,
+    Expression<int>? sellPrice,
+    Expression<int>? costPrice,
     Expression<int>? lowStockThreshold,
     Expression<String>? note,
     Expression<DateTime>? createdAt,
@@ -1378,8 +1378,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       Value<String>? name,
       Value<String>? sku,
       Value<String>? unit,
-      Value<double>? sellPrice,
-      Value<double?>? costPrice,
+      Value<int>? sellPrice,
+      Value<int?>? costPrice,
       Value<int>? lowStockThreshold,
       Value<String?>? note,
       Value<DateTime>? createdAt,
@@ -1430,10 +1430,10 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       map['unit'] = Variable<String>(unit.value);
     }
     if (sellPrice.present) {
-      map['sell_price'] = Variable<double>(sellPrice.value);
+      map['sell_price'] = Variable<int>(sellPrice.value);
     }
     if (costPrice.present) {
-      map['cost_price'] = Variable<double>(costPrice.value);
+      map['cost_price'] = Variable<int>(costPrice.value);
     }
     if (lowStockThreshold.present) {
       map['low_stock_threshold'] = Variable<int>(lowStockThreshold.value);
@@ -1538,15 +1538,15 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
   static const VerificationMeta _openBalanceMeta =
       const VerificationMeta('openBalance');
   @override
-  late final GeneratedColumn<double> openBalance = GeneratedColumn<double>(
+  late final GeneratedColumn<int> openBalance = GeneratedColumn<int>(
       'open_balance', aliasedName, true,
-      type: DriftSqlType.double, requiredDuringInsert: false);
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _closeBalanceMeta =
       const VerificationMeta('closeBalance');
   @override
-  late final GeneratedColumn<double> closeBalance = GeneratedColumn<double>(
+  late final GeneratedColumn<int> closeBalance = GeneratedColumn<int>(
       'close_balance', aliasedName, true,
-      type: DriftSqlType.double, requiredDuringInsert: false);
+      type: DriftSqlType.int, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
       [id, storeId, sellerId, openedAt, closedAt, openBalance, closeBalance];
@@ -1617,9 +1617,9 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
       closedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}closed_at']),
       openBalance: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}open_balance']),
+          .read(DriftSqlType.int, data['${effectivePrefix}open_balance']),
       closeBalance: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}close_balance']),
+          .read(DriftSqlType.int, data['${effectivePrefix}close_balance']),
     );
   }
 
@@ -1635,8 +1635,8 @@ class Shift extends DataClass implements Insertable<Shift> {
   final String sellerId;
   final DateTime openedAt;
   final DateTime? closedAt;
-  final double? openBalance;
-  final double? closeBalance;
+  final int? openBalance;
+  final int? closeBalance;
   const Shift(
       {required this.id,
       required this.storeId,
@@ -1656,10 +1656,10 @@ class Shift extends DataClass implements Insertable<Shift> {
       map['closed_at'] = Variable<DateTime>(closedAt);
     }
     if (!nullToAbsent || openBalance != null) {
-      map['open_balance'] = Variable<double>(openBalance);
+      map['open_balance'] = Variable<int>(openBalance);
     }
     if (!nullToAbsent || closeBalance != null) {
-      map['close_balance'] = Variable<double>(closeBalance);
+      map['close_balance'] = Variable<int>(closeBalance);
     }
     return map;
   }
@@ -1691,8 +1691,8 @@ class Shift extends DataClass implements Insertable<Shift> {
       sellerId: serializer.fromJson<String>(json['sellerId']),
       openedAt: serializer.fromJson<DateTime>(json['openedAt']),
       closedAt: serializer.fromJson<DateTime?>(json['closedAt']),
-      openBalance: serializer.fromJson<double?>(json['openBalance']),
-      closeBalance: serializer.fromJson<double?>(json['closeBalance']),
+      openBalance: serializer.fromJson<int?>(json['openBalance']),
+      closeBalance: serializer.fromJson<int?>(json['closeBalance']),
     );
   }
   @override
@@ -1704,8 +1704,8 @@ class Shift extends DataClass implements Insertable<Shift> {
       'sellerId': serializer.toJson<String>(sellerId),
       'openedAt': serializer.toJson<DateTime>(openedAt),
       'closedAt': serializer.toJson<DateTime?>(closedAt),
-      'openBalance': serializer.toJson<double?>(openBalance),
-      'closeBalance': serializer.toJson<double?>(closeBalance),
+      'openBalance': serializer.toJson<int?>(openBalance),
+      'closeBalance': serializer.toJson<int?>(closeBalance),
     };
   }
 
@@ -1715,8 +1715,8 @@ class Shift extends DataClass implements Insertable<Shift> {
           String? sellerId,
           DateTime? openedAt,
           Value<DateTime?> closedAt = const Value.absent(),
-          Value<double?> openBalance = const Value.absent(),
-          Value<double?> closeBalance = const Value.absent()}) =>
+          Value<int?> openBalance = const Value.absent(),
+          Value<int?> closeBalance = const Value.absent()}) =>
       Shift(
         id: id ?? this.id,
         storeId: storeId ?? this.storeId,
@@ -1778,8 +1778,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
   final Value<String> sellerId;
   final Value<DateTime> openedAt;
   final Value<DateTime?> closedAt;
-  final Value<double?> openBalance;
-  final Value<double?> closeBalance;
+  final Value<int?> openBalance;
+  final Value<int?> closeBalance;
   final Value<int> rowid;
   const ShiftsCompanion({
     this.id = const Value.absent(),
@@ -1809,8 +1809,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     Expression<String>? sellerId,
     Expression<DateTime>? openedAt,
     Expression<DateTime>? closedAt,
-    Expression<double>? openBalance,
-    Expression<double>? closeBalance,
+    Expression<int>? openBalance,
+    Expression<int>? closeBalance,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1831,8 +1831,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
       Value<String>? sellerId,
       Value<DateTime>? openedAt,
       Value<DateTime?>? closedAt,
-      Value<double?>? openBalance,
-      Value<double?>? closeBalance,
+      Value<int?>? openBalance,
+      Value<int?>? closeBalance,
       Value<int>? rowid}) {
     return ShiftsCompanion(
       id: id ?? this.id,
@@ -1865,10 +1865,10 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
       map['closed_at'] = Variable<DateTime>(closedAt.value);
     }
     if (openBalance.present) {
-      map['open_balance'] = Variable<double>(openBalance.value);
+      map['open_balance'] = Variable<int>(openBalance.value);
     }
     if (closeBalance.present) {
-      map['close_balance'] = Variable<double>(closeBalance.value);
+      map['close_balance'] = Variable<int>(closeBalance.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -2409,9 +2409,9 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
   static const VerificationMeta _totalAmountMeta =
       const VerificationMeta('totalAmount');
   @override
-  late final GeneratedColumn<double> totalAmount = GeneratedColumn<double>(
+  late final GeneratedColumn<int> totalAmount = GeneratedColumn<int>(
       'total_amount', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _paymentMethodMeta =
       const VerificationMeta('paymentMethod');
   @override
@@ -2498,7 +2498,7 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
       shiftId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}shift_id']),
       totalAmount: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}total_amount'])!,
+          .read(DriftSqlType.int, data['${effectivePrefix}total_amount'])!,
       paymentMethod: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}payment_method'])!,
       timestamp: attachedDatabase.typeMapping
@@ -2517,7 +2517,7 @@ class Sale extends DataClass implements Insertable<Sale> {
   final String storeId;
   final String sellerId;
   final String? shiftId;
-  final double totalAmount;
+  final int totalAmount;
   final String paymentMethod;
   final DateTime timestamp;
   const Sale(
@@ -2537,7 +2537,7 @@ class Sale extends DataClass implements Insertable<Sale> {
     if (!nullToAbsent || shiftId != null) {
       map['shift_id'] = Variable<String>(shiftId);
     }
-    map['total_amount'] = Variable<double>(totalAmount);
+    map['total_amount'] = Variable<int>(totalAmount);
     map['payment_method'] = Variable<String>(paymentMethod);
     map['timestamp'] = Variable<DateTime>(timestamp);
     return map;
@@ -2565,7 +2565,7 @@ class Sale extends DataClass implements Insertable<Sale> {
       storeId: serializer.fromJson<String>(json['storeId']),
       sellerId: serializer.fromJson<String>(json['sellerId']),
       shiftId: serializer.fromJson<String?>(json['shiftId']),
-      totalAmount: serializer.fromJson<double>(json['totalAmount']),
+      totalAmount: serializer.fromJson<int>(json['totalAmount']),
       paymentMethod: serializer.fromJson<String>(json['paymentMethod']),
       timestamp: serializer.fromJson<DateTime>(json['timestamp']),
     );
@@ -2578,7 +2578,7 @@ class Sale extends DataClass implements Insertable<Sale> {
       'storeId': serializer.toJson<String>(storeId),
       'sellerId': serializer.toJson<String>(sellerId),
       'shiftId': serializer.toJson<String?>(shiftId),
-      'totalAmount': serializer.toJson<double>(totalAmount),
+      'totalAmount': serializer.toJson<int>(totalAmount),
       'paymentMethod': serializer.toJson<String>(paymentMethod),
       'timestamp': serializer.toJson<DateTime>(timestamp),
     };
@@ -2589,7 +2589,7 @@ class Sale extends DataClass implements Insertable<Sale> {
           String? storeId,
           String? sellerId,
           Value<String?> shiftId = const Value.absent(),
-          double? totalAmount,
+          int? totalAmount,
           String? paymentMethod,
           DateTime? timestamp}) =>
       Sale(
@@ -2651,7 +2651,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
   final Value<String> storeId;
   final Value<String> sellerId;
   final Value<String?> shiftId;
-  final Value<double> totalAmount;
+  final Value<int> totalAmount;
   final Value<String> paymentMethod;
   final Value<DateTime> timestamp;
   final Value<int> rowid;
@@ -2670,7 +2670,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     required String storeId,
     required String sellerId,
     this.shiftId = const Value.absent(),
-    required double totalAmount,
+    required int totalAmount,
     this.paymentMethod = const Value.absent(),
     this.timestamp = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -2683,7 +2683,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     Expression<String>? storeId,
     Expression<String>? sellerId,
     Expression<String>? shiftId,
-    Expression<double>? totalAmount,
+    Expression<int>? totalAmount,
     Expression<String>? paymentMethod,
     Expression<DateTime>? timestamp,
     Expression<int>? rowid,
@@ -2705,7 +2705,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
       Value<String>? storeId,
       Value<String>? sellerId,
       Value<String?>? shiftId,
-      Value<double>? totalAmount,
+      Value<int>? totalAmount,
       Value<String>? paymentMethod,
       Value<DateTime>? timestamp,
       Value<int>? rowid}) {
@@ -2737,7 +2737,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
       map['shift_id'] = Variable<String>(shiftId.value);
     }
     if (totalAmount.present) {
-      map['total_amount'] = Variable<double>(totalAmount.value);
+      map['total_amount'] = Variable<int>(totalAmount.value);
     }
     if (paymentMethod.present) {
       map['payment_method'] = Variable<String>(paymentMethod.value);
@@ -2804,15 +2804,15 @@ class $SaleItemsTable extends SaleItems
   static const VerificationMeta _unitPriceMeta =
       const VerificationMeta('unitPrice');
   @override
-  late final GeneratedColumn<double> unitPrice = GeneratedColumn<double>(
+  late final GeneratedColumn<int> unitPrice = GeneratedColumn<int>(
       'unit_price', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
+      type: DriftSqlType.int, requiredDuringInsert: true);
   static const VerificationMeta _subtotalMeta =
       const VerificationMeta('subtotal');
   @override
-  late final GeneratedColumn<double> subtotal = GeneratedColumn<double>(
+  late final GeneratedColumn<int> subtotal = GeneratedColumn<int>(
       'subtotal', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
+      type: DriftSqlType.int, requiredDuringInsert: true);
   @override
   List<GeneratedColumn> get $columns =>
       [id, saleId, productId, quantity, unitPrice, subtotal];
@@ -2879,9 +2879,9 @@ class $SaleItemsTable extends SaleItems
       quantity: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}quantity'])!,
       unitPrice: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}unit_price'])!,
+          .read(DriftSqlType.int, data['${effectivePrefix}unit_price'])!,
       subtotal: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}subtotal'])!,
+          .read(DriftSqlType.int, data['${effectivePrefix}subtotal'])!,
     );
   }
 
@@ -2896,8 +2896,8 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
   final String saleId;
   final String productId;
   final int quantity;
-  final double unitPrice;
-  final double subtotal;
+  final int unitPrice;
+  final int subtotal;
   const SaleItem(
       {required this.id,
       required this.saleId,
@@ -2912,8 +2912,8 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
     map['sale_id'] = Variable<String>(saleId);
     map['product_id'] = Variable<String>(productId);
     map['quantity'] = Variable<int>(quantity);
-    map['unit_price'] = Variable<double>(unitPrice);
-    map['subtotal'] = Variable<double>(subtotal);
+    map['unit_price'] = Variable<int>(unitPrice);
+    map['subtotal'] = Variable<int>(subtotal);
     return map;
   }
 
@@ -2936,8 +2936,8 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
       saleId: serializer.fromJson<String>(json['saleId']),
       productId: serializer.fromJson<String>(json['productId']),
       quantity: serializer.fromJson<int>(json['quantity']),
-      unitPrice: serializer.fromJson<double>(json['unitPrice']),
-      subtotal: serializer.fromJson<double>(json['subtotal']),
+      unitPrice: serializer.fromJson<int>(json['unitPrice']),
+      subtotal: serializer.fromJson<int>(json['subtotal']),
     );
   }
   @override
@@ -2948,8 +2948,8 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
       'saleId': serializer.toJson<String>(saleId),
       'productId': serializer.toJson<String>(productId),
       'quantity': serializer.toJson<int>(quantity),
-      'unitPrice': serializer.toJson<double>(unitPrice),
-      'subtotal': serializer.toJson<double>(subtotal),
+      'unitPrice': serializer.toJson<int>(unitPrice),
+      'subtotal': serializer.toJson<int>(subtotal),
     };
   }
 
@@ -2958,8 +2958,8 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
           String? saleId,
           String? productId,
           int? quantity,
-          double? unitPrice,
-          double? subtotal}) =>
+          int? unitPrice,
+          int? subtotal}) =>
       SaleItem(
         id: id ?? this.id,
         saleId: saleId ?? this.saleId,
@@ -3012,8 +3012,8 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
   final Value<String> saleId;
   final Value<String> productId;
   final Value<int> quantity;
-  final Value<double> unitPrice;
-  final Value<double> subtotal;
+  final Value<int> unitPrice;
+  final Value<int> subtotal;
   final Value<int> rowid;
   const SaleItemsCompanion({
     this.id = const Value.absent(),
@@ -3029,8 +3029,8 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
     required String saleId,
     required String productId,
     required int quantity,
-    required double unitPrice,
-    required double subtotal,
+    required int unitPrice,
+    required int subtotal,
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         saleId = Value(saleId),
@@ -3043,8 +3043,8 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
     Expression<String>? saleId,
     Expression<String>? productId,
     Expression<int>? quantity,
-    Expression<double>? unitPrice,
-    Expression<double>? subtotal,
+    Expression<int>? unitPrice,
+    Expression<int>? subtotal,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3063,8 +3063,8 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
       Value<String>? saleId,
       Value<String>? productId,
       Value<int>? quantity,
-      Value<double>? unitPrice,
-      Value<double>? subtotal,
+      Value<int>? unitPrice,
+      Value<int>? subtotal,
       Value<int>? rowid}) {
     return SaleItemsCompanion(
       id: id ?? this.id,
@@ -3093,10 +3093,10 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
       map['quantity'] = Variable<int>(quantity.value);
     }
     if (unitPrice.present) {
-      map['unit_price'] = Variable<double>(unitPrice.value);
+      map['unit_price'] = Variable<int>(unitPrice.value);
     }
     if (subtotal.present) {
-      map['subtotal'] = Variable<double>(subtotal.value);
+      map['subtotal'] = Variable<int>(subtotal.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -5166,8 +5166,8 @@ typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   required String name,
   required String sku,
   required String unit,
-  required double sellPrice,
-  Value<double?> costPrice,
+  required int sellPrice,
+  Value<int?> costPrice,
   Value<int> lowStockThreshold,
   Value<String?> note,
   Value<DateTime> createdAt,
@@ -5185,8 +5185,8 @@ typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<String> name,
   Value<String> sku,
   Value<String> unit,
-  Value<double> sellPrice,
-  Value<double?> costPrice,
+  Value<int> sellPrice,
+  Value<int?> costPrice,
   Value<int> lowStockThreshold,
   Value<String?> note,
   Value<DateTime> createdAt,
@@ -5284,10 +5284,10 @@ class $$ProductsTableFilterComposer
   ColumnFilters<String> get unit => $composableBuilder(
       column: $table.unit, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get sellPrice => $composableBuilder(
+  ColumnFilters<int> get sellPrice => $composableBuilder(
       column: $table.sellPrice, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get costPrice => $composableBuilder(
+  ColumnFilters<int> get costPrice => $composableBuilder(
       column: $table.costPrice, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<int> get lowStockThreshold => $composableBuilder(
@@ -5424,10 +5424,10 @@ class $$ProductsTableOrderingComposer
   ColumnOrderings<String> get unit => $composableBuilder(
       column: $table.unit, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get sellPrice => $composableBuilder(
+  ColumnOrderings<int> get sellPrice => $composableBuilder(
       column: $table.sellPrice, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get costPrice => $composableBuilder(
+  ColumnOrderings<int> get costPrice => $composableBuilder(
       column: $table.costPrice, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<int> get lowStockThreshold => $composableBuilder(
@@ -5501,10 +5501,10 @@ class $$ProductsTableAnnotationComposer
   GeneratedColumn<String> get unit =>
       $composableBuilder(column: $table.unit, builder: (column) => column);
 
-  GeneratedColumn<double> get sellPrice =>
+  GeneratedColumn<int> get sellPrice =>
       $composableBuilder(column: $table.sellPrice, builder: (column) => column);
 
-  GeneratedColumn<double> get costPrice =>
+  GeneratedColumn<int> get costPrice =>
       $composableBuilder(column: $table.costPrice, builder: (column) => column);
 
   GeneratedColumn<int> get lowStockThreshold => $composableBuilder(
@@ -5650,8 +5650,8 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String> name = const Value.absent(),
             Value<String> sku = const Value.absent(),
             Value<String> unit = const Value.absent(),
-            Value<double> sellPrice = const Value.absent(),
-            Value<double?> costPrice = const Value.absent(),
+            Value<int> sellPrice = const Value.absent(),
+            Value<int?> costPrice = const Value.absent(),
             Value<int> lowStockThreshold = const Value.absent(),
             Value<String?> note = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
@@ -5688,8 +5688,8 @@ class $$ProductsTableTableManager extends RootTableManager<
             required String name,
             required String sku,
             required String unit,
-            required double sellPrice,
-            Value<double?> costPrice = const Value.absent(),
+            required int sellPrice,
+            Value<int?> costPrice = const Value.absent(),
             Value<int> lowStockThreshold = const Value.absent(),
             Value<String?> note = const Value.absent(),
             Value<DateTime> createdAt = const Value.absent(),
@@ -5828,8 +5828,8 @@ typedef $$ShiftsTableCreateCompanionBuilder = ShiftsCompanion Function({
   required String sellerId,
   Value<DateTime> openedAt,
   Value<DateTime?> closedAt,
-  Value<double?> openBalance,
-  Value<double?> closeBalance,
+  Value<int?> openBalance,
+  Value<int?> closeBalance,
   Value<int> rowid,
 });
 typedef $$ShiftsTableUpdateCompanionBuilder = ShiftsCompanion Function({
@@ -5838,8 +5838,8 @@ typedef $$ShiftsTableUpdateCompanionBuilder = ShiftsCompanion Function({
   Value<String> sellerId,
   Value<DateTime> openedAt,
   Value<DateTime?> closedAt,
-  Value<double?> openBalance,
-  Value<double?> closeBalance,
+  Value<int?> openBalance,
+  Value<int?> closeBalance,
   Value<int> rowid,
 });
 
@@ -5923,10 +5923,10 @@ class $$ShiftsTableFilterComposer
   ColumnFilters<DateTime> get closedAt => $composableBuilder(
       column: $table.closedAt, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get openBalance => $composableBuilder(
+  ColumnFilters<int> get openBalance => $composableBuilder(
       column: $table.openBalance, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get closeBalance => $composableBuilder(
+  ColumnFilters<int> get closeBalance => $composableBuilder(
       column: $table.closeBalance, builder: (column) => ColumnFilters(column));
 
   $$StoresTableFilterComposer get storeId {
@@ -6030,10 +6030,10 @@ class $$ShiftsTableOrderingComposer
   ColumnOrderings<DateTime> get closedAt => $composableBuilder(
       column: $table.closedAt, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get openBalance => $composableBuilder(
+  ColumnOrderings<int> get openBalance => $composableBuilder(
       column: $table.openBalance, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get closeBalance => $composableBuilder(
+  ColumnOrderings<int> get closeBalance => $composableBuilder(
       column: $table.closeBalance,
       builder: (column) => ColumnOrderings(column));
 
@@ -6096,10 +6096,10 @@ class $$ShiftsTableAnnotationComposer
   GeneratedColumn<DateTime> get closedAt =>
       $composableBuilder(column: $table.closedAt, builder: (column) => column);
 
-  GeneratedColumn<double> get openBalance => $composableBuilder(
+  GeneratedColumn<int> get openBalance => $composableBuilder(
       column: $table.openBalance, builder: (column) => column);
 
-  GeneratedColumn<double> get closeBalance => $composableBuilder(
+  GeneratedColumn<int> get closeBalance => $composableBuilder(
       column: $table.closeBalance, builder: (column) => column);
 
   $$StoresTableAnnotationComposer get storeId {
@@ -6217,8 +6217,8 @@ class $$ShiftsTableTableManager extends RootTableManager<
             Value<String> sellerId = const Value.absent(),
             Value<DateTime> openedAt = const Value.absent(),
             Value<DateTime?> closedAt = const Value.absent(),
-            Value<double?> openBalance = const Value.absent(),
-            Value<double?> closeBalance = const Value.absent(),
+            Value<int?> openBalance = const Value.absent(),
+            Value<int?> closeBalance = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ShiftsCompanion(
@@ -6237,8 +6237,8 @@ class $$ShiftsTableTableManager extends RootTableManager<
             required String sellerId,
             Value<DateTime> openedAt = const Value.absent(),
             Value<DateTime?> closedAt = const Value.absent(),
-            Value<double?> openBalance = const Value.absent(),
-            Value<double?> closeBalance = const Value.absent(),
+            Value<int?> openBalance = const Value.absent(),
+            Value<int?> closeBalance = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ShiftsCompanion.insert(
@@ -6917,7 +6917,7 @@ typedef $$SalesTableCreateCompanionBuilder = SalesCompanion Function({
   required String storeId,
   required String sellerId,
   Value<String?> shiftId,
-  required double totalAmount,
+  required int totalAmount,
   Value<String> paymentMethod,
   Value<DateTime> timestamp,
   Value<int> rowid,
@@ -6927,7 +6927,7 @@ typedef $$SalesTableUpdateCompanionBuilder = SalesCompanion Function({
   Value<String> storeId,
   Value<String> sellerId,
   Value<String?> shiftId,
-  Value<double> totalAmount,
+  Value<int> totalAmount,
   Value<String> paymentMethod,
   Value<DateTime> timestamp,
   Value<int> rowid,
@@ -7002,7 +7002,7 @@ class $$SalesTableFilterComposer extends Composer<_$AppDatabase, $SalesTable> {
   ColumnFilters<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get totalAmount => $composableBuilder(
+  ColumnFilters<int> get totalAmount => $composableBuilder(
       column: $table.totalAmount, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get paymentMethod => $composableBuilder(
@@ -7105,7 +7105,7 @@ class $$SalesTableOrderingComposer
   ColumnOrderings<String> get id => $composableBuilder(
       column: $table.id, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get totalAmount => $composableBuilder(
+  ColumnOrderings<int> get totalAmount => $composableBuilder(
       column: $table.totalAmount, builder: (column) => ColumnOrderings(column));
 
   ColumnOrderings<String> get paymentMethod => $composableBuilder(
@@ -7188,7 +7188,7 @@ class $$SalesTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<double> get totalAmount => $composableBuilder(
+  GeneratedColumn<int> get totalAmount => $composableBuilder(
       column: $table.totalAmount, builder: (column) => column);
 
   GeneratedColumn<String> get paymentMethod => $composableBuilder(
@@ -7307,7 +7307,7 @@ class $$SalesTableTableManager extends RootTableManager<
             Value<String> storeId = const Value.absent(),
             Value<String> sellerId = const Value.absent(),
             Value<String?> shiftId = const Value.absent(),
-            Value<double> totalAmount = const Value.absent(),
+            Value<int> totalAmount = const Value.absent(),
             Value<String> paymentMethod = const Value.absent(),
             Value<DateTime> timestamp = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -7327,7 +7327,7 @@ class $$SalesTableTableManager extends RootTableManager<
             required String storeId,
             required String sellerId,
             Value<String?> shiftId = const Value.absent(),
-            required double totalAmount,
+            required int totalAmount,
             Value<String> paymentMethod = const Value.absent(),
             Value<DateTime> timestamp = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -7435,8 +7435,8 @@ typedef $$SaleItemsTableCreateCompanionBuilder = SaleItemsCompanion Function({
   required String saleId,
   required String productId,
   required int quantity,
-  required double unitPrice,
-  required double subtotal,
+  required int unitPrice,
+  required int subtotal,
   Value<int> rowid,
 });
 typedef $$SaleItemsTableUpdateCompanionBuilder = SaleItemsCompanion Function({
@@ -7444,8 +7444,8 @@ typedef $$SaleItemsTableUpdateCompanionBuilder = SaleItemsCompanion Function({
   Value<String> saleId,
   Value<String> productId,
   Value<int> quantity,
-  Value<double> unitPrice,
-  Value<double> subtotal,
+  Value<int> unitPrice,
+  Value<int> subtotal,
   Value<int> rowid,
 });
 
@@ -7496,10 +7496,10 @@ class $$SaleItemsTableFilterComposer
   ColumnFilters<int> get quantity => $composableBuilder(
       column: $table.quantity, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get unitPrice => $composableBuilder(
+  ColumnFilters<int> get unitPrice => $composableBuilder(
       column: $table.unitPrice, builder: (column) => ColumnFilters(column));
 
-  ColumnFilters<double> get subtotal => $composableBuilder(
+  ColumnFilters<int> get subtotal => $composableBuilder(
       column: $table.subtotal, builder: (column) => ColumnFilters(column));
 
   $$SalesTableFilterComposer get saleId {
@@ -7558,10 +7558,10 @@ class $$SaleItemsTableOrderingComposer
   ColumnOrderings<int> get quantity => $composableBuilder(
       column: $table.quantity, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get unitPrice => $composableBuilder(
+  ColumnOrderings<int> get unitPrice => $composableBuilder(
       column: $table.unitPrice, builder: (column) => ColumnOrderings(column));
 
-  ColumnOrderings<double> get subtotal => $composableBuilder(
+  ColumnOrderings<int> get subtotal => $composableBuilder(
       column: $table.subtotal, builder: (column) => ColumnOrderings(column));
 
   $$SalesTableOrderingComposer get saleId {
@@ -7620,10 +7620,10 @@ class $$SaleItemsTableAnnotationComposer
   GeneratedColumn<int> get quantity =>
       $composableBuilder(column: $table.quantity, builder: (column) => column);
 
-  GeneratedColumn<double> get unitPrice =>
+  GeneratedColumn<int> get unitPrice =>
       $composableBuilder(column: $table.unitPrice, builder: (column) => column);
 
-  GeneratedColumn<double> get subtotal =>
+  GeneratedColumn<int> get subtotal =>
       $composableBuilder(column: $table.subtotal, builder: (column) => column);
 
   $$SalesTableAnnotationComposer get saleId {
@@ -7694,8 +7694,8 @@ class $$SaleItemsTableTableManager extends RootTableManager<
             Value<String> saleId = const Value.absent(),
             Value<String> productId = const Value.absent(),
             Value<int> quantity = const Value.absent(),
-            Value<double> unitPrice = const Value.absent(),
-            Value<double> subtotal = const Value.absent(),
+            Value<int> unitPrice = const Value.absent(),
+            Value<int> subtotal = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SaleItemsCompanion(
@@ -7712,8 +7712,8 @@ class $$SaleItemsTableTableManager extends RootTableManager<
             required String saleId,
             required String productId,
             required int quantity,
-            required double unitPrice,
-            required double subtotal,
+            required int unitPrice,
+            required int subtotal,
             Value<int> rowid = const Value.absent(),
           }) =>
               SaleItemsCompanion.insert(

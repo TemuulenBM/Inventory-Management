@@ -23,8 +23,8 @@ mixin _$ProductWithStock {
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String get sku => throw _privateConstructorUsedError;
-  double get sellPrice => throw _privateConstructorUsedError;
-  double get costPrice => throw _privateConstructorUsedError;
+  int get sellPrice => throw _privateConstructorUsedError;
+  int get costPrice => throw _privateConstructorUsedError;
   int get stockQuantity => throw _privateConstructorUsedError;
   bool get isLowStock => throw _privateConstructorUsedError;
   String get storeId => throw _privateConstructorUsedError;
@@ -53,8 +53,8 @@ abstract class $ProductWithStockCopyWith<$Res> {
       {String id,
       String name,
       String sku,
-      double sellPrice,
-      double costPrice,
+      int sellPrice,
+      int costPrice,
       int stockQuantity,
       bool isLowStock,
       String storeId,
@@ -114,11 +114,11 @@ class _$ProductWithStockCopyWithImpl<$Res, $Val extends ProductWithStock>
       sellPrice: null == sellPrice
           ? _value.sellPrice
           : sellPrice // ignore: cast_nullable_to_non_nullable
-              as double,
+              as int,
       costPrice: null == costPrice
           ? _value.costPrice
           : costPrice // ignore: cast_nullable_to_non_nullable
-              as double,
+              as int,
       stockQuantity: null == stockQuantity
           ? _value.stockQuantity
           : stockQuantity // ignore: cast_nullable_to_non_nullable
@@ -179,8 +179,8 @@ abstract class _$$ProductWithStockImplCopyWith<$Res>
       {String id,
       String name,
       String sku,
-      double sellPrice,
-      double costPrice,
+      int sellPrice,
+      int costPrice,
       int stockQuantity,
       bool isLowStock,
       String storeId,
@@ -238,11 +238,11 @@ class __$$ProductWithStockImplCopyWithImpl<$Res>
       sellPrice: null == sellPrice
           ? _value.sellPrice
           : sellPrice // ignore: cast_nullable_to_non_nullable
-              as double,
+              as int,
       costPrice: null == costPrice
           ? _value.costPrice
           : costPrice // ignore: cast_nullable_to_non_nullable
-              as double,
+              as int,
       stockQuantity: null == stockQuantity
           ? _value.stockQuantity
           : stockQuantity // ignore: cast_nullable_to_non_nullable
@@ -322,9 +322,9 @@ class _$ProductWithStockImpl implements _ProductWithStock {
   @override
   final String sku;
   @override
-  final double sellPrice;
+  final int sellPrice;
   @override
-  final double costPrice;
+  final int costPrice;
   @override
   final int stockQuantity;
   @override
@@ -428,8 +428,8 @@ abstract class _ProductWithStock implements ProductWithStock {
       {required final String id,
       required final String name,
       required final String sku,
-      required final double sellPrice,
-      required final double costPrice,
+      required final int sellPrice,
+      required final int costPrice,
       required final int stockQuantity,
       required final bool isLowStock,
       required final String storeId,
@@ -452,9 +452,9 @@ abstract class _ProductWithStock implements ProductWithStock {
   @override
   String get sku;
   @override
-  double get sellPrice;
+  int get sellPrice;
   @override
-  double get costPrice;
+  int get costPrice;
   @override
   int get stockQuantity;
   @override

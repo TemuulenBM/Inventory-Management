@@ -30,7 +30,7 @@ class SalesService extends BaseService {
 
     final saleId = const Uuid().v4();
     final now = DateTime.now();
-    final totalAmount = items.fold(0.0, (sum, item) => sum + item.subtotal);
+    final totalAmount = items.fold(0, (sum, item) => sum + item.subtotal);
 
     try {
       // Transaction - бүгд амжилттай эсвэл бүгд буцаах
@@ -163,7 +163,7 @@ class SalesService extends BaseService {
   }
 
   /// Өнөөдрийн борлуулалт
-  Future<ApiResult<double>> getTodaySales(String storeId) async {
+  Future<ApiResult<int>> getTodaySales(String storeId) async {
     try {
       final total = await db.getTodayTotalSales(storeId);
       return ApiResult.success(total);
@@ -174,7 +174,7 @@ class SalesService extends BaseService {
   }
 
   /// Өчигдрийн борлуулалт
-  Future<ApiResult<double>> getYesterdaySales(String storeId) async {
+  Future<ApiResult<int>> getYesterdaySales(String storeId) async {
     try {
       final total = await db.getYesterdayTotalSales(storeId);
       return ApiResult.success(total);
@@ -421,7 +421,7 @@ class SaleWithItems {
   final String sellerId;
   final String sellerName;
   final String? shiftId;
-  final double totalAmount;
+  final int totalAmount;
   final String paymentMethod;
   final DateTime timestamp;
   final List<SaleItem> items;

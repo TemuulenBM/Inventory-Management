@@ -41,8 +41,8 @@ class Products extends Table {
   TextColumn get name => text()();
   TextColumn get sku => text()(); // Auto-generated эсвэл manual
   TextColumn get unit => text()(); // 'pcs', 'kg', 'liter', гэх мэт
-  RealColumn get sellPrice => real()();
-  RealColumn get costPrice => real().nullable()();
+  IntColumn get sellPrice => integer()();
+  IntColumn get costPrice => integer().nullable()();
   IntColumn get lowStockThreshold => integer().withDefault(const Constant(10))();
   TextColumn get note => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -85,7 +85,7 @@ class Sales extends Table {
   TextColumn get storeId => text().references(Stores, #id)();
   TextColumn get sellerId => text().references(Users, #id)();
   TextColumn get shiftId => text().nullable().references(Shifts, #id)();
-  RealColumn get totalAmount => real()();
+  IntColumn get totalAmount => integer()();
   TextColumn get paymentMethod => text().withDefault(const Constant('cash'))(); // 'cash', 'card', 'qr'
   DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
 
@@ -99,8 +99,8 @@ class SaleItems extends Table {
   TextColumn get saleId => text().references(Sales, #id, onDelete: KeyAction.cascade)();
   TextColumn get productId => text().references(Products, #id)();
   IntColumn get quantity => integer()();
-  RealColumn get unitPrice => real()(); // Тухайн үеийн үнэ
-  RealColumn get subtotal => real()(); // quantity * unitPrice
+  IntColumn get unitPrice => integer()(); // Тухайн үеийн үнэ
+  IntColumn get subtotal => integer()(); // quantity * unitPrice
 
   @override
   Set<Column> get primaryKey => {id};
@@ -113,8 +113,8 @@ class Shifts extends Table {
   TextColumn get sellerId => text().references(Users, #id)();
   DateTimeColumn get openedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get closedAt => dateTime().nullable()();
-  RealColumn get openBalance => real().nullable()(); // Эхлэх мөнгө (optional)
-  RealColumn get closeBalance => real().nullable()(); // Хаах мөнгө
+  IntColumn get openBalance => integer().nullable()(); // Эхлэх мөнгө (optional)
+  IntColumn get closeBalance => integer().nullable()(); // Хаах мөнгө
 
   @override
   Set<Column> get primaryKey => {id};
@@ -176,7 +176,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase._internal() : super(_openConnection());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -191,6 +191,11 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             // Version 3: Products table-д ангилал (category) нэмэх
             await m.addColumn(products, products.category);
+          }
+          if (from < 4) {
+            // Version 4: Үнийн төрлийг REAL → INTEGER өөрчлөх
+            // Монгол төгрөг бүтэн тоо (ам байхгүй)
+            // Одоо байгаа өгөгдөл байхгүй (database хоосон), migration logic хэрэггүй
           }
         },
       );
@@ -244,7 +249,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Өнөөдрийн нийт борлуулалт (Dashboard)
-  Future<double> getTodayTotalSales(String storeId) async {
+  Future<int> getTodayTotalSales(String storeId) async {
     final today = DateTime.now();
     final startOfDay = DateTime(today.year, today.month, today.day);
 
@@ -253,11 +258,11 @@ class AppDatabase extends _$AppDatabase {
               s.storeId.equals(storeId) & s.timestamp.isBiggerOrEqualValue(startOfDay)))
         .get();
 
-    return result.fold<double>(0, (sum, sale) => sum + sale.totalAmount);
+    return result.fold<int>(0, (sum, sale) => sum + sale.totalAmount);
   }
 
   /// Өчигдрийн нийт борлуулалт (Dashboard - өсөлтийн хувь тооцоход)
-  Future<double> getYesterdayTotalSales(String storeId) async {
+  Future<int> getYesterdayTotalSales(String storeId) async {
     final today = DateTime.now();
     final startOfYesterday = DateTime(today.year, today.month, today.day)
         .subtract(const Duration(days: 1));
@@ -270,7 +275,7 @@ class AppDatabase extends _$AppDatabase {
               s.timestamp.isSmallerThanValue(endOfYesterday)))
         .get();
 
-    return result.fold<double>(0, (sum, sale) => sum + sale.totalAmount);
+    return result.fold<int>(0, (sum, sale) => sum + sale.totalAmount);
   }
 
   /// Шилдэг борлуулалттай бараанууд

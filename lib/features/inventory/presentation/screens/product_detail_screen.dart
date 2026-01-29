@@ -12,6 +12,7 @@ import 'package:retail_control_platform/features/inventory/domain/product_with_s
 import 'package:retail_control_platform/features/inventory/presentation/providers/inventory_event_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/widgets/adjustment_bottom_sheet.dart';
+import 'package:retail_control_platform/core/utils/currency_formatter.dart';
 
 /// Product Detail Screen
 /// Дизайн: design/product_detail_view/screen.png
@@ -223,7 +224,7 @@ class ProductDetailScreen extends ConsumerWidget {
                       child: _buildInfoCard(
                         icon: Icons.monetization_on_outlined,
                         label: 'ҮНЭ',
-                        value: '${NumberFormat('#,###').format(product.sellPrice.toInt())}₮',
+                        value: CurrencyFormatter.formatWithSymbolAtEnd(product.sellPrice),
                         valueSize: 20,
                       ),
                     ),
@@ -255,7 +256,7 @@ class ProductDetailScreen extends ConsumerWidget {
                       child: _buildInfoCard(
                         icon: Icons.store_outlined,
                         label: 'ӨРТӨГ',
-                        value: '${NumberFormat('#,###').format(product.costPrice.toInt())}₮',
+                        value: CurrencyFormatter.formatWithSymbolAtEnd(product.costPrice),
                         valueSize: 16,
                       ),
                     ),

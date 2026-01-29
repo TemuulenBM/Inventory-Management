@@ -256,8 +256,8 @@ class SyncQueueManager {
               name: data['name'],
               sku: data['sku'] ?? '',
               unit: data['unit'] ?? 'piece',
-              sellPrice: (data['sell_price'] as num?)?.toDouble() ?? 0,
-              costPrice: Value((data['cost_price'] as num?)?.toDouble()),
+              sellPrice: (data['sell_price'] as num?)?.toInt() ?? 0,
+              costPrice: Value((data['cost_price'] as num?)?.toInt()),
               lowStockThreshold: Value(data['low_stock_threshold'] ?? 10),
             ),
           );
@@ -297,8 +297,8 @@ class SyncQueueManager {
               sellerId: data['seller_id'],
               openedAt: Value(DateTime.tryParse(data['opened_at'] ?? '') ?? DateTime.now()),
               closedAt: Value(DateTime.tryParse(data['closed_at'] ?? '')),
-              openBalance: Value((data['open_balance'] as num?)?.toDouble()),
-              closeBalance: Value((data['close_balance'] as num?)?.toDouble()),
+              openBalance: Value((data['open_balance'] as num?)?.toInt()),
+              closeBalance: Value((data['close_balance'] as num?)?.toInt()),
             ),
           );
     } catch (e) {

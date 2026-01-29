@@ -68,9 +68,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         setState(() {
           _nameController.text = product.name;
           _skuController.text = product.sku;
-          _sellPriceController.text = product.sellPrice.toInt().toString();
+          _sellPriceController.text = product.sellPrice.toString();
           if (product.costPrice > 0) {
-            _costPriceController.text = product.costPrice.toInt().toString();
+            _costPriceController.text = product.costPrice.toString();
           }
           _thresholdController.text =
               (product.lowStockThreshold ?? 10).toString();
@@ -158,9 +158,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           name: _nameController.text.trim(),
           sku: _skuController.text.trim(),
           unit: 'piece',
-          sellPrice: double.tryParse(_sellPriceController.text) ?? 0,
+          sellPrice: int.tryParse(_sellPriceController.text) ?? 0,
           costPrice: _costPriceController.text.isNotEmpty
-              ? double.tryParse(_costPriceController.text)
+              ? int.tryParse(_costPriceController.text)
               : null,
           lowStockThreshold: int.tryParse(_thresholdController.text),
           category: _selectedCategory,
@@ -173,9 +173,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           widget.productId,
           name: _nameController.text.trim(),
           sku: _skuController.text.trim(),
-          sellPrice: double.tryParse(_sellPriceController.text),
+          sellPrice: int.tryParse(_sellPriceController.text),
           costPrice: _costPriceController.text.isNotEmpty
-              ? double.tryParse(_costPriceController.text)
+              ? int.tryParse(_costPriceController.text)
               : null,
           lowStockThreshold: int.tryParse(_thresholdController.text),
           category: _selectedCategory,

@@ -565,8 +565,8 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   Widget _buildSalesCardContent({
-    required double todayAmount,
-    required double yesterdayAmount,
+    required int todayAmount,
+    required int yesterdayAmount,
     required int growthPercent,
     required bool isPositive,
     bool isLoading = false,

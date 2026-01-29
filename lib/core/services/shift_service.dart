@@ -82,7 +82,7 @@ class ShiftService extends BaseService {
     String storeId,
     String sellerId,
     String sellerName, {
-    double? openBalance,
+    int? openBalance,
   }) async {
     final shiftId = const Uuid().v4();
     final now = DateTime.now();
@@ -163,7 +163,7 @@ class ShiftService extends BaseService {
   Future<ApiResult<ShiftModel>> closeShift(
     String storeId,
     String shiftId, {
-    double? closeBalance,
+    int? closeBalance,
   }) async {
     final now = DateTime.now();
 
@@ -351,7 +351,7 @@ class ShiftService extends BaseService {
           storeId: Value(storeId),
           sellerId: Value(data['seller_id']),
           openedAt: Value(DateTime.parse(data['opened_at'])),
-          openBalance: Value((data['open_balance'] as num?)?.toDouble()),
+          openBalance: Value((data['open_balance'] as num?)?.toInt()),
         );
 
         await db.into(db.shifts).insertOnConflictUpdate(companion);
@@ -384,8 +384,8 @@ class ShiftService extends BaseService {
             closedAt: data['closed_at'] != null
                 ? Value(DateTime.parse(data['closed_at']))
                 : const Value.absent(),
-            openBalance: Value((data['open_balance'] as num?)?.toDouble()),
-            closeBalance: Value((data['close_balance'] as num?)?.toDouble()),
+            openBalance: Value((data['open_balance'] as num?)?.toInt()),
+            closeBalance: Value((data['close_balance'] as num?)?.toInt()),
           );
 
           await db.into(db.shifts).insertOnConflictUpdate(companion);

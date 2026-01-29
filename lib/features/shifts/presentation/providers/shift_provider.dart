@@ -73,7 +73,7 @@ class ShiftActions extends _$ShiftActions {
 
   /// Ээлж нээх
   Future<bool> openShift({
-    double? openBalance,
+    int? openBalance,
   }) async {
     state = const AsyncValue.loading();
 
@@ -110,7 +110,7 @@ class ShiftActions extends _$ShiftActions {
   /// Ээлж хаах
   Future<bool> closeShift({
     required String shiftId,
-    double? closeBalance,
+    int? closeBalance,
   }) async {
     state = const AsyncValue.loading();
 

@@ -116,8 +116,8 @@ class ProductActions extends _$ProductActions {
     required String name,
     required String sku,
     required String unit,
-    required double sellPrice,
-    double? costPrice,
+    required int sellPrice,
+    int? costPrice,
     int? lowStockThreshold,
     int? initialStock,
     String? category, // Барааны ангилал
@@ -170,8 +170,8 @@ class ProductActions extends _$ProductActions {
     String? name,
     String? sku,
     String? unit,
-    double? sellPrice,
-    double? costPrice,
+    int? sellPrice,
+    int? costPrice,
     int? lowStockThreshold,
     String? category, // Барааны ангилал
     File? imageFile,

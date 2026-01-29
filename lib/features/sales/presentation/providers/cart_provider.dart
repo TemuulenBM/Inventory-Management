@@ -159,7 +159,7 @@ Future<List<SaleWithItems>> salesHistory(
 
 /// Today's sales total
 @riverpod
-Future<double> todaySalesTotal(TodaySalesTotalRef ref) async {
+Future<int> todaySalesTotal(TodaySalesTotalRef ref) async {
   final storeId = ref.watch(storeIdProvider);
   if (storeId == null) return 0;
 
@@ -174,7 +174,7 @@ Future<double> todaySalesTotal(TodaySalesTotalRef ref) async {
 
 /// Yesterday's sales total (for growth comparison)
 @riverpod
-Future<double> yesterdaySalesTotal(YesterdaySalesTotalRef ref) async {
+Future<int> yesterdaySalesTotal(YesterdaySalesTotalRef ref) async {
   final storeId = ref.watch(storeIdProvider);
   if (storeId == null) return 0;
 

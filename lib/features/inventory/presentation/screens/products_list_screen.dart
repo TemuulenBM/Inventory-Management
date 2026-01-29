@@ -330,7 +330,7 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
             return _buildProductCard(
               name: product.name,
               sku: product.sku,
-              price: product.sellPrice.toInt(),
+              price: product.sellPrice,
               stock: product.stockQuantity,
               isLowStock: product.isLowStock,
               imageUrl: product.imageUrl,

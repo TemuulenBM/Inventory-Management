@@ -504,7 +504,7 @@ class _ShiftDetailProviderElement
   String get shiftId => (origin as ShiftDetailProvider).shiftId;
 }
 
-String _$shiftActionsHash() => r'7960f8e9e0be9cfd6b86f2e29c3f103f1a8b8c73';
+String _$shiftActionsHash() => r'595e9992a0f90b7035495b94cc7c9798058074ef';
 
 /// Shift actions (open, close)
 ///
