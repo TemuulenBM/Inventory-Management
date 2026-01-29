@@ -59,6 +59,7 @@ export async function createSale(
         shift_id: data.shift_id ?? null,
         total_amount: totalAmount,
         payment_method: data.payment_method,
+        synced_at: new Date().toISOString(), // Sync timestamp auto-set
       })
       .select()
       .single();

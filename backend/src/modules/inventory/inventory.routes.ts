@@ -126,11 +126,11 @@ export async function inventoryRoutes(server: FastifyInstance) {
 
       // ✅ Alert triggers - Бага үлдэгдэл болон сөрөг үлдэгдэл шалгах
       // Background дээр ажиллана (await хийхгүй бол API response саадлахгүй)
-      checkLowStock(params.storeId, parseResult.data.product_id).catch((err) => {
-        server.log.error({ err, productId: parseResult.data.product_id }, 'Low stock check failed');
+      checkLowStock(params.storeId, parseResult.data.productId).catch((err) => {
+        server.log.error({ err, productId: parseResult.data.productId }, 'Low stock check failed');
       });
-      checkNegativeStock(params.storeId, parseResult.data.product_id).catch((err) => {
-        server.log.error({ err, productId: parseResult.data.product_id }, 'Negative stock check failed');
+      checkNegativeStock(params.storeId, parseResult.data.productId).catch((err) => {
+        server.log.error({ err, productId: parseResult.data.productId }, 'Negative stock check failed');
       });
 
       return reply.status(201).send({

@@ -316,6 +316,7 @@ async function syncOpenShift(
       store_id: storeId,
       seller_id: userId,
       open_balance,
+      synced_at: new Date().toISOString(), // Sync timestamp auto-set
     })
     .select()
     .single();
@@ -346,6 +347,7 @@ async function syncCloseShift(
     .update({
       closed_at: new Date().toISOString(),
       close_balance,
+      synced_at: new Date().toISOString(), // Sync timestamp update
     })
     .eq('id', shift_id)
     .eq('store_id', storeId);
@@ -401,12 +403,12 @@ export async function getChanges(
       .gte('synced_at', since)
       .limit(limit);
 
-    // Alerts өөрчлөлт
+    // Alerts өөрчлөлт (unresolved + recently resolved)
     const { data: alerts } = await supabase
       .from('alerts')
       .select('*')
       .eq('store_id', storeId)
-      .gte('created_at', since)
+      .or(`resolved.is.false,and(resolved.is.true,resolved_at.gte.${since})`)
       .limit(limit);
 
     return {

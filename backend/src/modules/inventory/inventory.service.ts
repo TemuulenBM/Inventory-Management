@@ -127,6 +127,7 @@ export async function createInventoryEvent(
       reason: data.reason ?? null,
       actor_id: actorId,
       shift_id: data.shiftId ?? null,
+      synced_at: new Date().toISOString(), // Sync timestamp auto-set
     })
     .select()
     .single();

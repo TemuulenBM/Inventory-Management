@@ -59,6 +59,7 @@ export async function openShift(
         store_id: storeId,
         seller_id: sellerId,
         open_balance: data.open_balance ?? null,
+        synced_at: new Date().toISOString(), // Sync timestamp auto-set
       })
       .select()
       .single();
@@ -123,6 +124,7 @@ export async function closeShift(
       .update({
         closed_at: new Date().toISOString(),
         close_balance: data.close_balance ?? null,
+        synced_at: new Date().toISOString(), // Sync timestamp update
       })
       .eq('id', shift.id)
       .select()

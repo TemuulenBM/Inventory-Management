@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:meta/meta.dart';
 
 part 'app_database.g.dart';
 
@@ -15,6 +16,8 @@ class Stores extends Table {
   TextColumn get location => text().nullable()();
   TextColumn get timezone => text().withDefault(const Constant('Asia/Ulaanbaatar'))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  // ШИНЭ v8: Сүүлд засварласан огноо
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -23,12 +26,15 @@ class Stores extends Table {
 /// Users - Хэрэглэгчид (Owner, Seller)
 class Users extends Table {
   TextColumn get id => text()();
-  TextColumn get storeId => text().references(Stores, #id)();
+  // ӨӨРЧЛӨЛТ v5: nullable болгох - super-admin users store_id = null байж болно
+  TextColumn get storeId => text().nullable().references(Stores, #id)();
   TextColumn get name => text()();
   TextColumn get phone => text().nullable()();
   TextColumn get role => text()(); // 'owner', 'manager', 'seller'
   DateTimeColumn get lastOnline => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  // ШИНЭ v8: Сүүлд засварласан огноо
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -74,6 +80,8 @@ class InventoryEvents extends Table {
   TextColumn get shiftId => text().nullable().references(Shifts, #id)();
   TextColumn get reason => text().nullable()(); // Manual adjustment шалтгаан
   DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
+  // ШИНЭ v7: Sync хийгдсэн огноо (entity-level tracking)
+  DateTimeColumn get syncedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -88,6 +96,8 @@ class Sales extends Table {
   IntColumn get totalAmount => integer()();
   TextColumn get paymentMethod => text().withDefault(const Constant('cash'))(); // 'cash', 'card', 'qr'
   DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
+  // ШИНЭ v7: Sync хийгдсэн огноо
+  DateTimeColumn get syncedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -115,6 +125,8 @@ class Shifts extends Table {
   DateTimeColumn get closedAt => dateTime().nullable()();
   IntColumn get openBalance => integer().nullable()(); // Эхлэх мөнгө (optional)
   IntColumn get closeBalance => integer().nullable()(); // Хаах мөнгө
+  // ШИНЭ v7: Sync хийгдсэн огноо
+  DateTimeColumn get syncedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -130,6 +142,8 @@ class Alerts extends Table {
   TextColumn get level => text().withDefault(const Constant('info'))(); // 'info', 'warning', 'error'
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   BoolColumn get resolved => boolean().withDefault(const Constant(false))();
+  // ШИНЭ v6: Alert шийдэгдсэн огноо
+  DateTimeColumn get resolvedAt => dateTime().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -175,8 +189,12 @@ class AppDatabase extends _$AppDatabase {
   /// Private constructor
   AppDatabase._internal() : super(_openConnection());
 
+  /// Test constructor - in-memory database үүсгэх
+  @visibleForTesting
+  AppDatabase.forTesting(QueryExecutor executor) : super(executor);
+
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 8; // v4 → v8: Supabase sync хийх
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -196,6 +214,60 @@ class AppDatabase extends _$AppDatabase {
             // Version 4: Үнийн төрлийг REAL → INTEGER өөрчлөх
             // Монгол төгрөг бүтэн тоо (ам байхгүй)
             // Одоо байгаа өгөгдөл байхгүй (database хоосон), migration logic хэрэггүй
+          }
+
+          // ============================================================================
+          // ШИНЭ MIGRATIONS: Drift schema-г Supabase руу ойртуулах
+          // ============================================================================
+
+          if (from < 5) {
+            // Version 5: users.store_id nullable болгох
+            // Super-admin users store_id = null байж болох (Supabase schema-тай тохирох)
+            //
+            // АНХААР: Drift-д ALTER COLUMN nullable хийх боломжгүй.
+            // Table rebuild хийх хэрэгтэй - өгөгдөл шилжүүлнэ.
+
+            // 1. Шинэ users table үүсгэх (store_id nullable)
+            await customStatement('''
+              CREATE TABLE users_new (
+                id TEXT PRIMARY KEY,
+                store_id TEXT,
+                name TEXT NOT NULL,
+                phone TEXT,
+                role TEXT NOT NULL,
+                last_online INTEGER,
+                created_at INTEGER NOT NULL,
+                FOREIGN KEY (store_id) REFERENCES stores(id)
+              );
+            ''');
+
+            // 2. Өгөгдөл шилжүүлэх
+            await customStatement('INSERT INTO users_new SELECT * FROM users;');
+
+            // 3. Хуучин table устгаж, шинийг нэрлэх
+            await customStatement('DROP TABLE users;');
+            await customStatement('ALTER TABLE users_new RENAME TO users;');
+          }
+
+          if (from < 6) {
+            // Version 6: alerts.resolved_at нэмэх
+            // Alert хэзээ шийдэгдсэнийг timestamp-аар хадгалах
+            await m.addColumn(alerts, alerts.resolvedAt);
+          }
+
+          if (from < 7) {
+            // Version 7: synced_at columns нэмэх
+            // Entity-level sync tracking: Хэзээ Supabase руу sync хийгдсэнийг хадгалах
+            await m.addColumn(inventoryEvents, inventoryEvents.syncedAt);
+            await m.addColumn(sales, sales.syncedAt);
+            await m.addColumn(shifts, shifts.syncedAt);
+          }
+
+          if (from < 8) {
+            // Version 8: updated_at columns нэмэх
+            // Conflict resolution-д ашиглах: last-write-wins strategy
+            await m.addColumn(stores, stores.updatedAt);
+            await m.addColumn(users, users.updatedAt);
           }
         },
       );
