@@ -9,7 +9,7 @@
 
 import { supabase } from '../../config/supabase.js';
 import type { BatchSyncBody, SyncOperation, ChangesQueryParams } from './sync.schema.js';
-import { createSale } from '../sales/sales.service.js';
+import { createSale, voidSale } from '../sales/sales.service.js';
 import { createInventoryEvent } from '../inventory/inventory.service.js';
 
 type ServiceResult<T> =
@@ -97,6 +97,9 @@ async function processSingleOperation(
   switch (operation.operation_type) {
     case 'create_sale':
       return await syncCreateSale(storeId, userId, operation);
+
+    case 'void_sale':
+      return await syncVoidSale(storeId, userId, operation);
 
     case 'create_inventory_event':
       return await syncCreateInventoryEvent(storeId, userId, operation);
@@ -203,16 +206,19 @@ async function syncUpdateProduct(
   }
 
   // Conflict detection: last-write-wins
+  // Server шинэ өгөгдөл байвал warning log хийх, гэхдээ client update-ийг proceed хийх
+  // Энэ нь offline client-ийн өгөгдөл алдагдахаас сэргийлнэ
   const clientTimestamp = new Date(operation.client_timestamp);
   const serverTimestamp = existingProduct.updated_at ? new Date(existingProduct.updated_at) : new Date(0);
 
   if (serverTimestamp > clientTimestamp) {
-    // Server дээрх өгөгдөл шинэ байна - conflict
-    return {
-      success: false,
-      status: 'conflict',
-      error: 'Server has newer data',
-    };
+    // Server дээрх өгөгдөл шинэ байна - conflict warning
+    console.warn(
+      `Product update conflict detected: product_id=${product_id}, ` +
+        `server=${serverTimestamp.toISOString()}, client=${clientTimestamp.toISOString()}. ` +
+        `Proceeding with client update (last-write-wins).`
+    );
+    // PROCEED with update (reject хийхгүй)
   }
 
   // Update product
@@ -354,6 +360,33 @@ async function syncCloseShift(
 
   if (error) {
     return { success: false, error: 'Failed to close shift' };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Void sale sync - Борлуулалт цуцлах (offline sync)
+ * Mobile-аас offline void sale хийхдээ sync queue-д хадгална,
+ * online болоход энэ функц ашиглан server дээр void хийнэ
+ */
+async function syncVoidSale(
+  storeId: string,
+  userId: string,
+  operation: SyncOperation
+): Promise<{ success: true } | { success: false; error: string }> {
+  const { sale_id, actor_id } = operation.data;
+
+  if (!sale_id) {
+    return { success: false, error: 'Sale ID required' };
+  }
+
+  // Одоо байгаа voidSale() service функцыг дуудах
+  // (sales.service.ts:290-364 - sale_items устгах, RETURN inventory events үүсгэх)
+  const result = await voidSale(sale_id, storeId, actor_id || userId);
+
+  if (!result.success) {
+    return { success: false, error: result.error };
   }
 
   return { success: true };

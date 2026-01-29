@@ -14,6 +14,7 @@ import { z } from 'zod';
  */
 export const syncOperationTypeEnum = z.enum([
   'create_sale',
+  'void_sale', // Борлуулалт цуцлах (offline sync-д зориулсан)
   'create_inventory_event',
   'update_product',
   'create_product',

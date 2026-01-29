@@ -184,7 +184,10 @@ class ShiftService extends BaseService {
         try {
           await api.post(
             ApiEndpoints.closeShift(storeId),
-            data: {'close_balance': closeBalance},
+            data: {
+              'shift_id': shiftId, // Backend-д shift_id шаардлагатай
+              'close_balance': closeBalance,
+            },
           );
         } catch (e) {
           log('API closeShift error: $e');
@@ -400,8 +403,31 @@ class ShiftService extends BaseService {
 
   /// Local shift ID update хийх (server ID-тай солих)
   Future<void> _updateLocalShiftId(String oldId, String newId) async {
-    // Энэ нь complex operation - sales, inventory_events-д бас update хийх хэрэгтэй
-    // TODO: Implement proper ID mapping
-    log('Shift ID mapping: $oldId -> $newId');
+    try {
+      // TRANSACTION - бүх 3 table атомар байдлаар update хийх
+      // Offline ээлж үүсгэхдээ temp UUID генерирүүлдэг, sync дараа server ID-тай солих шаардлагатай
+      // Учир нь sales болон inventory_events-д shift_id FK байна
+      await db.transaction(() async {
+        // 1. Shifts table - Primary key өөрчлөх
+        await (db.update(db.shifts)..where((s) => s.id.equals(oldId)))
+            .write(ShiftsCompanion(id: Value(newId)));
+
+        // 2. Sales table - shift_id foreign key update хийх
+        await (db.update(db.sales)..where((s) => s.shiftId.equals(oldId)))
+            .write(SalesCompanion(shiftId: Value(newId)));
+
+        // 3. Inventory events - shift_id foreign key update хийх
+        await (db.update(db.inventoryEvents)
+              ..where((ie) => ie.shiftId.equals(oldId)))
+            .write(InventoryEventsCompanion(shiftId: Value(newId)));
+      });
+
+      log('Shift ID mapping complete: $oldId -> $newId');
+    } catch (e) {
+      log('ERROR: _updateLocalShiftId failed: $e');
+      // Transaction failure үед бүх өөрчлөлт rollback хийгдэнэ (Drift автоматаар)
+      // Sync operation failed гэж тэмдэглэхийн тулд exception propagate хийх
+      rethrow;
+    }
   }
 }

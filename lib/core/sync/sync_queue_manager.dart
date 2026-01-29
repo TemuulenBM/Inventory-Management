@@ -86,6 +86,14 @@ class SyncQueueManager {
             }
           } else {
             final errorMsg = result['error']?.toString() ?? 'Unknown error';
+
+            // Conflict detection - warning log хийх
+            if (result['status'] == 'conflict') {
+              _log('WARNING: Sync conflict detected for $syncId: $errorMsg');
+              // Conflict нь backend дээр warning л болж байгаа (proceed хийнэ)
+              // Гэхдээ mobile талд ч log хийх нь debugging-д туслана
+            }
+
             await db.incrementRetryCount(syncId, errorMsg);
             failed++;
             errors.add(errorMsg);
@@ -157,6 +165,13 @@ class SyncQueueManager {
         final shifts = changes['shifts'] as List? ?? [];
         for (final shift in shifts) {
           await _upsertShift(shift);
+          totalChanges++;
+        }
+
+        // Process sales + sale_items (embedded)
+        final sales = changes['sales'] as List? ?? [];
+        for (final sale in sales) {
+          await _upsertSale(sale);
           totalChanges++;
         }
 
@@ -259,6 +274,11 @@ class SyncQueueManager {
               sellPrice: (data['sell_price'] as num?)?.toInt() ?? 0,
               costPrice: Value((data['cost_price'] as num?)?.toInt()),
               lowStockThreshold: Value(data['low_stock_threshold'] ?? 10),
+              // Sync дараа алдагдаж байсан талбарууд нэмэх
+              category: Value(data['category']),
+              note: Value(data['note']),
+              imageUrl: Value(data['image_url']),
+              updatedAt: Value(DateTime.tryParse(data['updated_at'] ?? '') ?? DateTime.now()),
             ),
           );
     } catch (e) {
@@ -322,6 +342,54 @@ class SyncQueueManager {
           );
     } catch (e) {
       _log('_upsertAlert error: $e');
+    }
+  }
+
+  /// Sale + SaleItems upsert
+  /// Backend /changes endpoint sales + sale_items embedded буцаадаг,
+  /// энэ функц sale бүртгэл болон бүх sale_items-ийг local DB-д хадгална
+  Future<void> _upsertSale(Map<String, dynamic> data) async {
+    try {
+      // 1. Sale бүртгэл upsert
+      await db.into(db.sales).insertOnConflictUpdate(
+            SalesCompanion.insert(
+              id: data['id'],
+              storeId: data['store_id'],
+              sellerId: data['seller_id'],
+              shiftId: Value(data['shift_id']),
+              totalAmount: (data['total_amount'] as num?)?.toInt() ?? 0,
+              paymentMethod: Value(data['payment_method'] ?? 'cash'),
+              timestamp:
+                  Value(DateTime.tryParse(data['timestamp'] ?? '') ?? DateTime.now()),
+              syncedAt: Value(DateTime.tryParse(data['synced_at'] ?? '')),
+            ),
+          );
+
+      // 2. Sale items upsert (embedded list)
+      final items = data['sale_items'] as List? ?? [];
+      for (final item in items) {
+        await _upsertSaleItem(item);
+      }
+    } catch (e) {
+      _log('_upsertSale error: $e');
+    }
+  }
+
+  /// SaleItem upsert
+  Future<void> _upsertSaleItem(Map<String, dynamic> data) async {
+    try {
+      await db.into(db.saleItems).insertOnConflictUpdate(
+            SaleItemsCompanion.insert(
+              id: data['id'],
+              saleId: data['sale_id'],
+              productId: data['product_id'],
+              quantity: data['quantity'] ?? 0,
+              unitPrice: (data['unit_price'] as num?)?.toInt() ?? 0,
+              subtotal: (data['subtotal'] as num?)?.toInt() ?? 0,
+            ),
+          );
+    } catch (e) {
+      _log('_upsertSaleItem error: $e');
     }
   }
 
