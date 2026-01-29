@@ -391,6 +391,9 @@ class AppDatabase extends _$AppDatabase {
       SELECT
         p.id,
         p.name,
+        p.image_url,
+        p.local_image_path,
+        p.category,
         SUM(si.quantity) as total_quantity,
         SUM(si.subtotal) as total_revenue
       FROM sale_items si
@@ -398,7 +401,7 @@ class AppDatabase extends _$AppDatabase {
       INNER JOIN products p ON si.product_id = p.id
       WHERE s.store_id = ?
         $whereClause
-      GROUP BY p.id
+      GROUP BY p.id, p.name, p.image_url, p.local_image_path, p.category
       ORDER BY total_quantity DESC
       LIMIT ?
       ''',

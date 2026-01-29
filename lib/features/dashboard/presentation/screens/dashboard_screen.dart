@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -988,7 +990,9 @@ class DashboardScreen extends ConsumerWidget {
                     rank: index + 1,
                     name: product.name,
                     salesCount: product.salesCount,
-                    bgColor: _getProductColor(index),
+                    imageUrl: product.imageUrl,
+                    localImagePath: product.localImagePath,
+                    category: product.category,
                   );
                 },
               ),
@@ -1002,15 +1006,142 @@ class DashboardScreen extends ConsumerWidget {
   }
 
   /// Top products-ийн өнгө (rank-д тулгуурласан)
-  Color _getProductColor(int index) {
-    final colors = [
-      const Color(0xFFFFCDD2), // Улаан
-      const Color(0xFFC8E6C9), // Ногоон
-      const Color(0xFFFFE0B2), // Улбар
-      const Color(0xFFBBDEFB), // Цэнхэр
-      const Color(0xFFE1BEE7), // Ягаан
-    ];
-    return colors[index % colors.length];
+  /// Offline-first зураг + rank badge
+  Widget _buildProductImageWithRank({
+    required int rank,
+    String? imageUrl,
+    String? localImagePath,
+    String? category,
+  }) {
+    return Container(
+      height: 90,
+      decoration: BoxDecoration(
+        color: _getCategoryColor(category),
+        borderRadius: AppRadius.radiusMD,
+      ),
+      child: Stack(
+        children: [
+          // Offline-first зураг
+          _buildTopProductImage(
+            imageUrl: imageUrl,
+            localImagePath: localImagePath,
+            category: category,
+          ),
+
+          // Rank badge
+          Positioned(
+            top: 8,
+            left: 8,
+            child: Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  '#$rank',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textMainLight,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Offline-first image loading pattern
+  /// Priority: Local image → Network image → Placeholder
+  Widget _buildTopProductImage({
+    String? imageUrl,
+    String? localImagePath,
+    String? category,
+  }) {
+    // 1. Local зураг эхлээд шалгах (offline-first)
+    if (localImagePath != null && localImagePath.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: AppRadius.radiusMD,
+        child: Image.file(
+          File(localImagePath),
+          height: 90,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // Local алдаа гарвал network руу fallback
+            return _buildNetworkOrPlaceholder(imageUrl, category);
+          },
+        ),
+      );
+    }
+
+    // 2. Network зураг шалгах
+    return _buildNetworkOrPlaceholder(imageUrl, category);
+  }
+
+  /// Network зураг эсвэл placeholder
+  Widget _buildNetworkOrPlaceholder(String? imageUrl, String? category) {
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: AppRadius.radiusMD,
+        child: Image.network(
+          imageUrl,
+          height: 90,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            // Loading үед placeholder
+            return _buildImagePlaceholder(category);
+          },
+          errorBuilder: (context, error, stackTrace) {
+            // Network алдаа гарвал placeholder
+            return _buildImagePlaceholder(category);
+          },
+        ),
+      );
+    }
+
+    // Зураг огт байхгүй үед placeholder
+    return _buildImagePlaceholder(category);
+  }
+
+  /// Placeholder icon (category өнгөтэй фон)
+  Widget _buildImagePlaceholder(String? category) {
+    return Center(
+      child: Icon(
+        Icons.inventory_2_outlined,
+        size: 40,
+        color: Colors.white.withValues(alpha: 0.8),
+      ),
+    );
+  }
+
+  /// Category-д тулгуурласан өнгө (Quick Sale screen шиг)
+  Color _getCategoryColor(String? category) {
+    switch (category) {
+      case 'Хүнс':
+        return const Color(0xFFFFE4CC); // Шар
+      case 'Ундаа':
+        return const Color(0xFFCDE7F0); // Цэнхэр
+      case 'Гэр ахуй':
+        return const Color(0xFFFFF0CC); // Ногоон-шар
+      case 'Хувцас':
+        return const Color(0xFFFFD4CC); // Улаан-ягаан
+      default:
+        return const Color(0xFFD4E4FF); // Цэнхэр (default)
+    }
   }
 
   /// Top products хоосон үед
@@ -1101,7 +1232,9 @@ class DashboardScreen extends ConsumerWidget {
     required int rank,
     required String name,
     required int salesCount,
-    required Color bgColor,
+    String? imageUrl,
+    String? localImagePath,
+    String? category,
   }) {
     return Container(
       width: 140,
@@ -1120,54 +1253,12 @@ class DashboardScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Product image placeholder
-          Container(
-            height: 90,
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: AppRadius.radiusMD,
-            ),
-            child: Stack(
-              children: [
-                // Rank badge
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 4,
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        '#$rank',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textMainLight,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                // Placeholder icon
-                const Center(
-                  child: Icon(
-                    Icons.inventory_2_outlined,
-                    size: 40,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
+          // Offline-first зураг + rank badge
+          _buildProductImageWithRank(
+            rank: rank,
+            imageUrl: imageUrl,
+            localImagePath: localImagePath,
+            category: category,
           ),
           const SizedBox(height: 8),
 

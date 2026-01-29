@@ -193,12 +193,18 @@ class TopProductItem {
   final String name;
   final int salesCount;
   final double revenue;
+  final String? imageUrl;        // Cloud URL (Supabase Storage)
+  final String? localImagePath;  // Local file path (offline)
+  final String? category;        // Category-based өнгөнд хэрэгтэй
 
   TopProductItem({
     required this.id,
     required this.name,
     required this.salesCount,
     required this.revenue,
+    this.imageUrl,
+    this.localImagePath,
+    this.category,
   });
 
   factory TopProductItem.fromMap(Map<String, dynamic> map) {
@@ -207,6 +213,9 @@ class TopProductItem {
       name: map['name'] as String,
       salesCount: (map['total_quantity'] as num?)?.toInt() ?? 0,
       revenue: (map['total_revenue'] as num?)?.toDouble() ?? 0.0,
+      imageUrl: map['image_url'] as String?,
+      localImagePath: map['local_image_path'] as String?,
+      category: map['category'] as String?,
     );
   }
 }
