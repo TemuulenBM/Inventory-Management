@@ -83,36 +83,43 @@ int cartItemCount(CartItemCountRef ref) {
   return cartItems.fold(0, (sum, item) => sum + item.quantity);
 }
 
-/// Checkout actions
+/// Checkout actions - stateless functional pattern
+/// State management UI layer (cart_screen)-д хийгдэнэ
 @riverpod
 class CheckoutActions extends _$CheckoutActions {
   @override
-  FutureOr<void> build() {}
+  void build() {
+    // No state management - purely functional
+  }
 
   /// Борлуулалт хийх (checkout)
+  ///
+  /// Returns:
+  /// - Success: saleId (String)
+  /// - Failure: null
+  ///
+  /// Errors: Throw exception (UI-д catch хийх)
   Future<String?> checkout({
     String paymentMethod = 'cash',
   }) async {
-    state = const AsyncValue.loading();
-
     final storeId = ref.read(storeIdProvider);
     final userId = ref.read(currentUserIdProvider);
     final cartItems = ref.read(cartNotifierProvider);
 
+    // Validation
     if (storeId == null || userId == null) {
-      state = AsyncValue.error('Хэрэглэгч нэвтрээгүй байна', StackTrace.current);
-      return null;
+      throw Exception('Хэрэглэгч нэвтрээгүй байна');
     }
 
     if (cartItems.isEmpty) {
-      state = AsyncValue.error('Сагс хоосон байна', StackTrace.current);
-      return null;
+      throw Exception('Сагс хоосон байна');
     }
 
     // Get current shift (if any)
     final currentShift = await ref.read(currentShiftProvider(storeId).future);
     final shiftId = currentShift?.id;
 
+    // Call service
     final service = ref.read(salesServiceProvider);
     final result = await service.completeSale(
       storeId: storeId,
@@ -124,15 +131,13 @@ class CheckoutActions extends _$CheckoutActions {
 
     return result.when(
       success: (saleId) {
-        state = const AsyncValue.data(null);
-        // Clear cart after successful checkout
+        // Side effects AFTER successful sale
         ref.read(cartNotifierProvider.notifier).clear();
-        // Invalidate product list to refresh stock levels
         ref.invalidate(productListProvider);
         return saleId;
       },
       error: (message, _, __) {
-        state = AsyncValue.error(message, StackTrace.current);
+        // Return null for error - UI will handle
         return null;
       },
     );

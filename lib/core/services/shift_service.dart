@@ -235,15 +235,56 @@ class ShiftService extends BaseService {
   // ============================================================================
 
   /// Local DB-аас идэвхтэй ээлж авах
+  /// Хэрэв олон идэвхтэй ээлж байвал auto-cleanup хийнэ (self-healing)
   Future<ShiftModel?> _getLocalActiveShift(String storeId, String sellerId) async {
-    final shift = await (db.select(db.shifts)
+    // Бүх идэвхтэй ээлж авах
+    final allActiveShifts = await (db.select(db.shifts)
           ..where((s) =>
               s.storeId.equals(storeId) &
               s.sellerId.equals(sellerId) &
               s.closedAt.isNull()))
-        .getSingleOrNull();
+        .get();
 
-    if (shift == null) return null;
+    // Хоосон бол null буцаах
+    if (allActiveShifts.isEmpty) return null;
+
+    // Хэрэв олон идэвхтэй ээлж байвал auto-cleanup хийх
+    if (allActiveShifts.length > 1) {
+      log('⚠️ WARNING: ${allActiveShifts.length} active shifts found. Auto-closing old shifts.');
+
+      // Хамгийн сүүлд нээсэн ээлжийг олох
+      final latestShift = allActiveShifts.reduce((a, b) =>
+          a.openedAt.isAfter(b.openedAt) ? a : b);
+
+      // Бусад хуучин ээлжүүдийг хаах
+      for (final oldShift in allActiveShifts) {
+        if (oldShift.id != latestShift.id) {
+          // Local DB-д ээлж хаах
+          await (db.update(db.shifts)..where((s) => s.id.equals(oldShift.id)))
+              .write(ShiftsCompanion(
+            closedAt: Value(DateTime.now()),
+            closeBalance: const Value(null),
+          ));
+
+          // Sync queue-д нэмэх (backend-руу sync хийгдэх)
+          await enqueueOperation(
+            entityType: 'shift',
+            operation: 'close_shift',
+            payload: {
+              'shift_id': oldShift.id,
+              'close_balance': null,
+              'reason': 'Duplicate active shift cleanup',
+            },
+          );
+
+          log('Closed duplicate shift: ${oldShift.id}');
+        }
+      }
+    }
+
+    // Хамгийн сүүлд нээсэн ээлжийг буцаах
+    final shift = allActiveShifts.reduce((a, b) =>
+        a.openedAt.isAfter(b.openedAt) ? a : b);
 
     // User name авах
     final user = await (db.select(db.users)..where((u) => u.id.equals(shift.sellerId)))

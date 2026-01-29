@@ -287,14 +287,15 @@ final cartNotifierProvider =
 );
 
 typedef _$CartNotifier = AutoDisposeNotifier<List<CartItem>>;
-String _$checkoutActionsHash() => r'd243516ba5678a160dd287cad1158af4b70b9697';
+String _$checkoutActionsHash() => r'816f0f192a150ade3e0dc7719f3809ac8a9c2427';
 
-/// Checkout actions
+/// Checkout actions - stateless functional pattern
+/// State management UI layer (cart_screen)-д хийгдэнэ
 ///
 /// Copied from [CheckoutActions].
 @ProviderFor(CheckoutActions)
 final checkoutActionsProvider =
-    AutoDisposeAsyncNotifierProvider<CheckoutActions, void>.internal(
+    AutoDisposeNotifierProvider<CheckoutActions, void>.internal(
   CheckoutActions.new,
   name: r'checkoutActionsProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -304,6 +305,6 @@ final checkoutActionsProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$CheckoutActions = AutoDisposeAsyncNotifier<void>;
+typedef _$CheckoutActions = AutoDisposeNotifier<void>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

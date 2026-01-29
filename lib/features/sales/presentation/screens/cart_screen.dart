@@ -413,32 +413,44 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   }
 
   /// Checkout боловсруулах
+  /// Checkout боловсруулах
   Future<void> _processCheckout() async {
     setState(() => _isCheckingOut = true);
 
-    final saleId = await ref
-        .read(checkoutActionsProvider.notifier)
-        .checkout(paymentMethod: _paymentMethod);
+    try {
+      final saleId = await ref
+          .read(checkoutActionsProvider.notifier)
+          .checkout(paymentMethod: _paymentMethod);
 
-    if (!mounted) return;
-    setState(() => _isCheckingOut = false);
+      if (!mounted) return;
+      setState(() => _isCheckingOut = false);
 
-    if (saleId != null) {
-      // Амжилттай → SuccessDialog → QuickSaleSelect руу буцах
-      await SuccessDialog.show(
-        context: context,
-        title: 'Борлуулалт амжилттай',
-        message: 'Борлуулалт бүртгэгдлээ.',
-        buttonText: 'Үргэлжлүүлэх',
-      );
-      if (mounted) {
-        context.go(RouteNames.quickSaleSelect);
+      if (saleId != null) {
+        // Амжилттай → SuccessDialog → QuickSaleSelect руу буцах
+        await SuccessDialog.show(
+          context: context,
+          title: 'Борлуулалт амжилттай',
+          message: 'Борлуулалт бүртгэгдлээ.',
+          buttonText: 'Үргэлжлүүлэх',
+        );
+        if (mounted) {
+          context.go(RouteNames.quickSaleSelect);
+        }
+      } else {
+        // Service error (saleId == null) → ErrorDialog
+        await ErrorDialog.show(
+          context: context,
+          message: 'Борлуулалт бүртгэхэд алдаа гарлаа. Дахин оролдоно уу.',
+        );
       }
-    } else {
-      // Алдаа → ErrorDialog
+    } catch (e) {
+      // Validation error эсвэл unexpected error → ErrorDialog
+      if (!mounted) return;
+      setState(() => _isCheckingOut = false);
+
       await ErrorDialog.show(
         context: context,
-        message: 'Борлуулалт бүртгэхэд алдаа гарлаа. Дахин оролдоно уу.',
+        message: e.toString().replaceFirst('Exception: ', ''),
       );
     }
   }

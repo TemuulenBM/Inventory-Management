@@ -40,15 +40,23 @@ export async function openShift(
     }
 
     // 2. Идэвхтэй ээлж байгаа эсэхийг шалгах
-    const { data: activeShift } = await supabase
+    const { data: activeShifts } = await supabase
       .from('shifts')
       .select('id')
       .eq('store_id', storeId)
       .eq('seller_id', sellerId)
-      .is('closed_at', null)
-      .single();
+      .is('closed_at', null);
 
-    if (activeShift) {
+    // Олон идэвхтэй ээлж олдвол data integrity алдаа
+    if (activeShifts && activeShifts.length > 1) {
+      console.error(`❌ Multiple active shifts detected for seller ${sellerId}: ${activeShifts.length} shifts`);
+      return {
+        success: false,
+        error: 'Өгөгдлийн алдаа: олон идэвхтэй ээлж байна. Админтай холбогдоно уу.'
+      };
+    }
+
+    if (activeShifts && activeShifts.length === 1) {
       return { success: false, error: 'Та аль хэдийн идэвхтэй ээлжтэй байна' };
     }
 
@@ -269,14 +277,22 @@ export async function getActiveShift(
   sellerId: string
 ): Promise<ServiceResult<{ shift: any | null }>> {
   try {
-    // 1. Идэвхтэй ээлж олох
-    const { data: shift } = await supabase
+    // 1. Идэвхтэй ээлж олох (fallback pattern: олон мөр байвал хамгийн сүүлийнхийг авна)
+    const { data: shifts } = await supabase
       .from('shifts')
       .select('*, users!inner(name)')
       .eq('store_id', storeId)
       .eq('seller_id', sellerId)
       .is('closed_at', null)
-      .single();
+      .order('opened_at', { ascending: false })
+      .limit(1);
+
+    // Warning log хэрэв олон идэвхтэй ээлж байвал (unique constraint нэмэх migration дутуу гүйсэн байж болно)
+    if (shifts && shifts.length > 1) {
+      console.warn(`⚠️ Multiple active shifts found for seller ${sellerId}: ${shifts.length} shifts`);
+    }
+
+    const shift = shifts?.[0] || null;
 
     if (!shift) {
       return { success: true, shift: null };
