@@ -54,6 +54,9 @@ class RouteNames {
   static const String employeeAdd = '/settings/employees/add';
   static const String sellerPerformance = '/settings/employees/performance';
 
+  // Multi-Store Dashboard
+  static const String multiStoreDashboard = '/dashboard/multi';
+
   // Transfer (салбар хоорондын шилжүүлэг)
   static const String transfers = '/transfers';
   static const String createTransfer = '/transfers/create';

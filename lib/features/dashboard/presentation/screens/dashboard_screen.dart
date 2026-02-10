@@ -15,6 +15,7 @@ import 'package:retail_control_platform/features/auth/presentation/providers/aut
 import 'package:retail_control_platform/features/sales/presentation/providers/cart_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 import 'package:retail_control_platform/features/store/presentation/providers/current_store_provider.dart';
+import 'package:retail_control_platform/features/store/presentation/providers/user_stores_provider.dart';
 import 'package:retail_control_platform/core/widgets/cards/alert_card.dart';
 
 /// Owner Dashboard Screen
@@ -332,20 +333,28 @@ class DashboardScreen extends ConsumerWidget {
                   maxLines: 2, // 2 мөр (newline агуулсан тул)
                   overflow: TextOverflow.ellipsis,
                 ),
-                // Store name (dynamic)
+                // Store name (dynamic) + multi-store товч
                 currentStoreAsync.when(
                   data: (store) => store != null
                       ? Padding(
                           padding: const EdgeInsets.only(top: 6),
-                          child: Text(
-                            store.name,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondaryLight,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  store.name,
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.textSecondaryLight,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              // 2+ store-тэй бол "Бүх салбар" товч
+                              _buildMultiStoreButton(context, ref),
+                            ],
                           ),
                         )
                       : const SizedBox.shrink(),
@@ -1446,6 +1455,47 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// Multi-store товч (2+ store-тэй owner-д)
+  Widget _buildMultiStoreButton(BuildContext context, WidgetRef ref) {
+    final storesAsync = ref.watch(userStoresProvider);
+    return storesAsync.when(
+      data: (stores) {
+        if (stores.length < 2) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: InkWell(
+            onTap: () => context.push(RouteNames.multiStoreDashboard),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.dashboard_outlined, size: 14, color: AppColors.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Бүх салбар',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 

@@ -6,7 +6,7 @@ part of 'user_stores_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userStoresHash() => r'e96ca3734ef3520de63fbf807a8c65bdb102b10b';
+String _$userStoresHash() => r'a1ea24851c7a4aca3dec9d6fd435c0271152b524';
 
 /// Хэрэглэгчийн дэлгүүрүүдийн жагсаалт
 ///

@@ -71,6 +71,9 @@ class ApiEndpoints {
   static String selectStore(String userId, String storeId) =>
       '/users/$userId/stores/$storeId/select';
 
+  /// Multi-store нэгдсэн dashboard
+  static String multiStoreDashboard(String userId) => '/users/$userId/stores/dashboard';
+
   // Health
   static const String health = '/health';
 }

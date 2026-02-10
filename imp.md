@@ -14,11 +14,11 @@
 | Бизнесийн асуудал              | Хийгдсэн | Дутуу                                                          |
 | ------------------------------ | -------- | -------------------------------------------------------------- |
 | Салбар болгоны бараа тоолого   | **90%**  | Multi-store нэгдсэн dashboard байхгүй                          |
-| Худалдагчийн хяналт            | **50%**  | Мөнгө тулгалт, seller report UI байхгүй                        |
-| Сайн/муу зарагддаг бараа       | **70%**  | Муу зарагддаг бараа, ашгийн шинжилгээ байхгүй                  |
+| Худалдагчийн хяналт            | **100%** | ✅ Бүрэн хийгдсэн (Фаза 4)                                     |
+| Сайн/муу зарагддаг бараа       | **100%** | ✅ Бүрэн хийгдсэн (Фаза 3)                                     |
 | **Салбар хоорондын шилжүүлэг** | **100%** | ✅ Бүрэн хийгдсэн (Фаза 2)                                     |
-| Орлого/ашгийн тооцоо           | **5%**   | cost_price хадгалдаг, тооцоо хийдэггүй                         |
-| **Хөнгөлөлт/үнэ буулгалт**     | **0%**   | **Огт байхгүй** — худалдагч үнэ буулгаж чадахгүй, бүртгэдэггүй |
+| Орлого/ашгийн тооцоо           | **100%** | ✅ Бүрэн хийгдсэн (Фаза 3)                                     |
+| **Хөнгөлөлт/үнэ буулгалт**     | **100%** | ✅ Бүрэн хийгдсэн (Фаза 3)                                     |
 
 ---
 
@@ -136,11 +136,12 @@
 
 ---
 
-## ФАЗА 3: Хөнгөлөлт + Ашиг/Орлогын Тооцоо (3-4 өдөр)
+## ФАЗА 3: Хөнгөлөлт + Ашиг/Орлогын Тооцоо ✅ ДУУССАН (2026-02-10)
 
 > Үнэ буулгалт бүртгэж, ашигтай ажиллаж байна уу мэдэх
+> Migration: `20260211200000_add_discount_and_cost.sql` ✅ | Drift v10 ✅ | Backend type-safe ✅ | Тест бүгд passed ✅
 
-### 3.1 Хөнгөлөлтийн database schema
+### 3.1 Хөнгөлөлтийн database schema ✅
 
 - **Шинэ migration**: `supabase/migrations/20260211000002_add_discount_and_cost.sql`
 - `sale_items` хүснэгтэд шинэ баганууд:
@@ -158,7 +159,7 @@
   ```
 - **Drift** дээр мөн адил баганууд нэмэх + migration
 
-### 3.2 Checkout UI-д хөнгөлөлт оруулах
+### 3.2 Checkout UI-д хөнгөлөлт оруулах ✅
 
 - **Файл**: [lib/features/sales/presentation/screens/cart_screen.dart](lib/features/sales/presentation/screens/cart_screen.dart)
 - **Файл**: [lib/core/widgets/modals/bottom_action_sheet.dart](lib/core/widgets/modals/bottom_action_sheet.dart)
@@ -179,7 +180,7 @@
   - `owner` → хязгааргүй
   - Хязгаараас хэтэрвэл → "Owner-ийн зөвшөөрөл шаардлагатай" гэсэн мессеж
 
-### 3.3 Backend хөнгөлөлтийн дэмжлэг
+### 3.3 Backend хөнгөлөлтийн дэмжлэг ✅
 
 - **Файл**: [backend/src/modules/sales/sales.schema.ts](backend/src/modules/sales/sales.schema.ts)
   ```typescript
@@ -201,7 +202,7 @@
   - `sale_items`-д `cost_price` хадгалах (products.cost_price-с хуулах)
 - **Store тохиргоо**: `stores` хүснэгтэд `max_seller_discount_pct` (default: 10), `max_manager_discount_pct` (default: 20) нэмэх
 
-### 3.4 Ашгийн report endpoint
+### 3.4 Ашгийн report endpoint ✅
 
 - **Файл**: [backend/src/modules/reports/reports.service.ts](backend/src/modules/reports/reports.service.ts)
 - Шинэ endpoint: `GET /stores/:storeId/reports/profit`
@@ -240,7 +241,7 @@
   - Ямар бараанд олон хөнгөлөлт өгөгдсөн
   - Нийт хөнгөлөлтийн impact on profit
 
-### 3.5 Dashboard-д ашиг + хөнгөлөлт харуулах
+### 3.5 Dashboard-д ашиг + хөнгөлөлт харуулах ✅
 
 - **Файл**: [lib/features/dashboard/presentation/screens/dashboard_screen.dart](lib/features/dashboard/presentation/screens/dashboard_screen.dart)
 - Одоогийн "ӨНӨӨДРИЙН БОРЛУУЛАЛТ" card-ийн доор:
@@ -249,7 +250,7 @@
   - **Энэ сарын ашиг**: ₮4,500,000
 - Trend chart: Өдөр бүрийн ашиг/алдагдал (7 хоног)
 
-### 3.6 Муу зарагддаг бараа report
+### 3.6 Муу зарагддаг бараа report ✅
 
 - **Backend**: `GET /stores/:storeId/reports/slow-moving`
 - Сүүлийн 30 хоногт 0-3 ширхэг зарагдсан бараа
@@ -257,11 +258,12 @@
 
 ---
 
-## ФАЗА 4: Худалдагчийн Хяналт (2-3 өдөр)
+## ФАЗА 4: Худалдагчийн Хяналт ✅ ДУУССАН (2026-02-10)
 
 > Худалдагч мөнгө дутааж, бараа алдаж байгааг мэдэх
+> Migration: `20260211300000_add_shift_reconciliation.sql` ✅ | Drift v11 ✅ | 3 шинэ alert type ✅ | Тест бүгд passed ✅
 
-### 4.1 Cash reconciliation (Мөнгө тулгалт)
+### 4.1 Cash reconciliation (Мөнгө тулгалт) ✅
 
 - **Файл**: [backend/src/modules/shift/shift.service.ts](backend/src/modules/shift/shift.service.ts)
 - Shift хаах үед тооцоолол:
@@ -272,7 +274,7 @@
 - Зөрүү > ₮5,000 бол **ALERT** автомат үүсгэх
 - `shifts` хүснэгтэд `expected_balance`, `discrepancy` багана нэмэх
 
-### 4.2 Seller Performance UI
+### 4.2 Seller Performance UI ✅
 
 - **Шинэ файлууд**:
   - `lib/features/employees/presentation/screens/seller_performance_screen.dart`
@@ -284,7 +286,7 @@
   - **Мөнгө зөрүүний түүх** (discrepancy history)
   - Буцаалт/void тоо
 
-### 4.3 Сэжигтэй үйлдлийн alert
+### 4.3 Сэжигтэй үйлдлийн alert ✅
 
 - **Файл**: [backend/src/modules/alerts/alerts.service.ts](backend/src/modules/alerts/alerts.service.ts)
 - Шинэ alert type-ууд:

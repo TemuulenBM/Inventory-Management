@@ -7,7 +7,6 @@
  * - Owner олон дэлгүүртэй байх боломжтой
  */
 
-import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:retail_control_platform/core/api/api_client.dart';
 import 'package:retail_control_platform/core/api/api_endpoints.dart';
@@ -78,9 +77,7 @@ class UserStores extends _$UserStores {
       }
 
       return false;
-    } catch (e, stackTrace) {
-      debugPrint('❌ Store selection error: $e');
-      debugPrint('Stack trace: $stackTrace');
+    } catch (e) {
       return false;
     }
   }

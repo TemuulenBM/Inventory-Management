@@ -278,7 +278,7 @@ export async function userRoutes(server: FastifyInstance) {
         .eq('user_id', params.userId);
 
       if (error) {
-        console.error('Get user stores error:', error);
+        request.log.error({ err: error }, 'Get user stores error');
         return reply.status(500).send({
           statusCode: 500,
           error: 'Internal Server Error',
@@ -352,7 +352,7 @@ export async function userRoutes(server: FastifyInstance) {
         .eq('id', params.userId);
 
       if (updateError) {
-        console.error('Update user store_id error:', updateError);
+        request.log.error({ err: updateError }, 'Update user store_id error');
         return reply.status(500).send({
           statusCode: 500,
           error: 'Internal Server Error',
@@ -360,11 +360,148 @@ export async function userRoutes(server: FastifyInstance) {
         });
       }
 
-      console.log(`✅ User ${params.userId} selected store ${params.storeId}`);
-
       return reply.status(200).send({
         success: true,
         message: 'Дэлгүүр амжилттай сонгогдлоо',
+      });
+    }
+  );
+
+  /**
+   * GET /users/:userId/stores/dashboard
+   * Multi-store нэгдсэн dashboard (owner бүх дэлгүүрүүдийн хураангуй)
+   *
+   * Store бүрийн өнөөдрийн борлуулалт, ашиг, low stock тоо,
+   * идэвхтэй ажилтан зэргийг нэгтгэж буцаана.
+   */
+  server.get<{
+    Params: { userId: string };
+  }>(
+    '/users/:userId/stores/dashboard',
+    {
+      onRequest: [server.authenticate],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const authRequest = request as AuthRequest;
+      const params = request.params as { userId: string };
+
+      // Зөвхөн өөрийн dashboard-ийг харах
+      if (authRequest.user.userId !== params.userId) {
+        return reply.status(403).send({
+          statusCode: 403,
+          error: 'Forbidden',
+          message: 'Та зөвхөн өөрийн dashboard-ийг харах эрхтэй',
+        });
+      }
+
+      // 1. Хэрэглэгчийн бүх дэлгүүрүүд
+      const { data: memberships, error: memberError } = await supabase
+        .from('store_members')
+        .select('store_id, role, stores(id, name, location)')
+        .eq('user_id', params.userId);
+
+      if (memberError || !memberships || memberships.length === 0) {
+        return reply.status(200).send({
+          success: true,
+          stores: [],
+        });
+      }
+
+      // 2. Өнөөдрийн огноо
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayIso = todayStart.toISOString();
+
+      // 3. Store ID-нуудыг цуглуулах
+      const storeIds = memberships.map((m: Record<string, unknown>) =>
+        ((m.stores as Record<string, unknown>)?.id ?? m.store_id) as string
+      ).filter(Boolean);
+
+      // 3a. Бүх store-ийн өнөөдрийн борлуулалтууд
+      const { data: allSales } = await supabase
+        .from('sales')
+        .select('id, store_id, total_amount, total_discount')
+        .in('store_id', storeIds)
+        .gte('timestamp', todayIso);
+
+      // 3b. Sale items (cost_price → ашгийн тооцоонд)
+      const saleIds = (allSales ?? []).map((s) => s.id);
+      let allSaleItems: Array<{ sale_id: string; cost_price: number; quantity: number }> = [];
+      if (saleIds.length > 0) {
+        const { data: items } = await supabase
+          .from('sale_items')
+          .select('sale_id, cost_price, quantity')
+          .in('sale_id', saleIds);
+        allSaleItems = (items ?? []) as typeof allSaleItems;
+      }
+
+      // 3c. Low stock тоо (materialized view)
+      const { data: lowStockData } = await supabase
+        .from('product_stock_levels')
+        .select('product_id, store_id, current_stock')
+        .in('store_id', storeIds)
+        .lt('current_stock', 5)
+        .gt('current_stock', -1);
+
+      // 3d. Идэвхтэй ээлжүүд (closed_at IS NULL)
+      const { data: activeShifts } = await supabase
+        .from('shifts')
+        .select('id, store_id, seller_id, users!inner(name)')
+        .in('store_id', storeIds)
+        .is('closed_at', null);
+
+      // 4. Store бүрийн dashboard нэгтгэл
+      const storeDashboards = memberships.map((m: Record<string, unknown>) => {
+        const store = m.stores as Record<string, unknown>;
+        const sid = (store?.id ?? m.store_id) as string;
+
+        // Борлуулалт
+        const storeSales = (allSales ?? []).filter((s) => s.store_id === sid);
+        const todayRevenue = storeSales.reduce(
+          (sum, s) => sum + parseFloat(String(s.total_amount)), 0
+        );
+        const todayDiscount = storeSales.reduce(
+          (sum, s) => sum + parseFloat(String(s.total_discount ?? 0)), 0
+        );
+        const salesCount = storeSales.length;
+
+        // Ашиг тооцоолох
+        const storeSaleIds = storeSales.map((s) => s.id);
+        const storeItems = allSaleItems.filter((item) => storeSaleIds.includes(item.sale_id));
+        const todayCost = storeItems.reduce(
+          (sum, item) => sum + (item.cost_price ?? 0) * item.quantity, 0
+        );
+        const todayProfit = todayRevenue - todayCost;
+
+        // Low stock
+        const lowStockCount = (lowStockData ?? []).filter((ls) => ls.store_id === sid).length;
+
+        // Идэвхтэй ажилтнууд
+        const activeSellers = (activeShifts ?? [])
+          .filter((s: Record<string, unknown>) => s.store_id === sid)
+          .map((s: Record<string, unknown>) => ({
+            id: s.seller_id as string,
+            name: ((s.users as Record<string, unknown>)?.name ?? '?') as string,
+          }));
+
+        return {
+          store_id: sid,
+          store_name: (store?.name ?? '') as string,
+          store_location: (store?.location as string) ?? null,
+          role: m.role as string,
+          today_revenue: todayRevenue,
+          today_cost: todayCost,
+          today_profit: todayProfit,
+          today_discount: todayDiscount,
+          today_sales_count: salesCount,
+          low_stock_count: lowStockCount,
+          active_sellers: activeSellers,
+        };
+      });
+
+      return reply.status(200).send({
+        success: true,
+        stores: storeDashboards,
       });
     }
   );

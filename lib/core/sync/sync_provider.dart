@@ -8,6 +8,7 @@ import 'package:retail_control_platform/core/sync/sync_state.dart';
 import 'package:retail_control_platform/features/alerts/presentation/providers/alert_provider.dart';
 import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
+import 'package:retail_control_platform/features/sales/presentation/providers/cart_provider.dart';
 import 'package:retail_control_platform/features/shifts/presentation/providers/shift_provider.dart';
 
 part 'sync_provider.g.dart';
@@ -203,6 +204,10 @@ class SyncNotifier extends _$SyncNotifier {
         // Provider-уудыг invalidate хийх (data refresh)
         ref.invalidate(productListProvider);
         ref.invalidate(alertListProvider);
+        ref.invalidate(todaySalesTotalProvider);
+        ref.invalidate(yesterdaySalesTotalProvider);
+        ref.invalidate(todayProfitSummaryProvider);
+        ref.invalidate(topProductsProvider);
         if (storeId.isNotEmpty) {
           ref.invalidate(shiftHistoryProvider(storeId));
         }

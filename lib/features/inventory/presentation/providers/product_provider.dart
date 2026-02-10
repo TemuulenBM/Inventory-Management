@@ -45,8 +45,7 @@ Future<List<ProductWithStock>> productList(
   return result.when(
     success: (products) => products,
     error: (message, statusCode, _) {
-      // Log error but return empty list
-      return [];
+      throw Exception(message);
     },
   );
 }

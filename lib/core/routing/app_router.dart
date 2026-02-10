@@ -32,6 +32,7 @@ import 'package:retail_control_platform/features/employees/presentation/screens/
 import 'package:retail_control_platform/features/transfer/presentation/screens/transfer_list_screen.dart';
 import 'package:retail_control_platform/features/transfer/presentation/screens/create_transfer_screen.dart';
 import 'package:retail_control_platform/features/employees/presentation/screens/seller_performance_screen.dart';
+import 'package:retail_control_platform/features/dashboard/presentation/screens/multi_store_dashboard_screen.dart';
 
 /// GoRouter configuration for app navigation
 /// Auth guards, deep linking, route transitions
@@ -142,6 +143,12 @@ final GoRouter appRouter = GoRouter(
           path: RouteNames.dashboard,
           name: 'dashboard',
           builder: (context, state) => const DashboardScreen(),
+        ),
+        // Multi-Store Dashboard
+        GoRoute(
+          path: RouteNames.multiStoreDashboard,
+          name: 'multi-store-dashboard',
+          builder: (context, state) => const MultiStoreDashboardScreen(),
         ),
         // Quick Sale
         GoRoute(
