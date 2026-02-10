@@ -29,6 +29,8 @@ import 'package:retail_control_platform/features/store/presentation/screens/stor
 import 'package:retail_control_platform/features/employees/presentation/screens/employee_list_screen.dart';
 import 'package:retail_control_platform/features/sync/presentation/screens/sync_screen.dart';
 import 'package:retail_control_platform/features/employees/presentation/screens/employee_form_screen.dart';
+import 'package:retail_control_platform/features/transfer/presentation/screens/transfer_list_screen.dart';
+import 'package:retail_control_platform/features/transfer/presentation/screens/create_transfer_screen.dart';
 
 /// GoRouter configuration for app navigation
 /// Auth guards, deep linking, route transitions
@@ -260,6 +262,17 @@ final GoRouter appRouter = GoRouter(
           path: RouteNames.syncConflicts,
           name: 'sync-conflicts',
           builder: (context, state) => const SyncScreen(),
+        ),
+        // Transfer (салбар хоорондын шилжүүлэг)
+        GoRoute(
+          path: RouteNames.transfers,
+          name: 'transfers',
+          builder: (context, state) => const TransferListScreen(),
+        ),
+        GoRoute(
+          path: RouteNames.createTransfer,
+          name: 'create-transfer',
+          builder: (context, state) => const CreateTransferScreen(),
         ),
       ],
     ),

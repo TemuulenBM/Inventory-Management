@@ -149,6 +149,36 @@ class Alerts extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Transfers - Салбар хоорондын бараа шилжүүлэг
+/// Жишээ: Sunday Plaza → Алтжин Бөмбөгөр, 5ш цамц
+class Transfers extends Table {
+  TextColumn get id => text()();
+  @ReferenceName('sourceTransfers')
+  TextColumn get sourceStoreId => text().references(Stores, #id)();
+  @ReferenceName('destinationTransfers')
+  TextColumn get destinationStoreId => text().references(Stores, #id)();
+  TextColumn get initiatedBy => text().references(Users, #id)();
+  /// 'pending', 'completed', 'cancelled'
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// TransferItems - Шилжүүлж буй бараанууд (тоо ширхэгтэй)
+class TransferItems extends Table {
+  TextColumn get id => text()();
+  TextColumn get transferId => text().references(Transfers, #id, onDelete: KeyAction.cascade)();
+  TextColumn get productId => text().references(Products, #id)();
+  IntColumn get quantity => integer()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// SyncQueue - Offline sync queue (CRITICAL for offline-first)
 /// Offline үед хийсэн бүх өөрчлөлтийг энд хадгалж, online болоход sync хийнэ
 class SyncQueue extends Table {
@@ -175,6 +205,8 @@ class SyncQueue extends Table {
   SaleItems,
   Shifts,
   Alerts,
+  Transfers,
+  TransferItems,
   SyncQueue,
 ])
 class AppDatabase extends _$AppDatabase {
@@ -194,7 +226,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 8; // v4 → v8: Supabase sync хийх
+  int get schemaVersion => 9; // v9: Салбар хоорондын шилжүүлэг
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -288,6 +320,13 @@ class AppDatabase extends _$AppDatabase {
             // Conflict resolution-д ашиглах: last-write-wins strategy
             await m.addColumn(stores, stores.updatedAt);
             await m.addColumn(users, users.updatedAt);
+          }
+
+          if (from < 9) {
+            // Version 9: Салбар хоорондын шилжүүлэг
+            // transfers + transfer_items хүснэгтүүд нэмэх
+            await m.createTable(transfers);
+            await m.createTable(transferItems);
           }
         },
       );
@@ -459,6 +498,48 @@ class AppDatabase extends _$AppDatabase {
       default:
         return ''; // No date filter
     }
+  }
+
+  // ============================================================================
+  // TRANSFER METHODS - Салбар хоорондын шилжүүлэг
+  // ============================================================================
+
+  /// Шилжүүлэг үүсгэх (transfer + items нэг дор)
+  Future<void> createLocalTransfer({
+    required TransfersCompanion transfer,
+    required List<TransferItemsCompanion> items,
+  }) async {
+    await batch((b) {
+      b.insert(transfers, transfer);
+      b.insertAll(transferItems, items);
+    });
+  }
+
+  /// Шилжүүлгийн жагсаалт авах (store-д хамаарах бүх шилжүүлэг)
+  Future<List<Transfer>> getLocalTransfers(String storeId) async {
+    return await (select(transfers)
+          ..where((t) =>
+              t.sourceStoreId.equals(storeId) |
+              t.destinationStoreId.equals(storeId))
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .get();
+  }
+
+  /// Шилжүүлгийн бараанууд авах
+  Future<List<TransferItem>> getTransferItemsByTransferId(String transferId) async {
+    return await (select(transferItems)
+          ..where((ti) => ti.transferId.equals(transferId)))
+        .get();
+  }
+
+  /// Шилжүүлгийн статус шинэчлэх
+  Future<void> updateTransferStatus(String transferId, String newStatus) async {
+    await (update(transfers)..where((t) => t.id.equals(transferId))).write(
+      TransfersCompanion(
+        status: Value(newStatus),
+        completedAt: newStatus == 'completed' ? Value(DateTime.now()) : const Value.absent(),
+      ),
+    );
   }
 
   // ============================================================================

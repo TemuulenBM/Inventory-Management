@@ -206,6 +206,7 @@ export type Database = {
       }
       otp_tokens: {
         Row: {
+          attempt_count: number
           created_at: string | null
           expires_at: string
           id: number
@@ -214,6 +215,7 @@ export type Database = {
           verified: boolean | null
         }
         Insert: {
+          attempt_count?: number
           created_at?: string | null
           expires_at: string
           id?: number
@@ -222,6 +224,7 @@ export type Database = {
           verified?: boolean | null
         }
         Update: {
+          attempt_count?: number
           created_at?: string | null
           expires_at?: string
           id?: number
@@ -509,7 +512,15 @@ export type Database = {
           timezone?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_stores_owner_id"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       sync_log: {
         Row: {
@@ -558,9 +569,108 @@ export type Database = {
           },
         ]
       }
+      transfer_items: {
+        Row: {
+          id: string
+          product_id: string
+          quantity: number
+          transfer_id: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          quantity: number
+          transfer_id: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          quantity?: number
+          transfer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfer_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "product_stock_levels"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "transfer_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfer_items_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "transfers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transfers: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          destination_store_id: string
+          id: string
+          initiated_by: string
+          notes: string | null
+          source_store_id: string
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          destination_store_id: string
+          id?: string
+          initiated_by: string
+          notes?: string | null
+          source_store_id: string
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          destination_store_id?: string
+          id?: string
+          initiated_by?: string
+          notes?: string | null
+          source_store_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfers_destination_store_id_fkey"
+            columns: ["destination_store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfers_initiated_by_fkey"
+            columns: ["initiated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfers_source_store_id_fkey"
+            columns: ["source_store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trusted_devices: {
         Row: {
           device_id: string
+          device_info: Json | null
           device_name: string | null
           id: string
           last_used_at: string | null
@@ -569,6 +679,7 @@ export type Database = {
         }
         Insert: {
           device_id: string
+          device_info?: Json | null
           device_name?: string | null
           id?: string
           last_used_at?: string | null
@@ -577,6 +688,7 @@ export type Database = {
         }
         Update: {
           device_id?: string
+          device_info?: Json | null
           device_name?: string | null
           id?: string
           last_used_at?: string | null

@@ -19,6 +19,7 @@ import { salesRoutes } from './modules/sales/sales.routes.js';
 import { reportsRoutes } from './modules/reports/reports.routes.js';
 import { alertsRoutes } from './modules/alerts/alerts.routes.js';
 import { syncRoutes } from './modules/sync/sync.routes.js';
+import { transferRoutes } from './modules/transfer/transfer.routes.js';
 
 // Fastify instance үүсгэх
 const server = Fastify({
@@ -71,6 +72,7 @@ async function start() {
     await server.register(reportsRoutes);
     await server.register(alertsRoutes);
     await server.register(syncRoutes);
+    await server.register(transferRoutes);
 
     // Start listening
     await server.listen({

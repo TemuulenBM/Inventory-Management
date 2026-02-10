@@ -88,6 +88,14 @@ export type OtpToken = Tables['otp_tokens']['Row'];
 export type OtpTokenInsert = Tables['otp_tokens']['Insert'];
 export type OtpTokenUpdate = Tables['otp_tokens']['Update'];
 
+export type Transfer = Tables['transfers']['Row'];
+export type TransferInsert = Tables['transfers']['Insert'];
+export type TransferUpdate = Tables['transfers']['Update'];
+
+export type TransferItem = Tables['transfer_items']['Row'];
+export type TransferItemInsert = Tables['transfer_items']['Insert'];
+export type TransferItemUpdate = Tables['transfer_items']['Update'];
+
 // RefreshToken table schema-д хараахан үүсээгүй байна
 // export type RefreshToken = Tables['refresh_tokens']['Row'];
 // export type RefreshTokenInsert = Tables['refresh_tokens']['Insert'];

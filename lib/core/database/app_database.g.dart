@@ -3797,6 +3797,736 @@ class AlertsCompanion extends UpdateCompanion<Alert> {
   }
 }
 
+class $TransfersTable extends Transfers
+    with TableInfo<$TransfersTable, Transfer> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TransfersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _sourceStoreIdMeta =
+      const VerificationMeta('sourceStoreId');
+  @override
+  late final GeneratedColumn<String> sourceStoreId = GeneratedColumn<String>(
+      'source_store_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES stores (id)'));
+  static const VerificationMeta _destinationStoreIdMeta =
+      const VerificationMeta('destinationStoreId');
+  @override
+  late final GeneratedColumn<String> destinationStoreId =
+      GeneratedColumn<String>('destination_store_id', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: true,
+          defaultConstraints:
+              GeneratedColumn.constraintIsAlways('REFERENCES stores (id)'));
+  static const VerificationMeta _initiatedByMeta =
+      const VerificationMeta('initiatedBy');
+  @override
+  late final GeneratedColumn<String> initiatedBy = GeneratedColumn<String>(
+      'initiated_by', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES users (id)'));
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+      'notes', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _completedAtMeta =
+      const VerificationMeta('completedAt');
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+      'completed_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        sourceStoreId,
+        destinationStoreId,
+        initiatedBy,
+        status,
+        notes,
+        createdAt,
+        completedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'transfers';
+  @override
+  VerificationContext validateIntegrity(Insertable<Transfer> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('source_store_id')) {
+      context.handle(
+          _sourceStoreIdMeta,
+          sourceStoreId.isAcceptableOrUnknown(
+              data['source_store_id']!, _sourceStoreIdMeta));
+    } else if (isInserting) {
+      context.missing(_sourceStoreIdMeta);
+    }
+    if (data.containsKey('destination_store_id')) {
+      context.handle(
+          _destinationStoreIdMeta,
+          destinationStoreId.isAcceptableOrUnknown(
+              data['destination_store_id']!, _destinationStoreIdMeta));
+    } else if (isInserting) {
+      context.missing(_destinationStoreIdMeta);
+    }
+    if (data.containsKey('initiated_by')) {
+      context.handle(
+          _initiatedByMeta,
+          initiatedBy.isAcceptableOrUnknown(
+              data['initiated_by']!, _initiatedByMeta));
+    } else if (isInserting) {
+      context.missing(_initiatedByMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+          _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+          _completedAtMeta,
+          completedAt.isAcceptableOrUnknown(
+              data['completed_at']!, _completedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Transfer map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Transfer(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      sourceStoreId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}source_store_id'])!,
+      destinationStoreId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}destination_store_id'])!,
+      initiatedBy: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}initiated_by'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      notes: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}notes']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+      completedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}completed_at']),
+    );
+  }
+
+  @override
+  $TransfersTable createAlias(String alias) {
+    return $TransfersTable(attachedDatabase, alias);
+  }
+}
+
+class Transfer extends DataClass implements Insertable<Transfer> {
+  final String id;
+  final String sourceStoreId;
+  final String destinationStoreId;
+  final String initiatedBy;
+
+  /// 'pending', 'completed', 'cancelled'
+  final String status;
+  final String? notes;
+  final DateTime createdAt;
+  final DateTime? completedAt;
+  const Transfer(
+      {required this.id,
+      required this.sourceStoreId,
+      required this.destinationStoreId,
+      required this.initiatedBy,
+      required this.status,
+      this.notes,
+      required this.createdAt,
+      this.completedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['source_store_id'] = Variable<String>(sourceStoreId);
+    map['destination_store_id'] = Variable<String>(destinationStoreId);
+    map['initiated_by'] = Variable<String>(initiatedBy);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    return map;
+  }
+
+  TransfersCompanion toCompanion(bool nullToAbsent) {
+    return TransfersCompanion(
+      id: Value(id),
+      sourceStoreId: Value(sourceStoreId),
+      destinationStoreId: Value(destinationStoreId),
+      initiatedBy: Value(initiatedBy),
+      status: Value(status),
+      notes:
+          notes == null && nullToAbsent ? const Value.absent() : Value(notes),
+      createdAt: Value(createdAt),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+    );
+  }
+
+  factory Transfer.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Transfer(
+      id: serializer.fromJson<String>(json['id']),
+      sourceStoreId: serializer.fromJson<String>(json['sourceStoreId']),
+      destinationStoreId:
+          serializer.fromJson<String>(json['destinationStoreId']),
+      initiatedBy: serializer.fromJson<String>(json['initiatedBy']),
+      status: serializer.fromJson<String>(json['status']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'sourceStoreId': serializer.toJson<String>(sourceStoreId),
+      'destinationStoreId': serializer.toJson<String>(destinationStoreId),
+      'initiatedBy': serializer.toJson<String>(initiatedBy),
+      'status': serializer.toJson<String>(status),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+    };
+  }
+
+  Transfer copyWith(
+          {String? id,
+          String? sourceStoreId,
+          String? destinationStoreId,
+          String? initiatedBy,
+          String? status,
+          Value<String?> notes = const Value.absent(),
+          DateTime? createdAt,
+          Value<DateTime?> completedAt = const Value.absent()}) =>
+      Transfer(
+        id: id ?? this.id,
+        sourceStoreId: sourceStoreId ?? this.sourceStoreId,
+        destinationStoreId: destinationStoreId ?? this.destinationStoreId,
+        initiatedBy: initiatedBy ?? this.initiatedBy,
+        status: status ?? this.status,
+        notes: notes.present ? notes.value : this.notes,
+        createdAt: createdAt ?? this.createdAt,
+        completedAt: completedAt.present ? completedAt.value : this.completedAt,
+      );
+  Transfer copyWithCompanion(TransfersCompanion data) {
+    return Transfer(
+      id: data.id.present ? data.id.value : this.id,
+      sourceStoreId: data.sourceStoreId.present
+          ? data.sourceStoreId.value
+          : this.sourceStoreId,
+      destinationStoreId: data.destinationStoreId.present
+          ? data.destinationStoreId.value
+          : this.destinationStoreId,
+      initiatedBy:
+          data.initiatedBy.present ? data.initiatedBy.value : this.initiatedBy,
+      status: data.status.present ? data.status.value : this.status,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      completedAt:
+          data.completedAt.present ? data.completedAt.value : this.completedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Transfer(')
+          ..write('id: $id, ')
+          ..write('sourceStoreId: $sourceStoreId, ')
+          ..write('destinationStoreId: $destinationStoreId, ')
+          ..write('initiatedBy: $initiatedBy, ')
+          ..write('status: $status, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('completedAt: $completedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, sourceStoreId, destinationStoreId,
+      initiatedBy, status, notes, createdAt, completedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Transfer &&
+          other.id == this.id &&
+          other.sourceStoreId == this.sourceStoreId &&
+          other.destinationStoreId == this.destinationStoreId &&
+          other.initiatedBy == this.initiatedBy &&
+          other.status == this.status &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.completedAt == this.completedAt);
+}
+
+class TransfersCompanion extends UpdateCompanion<Transfer> {
+  final Value<String> id;
+  final Value<String> sourceStoreId;
+  final Value<String> destinationStoreId;
+  final Value<String> initiatedBy;
+  final Value<String> status;
+  final Value<String?> notes;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> completedAt;
+  final Value<int> rowid;
+  const TransfersCompanion({
+    this.id = const Value.absent(),
+    this.sourceStoreId = const Value.absent(),
+    this.destinationStoreId = const Value.absent(),
+    this.initiatedBy = const Value.absent(),
+    this.status = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TransfersCompanion.insert({
+    required String id,
+    required String sourceStoreId,
+    required String destinationStoreId,
+    required String initiatedBy,
+    this.status = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        sourceStoreId = Value(sourceStoreId),
+        destinationStoreId = Value(destinationStoreId),
+        initiatedBy = Value(initiatedBy);
+  static Insertable<Transfer> custom({
+    Expression<String>? id,
+    Expression<String>? sourceStoreId,
+    Expression<String>? destinationStoreId,
+    Expression<String>? initiatedBy,
+    Expression<String>? status,
+    Expression<String>? notes,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? completedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sourceStoreId != null) 'source_store_id': sourceStoreId,
+      if (destinationStoreId != null)
+        'destination_store_id': destinationStoreId,
+      if (initiatedBy != null) 'initiated_by': initiatedBy,
+      if (status != null) 'status': status,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TransfersCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? sourceStoreId,
+      Value<String>? destinationStoreId,
+      Value<String>? initiatedBy,
+      Value<String>? status,
+      Value<String?>? notes,
+      Value<DateTime>? createdAt,
+      Value<DateTime?>? completedAt,
+      Value<int>? rowid}) {
+    return TransfersCompanion(
+      id: id ?? this.id,
+      sourceStoreId: sourceStoreId ?? this.sourceStoreId,
+      destinationStoreId: destinationStoreId ?? this.destinationStoreId,
+      initiatedBy: initiatedBy ?? this.initiatedBy,
+      status: status ?? this.status,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      completedAt: completedAt ?? this.completedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (sourceStoreId.present) {
+      map['source_store_id'] = Variable<String>(sourceStoreId.value);
+    }
+    if (destinationStoreId.present) {
+      map['destination_store_id'] = Variable<String>(destinationStoreId.value);
+    }
+    if (initiatedBy.present) {
+      map['initiated_by'] = Variable<String>(initiatedBy.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransfersCompanion(')
+          ..write('id: $id, ')
+          ..write('sourceStoreId: $sourceStoreId, ')
+          ..write('destinationStoreId: $destinationStoreId, ')
+          ..write('initiatedBy: $initiatedBy, ')
+          ..write('status: $status, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TransferItemsTable extends TransferItems
+    with TableInfo<$TransferItemsTable, TransferItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TransferItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _transferIdMeta =
+      const VerificationMeta('transferId');
+  @override
+  late final GeneratedColumn<String> transferId = GeneratedColumn<String>(
+      'transfer_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES transfers (id) ON DELETE CASCADE'));
+  static const VerificationMeta _productIdMeta =
+      const VerificationMeta('productId');
+  @override
+  late final GeneratedColumn<String> productId = GeneratedColumn<String>(
+      'product_id', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES products (id)'));
+  static const VerificationMeta _quantityMeta =
+      const VerificationMeta('quantity');
+  @override
+  late final GeneratedColumn<int> quantity = GeneratedColumn<int>(
+      'quantity', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [id, transferId, productId, quantity];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'transfer_items';
+  @override
+  VerificationContext validateIntegrity(Insertable<TransferItem> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('transfer_id')) {
+      context.handle(
+          _transferIdMeta,
+          transferId.isAcceptableOrUnknown(
+              data['transfer_id']!, _transferIdMeta));
+    } else if (isInserting) {
+      context.missing(_transferIdMeta);
+    }
+    if (data.containsKey('product_id')) {
+      context.handle(_productIdMeta,
+          productId.isAcceptableOrUnknown(data['product_id']!, _productIdMeta));
+    } else if (isInserting) {
+      context.missing(_productIdMeta);
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(_quantityMeta,
+          quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta));
+    } else if (isInserting) {
+      context.missing(_quantityMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TransferItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TransferItem(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      transferId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}transfer_id'])!,
+      productId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}product_id'])!,
+      quantity: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}quantity'])!,
+    );
+  }
+
+  @override
+  $TransferItemsTable createAlias(String alias) {
+    return $TransferItemsTable(attachedDatabase, alias);
+  }
+}
+
+class TransferItem extends DataClass implements Insertable<TransferItem> {
+  final String id;
+  final String transferId;
+  final String productId;
+  final int quantity;
+  const TransferItem(
+      {required this.id,
+      required this.transferId,
+      required this.productId,
+      required this.quantity});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['transfer_id'] = Variable<String>(transferId);
+    map['product_id'] = Variable<String>(productId);
+    map['quantity'] = Variable<int>(quantity);
+    return map;
+  }
+
+  TransferItemsCompanion toCompanion(bool nullToAbsent) {
+    return TransferItemsCompanion(
+      id: Value(id),
+      transferId: Value(transferId),
+      productId: Value(productId),
+      quantity: Value(quantity),
+    );
+  }
+
+  factory TransferItem.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TransferItem(
+      id: serializer.fromJson<String>(json['id']),
+      transferId: serializer.fromJson<String>(json['transferId']),
+      productId: serializer.fromJson<String>(json['productId']),
+      quantity: serializer.fromJson<int>(json['quantity']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'transferId': serializer.toJson<String>(transferId),
+      'productId': serializer.toJson<String>(productId),
+      'quantity': serializer.toJson<int>(quantity),
+    };
+  }
+
+  TransferItem copyWith(
+          {String? id, String? transferId, String? productId, int? quantity}) =>
+      TransferItem(
+        id: id ?? this.id,
+        transferId: transferId ?? this.transferId,
+        productId: productId ?? this.productId,
+        quantity: quantity ?? this.quantity,
+      );
+  TransferItem copyWithCompanion(TransferItemsCompanion data) {
+    return TransferItem(
+      id: data.id.present ? data.id.value : this.id,
+      transferId:
+          data.transferId.present ? data.transferId.value : this.transferId,
+      productId: data.productId.present ? data.productId.value : this.productId,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransferItem(')
+          ..write('id: $id, ')
+          ..write('transferId: $transferId, ')
+          ..write('productId: $productId, ')
+          ..write('quantity: $quantity')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, transferId, productId, quantity);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TransferItem &&
+          other.id == this.id &&
+          other.transferId == this.transferId &&
+          other.productId == this.productId &&
+          other.quantity == this.quantity);
+}
+
+class TransferItemsCompanion extends UpdateCompanion<TransferItem> {
+  final Value<String> id;
+  final Value<String> transferId;
+  final Value<String> productId;
+  final Value<int> quantity;
+  final Value<int> rowid;
+  const TransferItemsCompanion({
+    this.id = const Value.absent(),
+    this.transferId = const Value.absent(),
+    this.productId = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  TransferItemsCompanion.insert({
+    required String id,
+    required String transferId,
+    required String productId,
+    required int quantity,
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        transferId = Value(transferId),
+        productId = Value(productId),
+        quantity = Value(quantity);
+  static Insertable<TransferItem> custom({
+    Expression<String>? id,
+    Expression<String>? transferId,
+    Expression<String>? productId,
+    Expression<int>? quantity,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (transferId != null) 'transfer_id': transferId,
+      if (productId != null) 'product_id': productId,
+      if (quantity != null) 'quantity': quantity,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  TransferItemsCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? transferId,
+      Value<String>? productId,
+      Value<int>? quantity,
+      Value<int>? rowid}) {
+    return TransferItemsCompanion(
+      id: id ?? this.id,
+      transferId: transferId ?? this.transferId,
+      productId: productId ?? this.productId,
+      quantity: quantity ?? this.quantity,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (transferId.present) {
+      map['transfer_id'] = Variable<String>(transferId.value);
+    }
+    if (productId.present) {
+      map['product_id'] = Variable<String>(productId.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<int>(quantity.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TransferItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('transferId: $transferId, ')
+          ..write('productId: $productId, ')
+          ..write('quantity: $quantity, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SyncQueueTable extends SyncQueue
     with TableInfo<$SyncQueueTable, SyncQueueData> {
   @override
@@ -4238,6 +4968,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SalesTable sales = $SalesTable(this);
   late final $SaleItemsTable saleItems = $SaleItemsTable(this);
   late final $AlertsTable alerts = $AlertsTable(this);
+  late final $TransfersTable transfers = $TransfersTable(this);
+  late final $TransferItemsTable transferItems = $TransferItemsTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -4252,6 +4984,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         sales,
         saleItems,
         alerts,
+        transfers,
+        transferItems,
         syncQueue
       ];
   @override
@@ -4262,6 +4996,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('sale_items', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('transfers',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('transfer_items', kind: UpdateKind.delete),
             ],
           ),
         ],
@@ -4376,6 +5117,37 @@ final class $$StoresTableReferences
         .filter((f) => f.storeId.id($_item.id));
 
     final cache = $_typedResult.readTableOrNull(_alertsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$TransfersTable, List<Transfer>>
+      _sourceTransfersTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+          db.transfers,
+          aliasName:
+              $_aliasNameGenerator(db.stores.id, db.transfers.sourceStoreId));
+
+  $$TransfersTableProcessedTableManager get sourceTransfers {
+    final manager = $$TransfersTableTableManager($_db, $_db.transfers)
+        .filter((f) => f.sourceStoreId.id($_item.id));
+
+    final cache = $_typedResult.readTableOrNull(_sourceTransfersTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$TransfersTable, List<Transfer>>
+      _destinationTransfersTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.transfers,
+              aliasName: $_aliasNameGenerator(
+                  db.stores.id, db.transfers.destinationStoreId));
+
+  $$TransfersTableProcessedTableManager get destinationTransfers {
+    final manager = $$TransfersTableTableManager($_db, $_db.transfers)
+        .filter((f) => f.destinationStoreId.id($_item.id));
+
+    final cache =
+        $_typedResult.readTableOrNull(_destinationTransfersTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -4529,6 +5301,48 @@ class $$StoresTableFilterComposer
             $$AlertsTableFilterComposer(
               $db: $db,
               $table: $db.alerts,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> sourceTransfers(
+      Expression<bool> Function($$TransfersTableFilterComposer f) f) {
+    final $$TransfersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transfers,
+        getReferencedColumn: (t) => t.sourceStoreId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransfersTableFilterComposer(
+              $db: $db,
+              $table: $db.transfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> destinationTransfers(
+      Expression<bool> Function($$TransfersTableFilterComposer f) f) {
+    final $$TransfersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transfers,
+        getReferencedColumn: (t) => t.destinationStoreId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransfersTableFilterComposer(
+              $db: $db,
+              $table: $db.transfers,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -4724,6 +5538,48 @@ class $$StoresTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> sourceTransfers<T extends Object>(
+      Expression<T> Function($$TransfersTableAnnotationComposer a) f) {
+    final $$TransfersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transfers,
+        getReferencedColumn: (t) => t.sourceStoreId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransfersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.transfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> destinationTransfers<T extends Object>(
+      Expression<T> Function($$TransfersTableAnnotationComposer a) f) {
+    final $$TransfersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transfers,
+        getReferencedColumn: (t) => t.destinationStoreId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransfersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.transfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$StoresTableTableManager extends RootTableManager<
@@ -4743,7 +5599,9 @@ class $$StoresTableTableManager extends RootTableManager<
         bool shiftsRefs,
         bool inventoryEventsRefs,
         bool salesRefs,
-        bool alertsRefs})> {
+        bool alertsRefs,
+        bool sourceTransfers,
+        bool destinationTransfers})> {
   $$StoresTableTableManager(_$AppDatabase db, $StoresTable table)
       : super(TableManagerState(
           db: db,
@@ -4804,7 +5662,9 @@ class $$StoresTableTableManager extends RootTableManager<
               shiftsRefs = false,
               inventoryEventsRefs = false,
               salesRefs = false,
-              alertsRefs = false}) {
+              alertsRefs = false,
+              sourceTransfers = false,
+              destinationTransfers = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
@@ -4813,7 +5673,9 @@ class $$StoresTableTableManager extends RootTableManager<
                 if (shiftsRefs) db.shifts,
                 if (inventoryEventsRefs) db.inventoryEvents,
                 if (salesRefs) db.sales,
-                if (alertsRefs) db.alerts
+                if (alertsRefs) db.alerts,
+                if (sourceTransfers) db.transfers,
+                if (destinationTransfers) db.transfers
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -4884,6 +5746,30 @@ class $$StoresTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem: (item,
                                 referencedItems) =>
                             referencedItems.where((e) => e.storeId == item.id),
+                        typedResults: items),
+                  if (sourceTransfers)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable:
+                            $$StoresTableReferences._sourceTransfersTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$StoresTableReferences(db, table, p0)
+                                .sourceTransfers,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.sourceStoreId == item.id),
+                        typedResults: items),
+                  if (destinationTransfers)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$StoresTableReferences
+                            ._destinationTransfersTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$StoresTableReferences(db, table, p0)
+                                .destinationTransfers,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.destinationStoreId == item.id),
                         typedResults: items)
                 ];
               },
@@ -4909,7 +5795,9 @@ typedef $$StoresTableProcessedTableManager = ProcessedTableManager<
         bool shiftsRefs,
         bool inventoryEventsRefs,
         bool salesRefs,
-        bool alertsRefs})>;
+        bool alertsRefs,
+        bool sourceTransfers,
+        bool destinationTransfers})>;
 typedef $$UsersTableCreateCompanionBuilder = UsersCompanion Function({
   required String id,
   Value<String?> storeId,
@@ -4991,6 +5879,21 @@ final class $$UsersTableReferences
         .filter((f) => f.sellerId.id($_item.id));
 
     final cache = $_typedResult.readTableOrNull(_salesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$TransfersTable, List<Transfer>>
+      _transfersRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.transfers,
+              aliasName:
+                  $_aliasNameGenerator(db.users.id, db.transfers.initiatedBy));
+
+  $$TransfersTableProcessedTableManager get transfersRefs {
+    final manager = $$TransfersTableTableManager($_db, $_db.transfers)
+        .filter((f) => f.initiatedBy.id($_item.id));
+
+    final cache = $_typedResult.readTableOrNull(_transfersRefsTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -5100,6 +6003,27 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
             $$SalesTableFilterComposer(
               $db: $db,
               $table: $db.sales,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> transfersRefs(
+      Expression<bool> Function($$TransfersTableFilterComposer f) f) {
+    final $$TransfersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transfers,
+        getReferencedColumn: (t) => t.initiatedBy,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransfersTableFilterComposer(
+              $db: $db,
+              $table: $db.transfers,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -5272,6 +6196,27 @@ class $$UsersTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> transfersRefs<T extends Object>(
+      Expression<T> Function($$TransfersTableAnnotationComposer a) f) {
+    final $$TransfersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transfers,
+        getReferencedColumn: (t) => t.initiatedBy,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransfersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.transfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$UsersTableTableManager extends RootTableManager<
@@ -5289,7 +6234,8 @@ class $$UsersTableTableManager extends RootTableManager<
         {bool storeId,
         bool shiftsRefs,
         bool inventoryEventsRefs,
-        bool salesRefs})> {
+        bool salesRefs,
+        bool transfersRefs})> {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
       : super(TableManagerState(
           db: db,
@@ -5352,13 +6298,15 @@ class $$UsersTableTableManager extends RootTableManager<
               {storeId = false,
               shiftsRefs = false,
               inventoryEventsRefs = false,
-              salesRefs = false}) {
+              salesRefs = false,
+              transfersRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (shiftsRefs) db.shifts,
                 if (inventoryEventsRefs) db.inventoryEvents,
-                if (salesRefs) db.sales
+                if (salesRefs) db.sales,
+                if (transfersRefs) db.transfers
               ],
               addJoins: <
                   T extends TableManagerState<
@@ -5420,6 +6368,17 @@ class $$UsersTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem: (item,
                                 referencedItems) =>
                             referencedItems.where((e) => e.sellerId == item.id),
+                        typedResults: items),
+                  if (transfersRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable:
+                            $$UsersTableReferences._transfersRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$UsersTableReferences(db, table, p0).transfersRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.initiatedBy == item.id),
                         typedResults: items)
                 ];
               },
@@ -5443,7 +6402,8 @@ typedef $$UsersTableProcessedTableManager = ProcessedTableManager<
         {bool storeId,
         bool shiftsRefs,
         bool inventoryEventsRefs,
-        bool salesRefs})>;
+        bool salesRefs,
+        bool transfersRefs})>;
 typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   required String id,
   required String storeId,
@@ -5542,6 +6502,21 @@ final class $$ProductsTableReferences
         .filter((f) => f.productId.id($_item.id));
 
     final cache = $_typedResult.readTableOrNull(_alertsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$TransferItemsTable, List<TransferItem>>
+      _transferItemsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.transferItems,
+              aliasName: $_aliasNameGenerator(
+                  db.products.id, db.transferItems.productId));
+
+  $$TransferItemsTableProcessedTableManager get transferItemsRefs {
+    final manager = $$TransferItemsTableTableManager($_db, $_db.transferItems)
+        .filter((f) => f.productId.id($_item.id));
+
+    final cache = $_typedResult.readTableOrNull(_transferItemsRefsTable($_db));
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
@@ -5678,6 +6653,27 @@ class $$ProductsTableFilterComposer
             $$AlertsTableFilterComposer(
               $db: $db,
               $table: $db.alerts,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> transferItemsRefs(
+      Expression<bool> Function($$TransferItemsTableFilterComposer f) f) {
+    final $$TransferItemsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transferItems,
+        getReferencedColumn: (t) => t.productId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransferItemsTableFilterComposer(
+              $db: $db,
+              $table: $db.transferItems,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -5900,6 +6896,27 @@ class $$ProductsTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> transferItemsRefs<T extends Object>(
+      Expression<T> Function($$TransferItemsTableAnnotationComposer a) f) {
+    final $$TransferItemsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transferItems,
+        getReferencedColumn: (t) => t.productId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransferItemsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.transferItems,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
 }
 
 class $$ProductsTableTableManager extends RootTableManager<
@@ -5917,7 +6934,8 @@ class $$ProductsTableTableManager extends RootTableManager<
         {bool storeId,
         bool inventoryEventsRefs,
         bool saleItemsRefs,
-        bool alertsRefs})> {
+        bool alertsRefs,
+        bool transferItemsRefs})> {
   $$ProductsTableTableManager(_$AppDatabase db, $ProductsTable table)
       : super(TableManagerState(
           db: db,
@@ -6012,13 +7030,15 @@ class $$ProductsTableTableManager extends RootTableManager<
               {storeId = false,
               inventoryEventsRefs = false,
               saleItemsRefs = false,
-              alertsRefs = false}) {
+              alertsRefs = false,
+              transferItemsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (inventoryEventsRefs) db.inventoryEvents,
                 if (saleItemsRefs) db.saleItems,
-                if (alertsRefs) db.alerts
+                if (alertsRefs) db.alerts,
+                if (transferItemsRefs) db.transferItems
               ],
               addJoins: <
                   T extends TableManagerState<
@@ -6082,6 +7102,18 @@ class $$ProductsTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem:
                             (item, referencedItems) => referencedItems
                                 .where((e) => e.productId == item.id),
+                        typedResults: items),
+                  if (transferItemsRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$ProductsTableReferences
+                            ._transferItemsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$ProductsTableReferences(db, table, p0)
+                                .transferItemsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.productId == item.id),
                         typedResults: items)
                 ];
               },
@@ -6105,7 +7137,8 @@ typedef $$ProductsTableProcessedTableManager = ProcessedTableManager<
         {bool storeId,
         bool inventoryEventsRefs,
         bool saleItemsRefs,
-        bool alertsRefs})>;
+        bool alertsRefs,
+        bool transferItemsRefs})>;
 typedef $$ShiftsTableCreateCompanionBuilder = ShiftsCompanion Function({
   required String id,
   required String storeId,
@@ -8522,6 +9555,892 @@ typedef $$AlertsTableProcessedTableManager = ProcessedTableManager<
     (Alert, $$AlertsTableReferences),
     Alert,
     PrefetchHooks Function({bool storeId, bool productId})>;
+typedef $$TransfersTableCreateCompanionBuilder = TransfersCompanion Function({
+  required String id,
+  required String sourceStoreId,
+  required String destinationStoreId,
+  required String initiatedBy,
+  Value<String> status,
+  Value<String?> notes,
+  Value<DateTime> createdAt,
+  Value<DateTime?> completedAt,
+  Value<int> rowid,
+});
+typedef $$TransfersTableUpdateCompanionBuilder = TransfersCompanion Function({
+  Value<String> id,
+  Value<String> sourceStoreId,
+  Value<String> destinationStoreId,
+  Value<String> initiatedBy,
+  Value<String> status,
+  Value<String?> notes,
+  Value<DateTime> createdAt,
+  Value<DateTime?> completedAt,
+  Value<int> rowid,
+});
+
+final class $$TransfersTableReferences
+    extends BaseReferences<_$AppDatabase, $TransfersTable, Transfer> {
+  $$TransfersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $StoresTable _sourceStoreIdTable(_$AppDatabase db) =>
+      db.stores.createAlias(
+          $_aliasNameGenerator(db.transfers.sourceStoreId, db.stores.id));
+
+  $$StoresTableProcessedTableManager? get sourceStoreId {
+    if ($_item.sourceStoreId == null) return null;
+    final manager = $$StoresTableTableManager($_db, $_db.stores)
+        .filter((f) => f.id($_item.sourceStoreId!));
+    final item = $_typedResult.readTableOrNull(_sourceStoreIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $StoresTable _destinationStoreIdTable(_$AppDatabase db) =>
+      db.stores.createAlias(
+          $_aliasNameGenerator(db.transfers.destinationStoreId, db.stores.id));
+
+  $$StoresTableProcessedTableManager? get destinationStoreId {
+    if ($_item.destinationStoreId == null) return null;
+    final manager = $$StoresTableTableManager($_db, $_db.stores)
+        .filter((f) => f.id($_item.destinationStoreId!));
+    final item = $_typedResult.readTableOrNull(_destinationStoreIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $UsersTable _initiatedByTable(_$AppDatabase db) => db.users
+      .createAlias($_aliasNameGenerator(db.transfers.initiatedBy, db.users.id));
+
+  $$UsersTableProcessedTableManager? get initiatedBy {
+    if ($_item.initiatedBy == null) return null;
+    final manager = $$UsersTableTableManager($_db, $_db.users)
+        .filter((f) => f.id($_item.initiatedBy!));
+    final item = $_typedResult.readTableOrNull(_initiatedByTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$TransferItemsTable, List<TransferItem>>
+      _transferItemsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.transferItems,
+              aliasName: $_aliasNameGenerator(
+                  db.transfers.id, db.transferItems.transferId));
+
+  $$TransferItemsTableProcessedTableManager get transferItemsRefs {
+    final manager = $$TransferItemsTableTableManager($_db, $_db.transferItems)
+        .filter((f) => f.transferId.id($_item.id));
+
+    final cache = $_typedResult.readTableOrNull(_transferItemsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$TransfersTableFilterComposer
+    extends Composer<_$AppDatabase, $TransfersTable> {
+  $$TransfersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get notes => $composableBuilder(
+      column: $table.notes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnFilters(column));
+
+  $$StoresTableFilterComposer get sourceStoreId {
+    final $$StoresTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.sourceStoreId,
+        referencedTable: $db.stores,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StoresTableFilterComposer(
+              $db: $db,
+              $table: $db.stores,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$StoresTableFilterComposer get destinationStoreId {
+    final $$StoresTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.destinationStoreId,
+        referencedTable: $db.stores,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StoresTableFilterComposer(
+              $db: $db,
+              $table: $db.stores,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$UsersTableFilterComposer get initiatedBy {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.initiatedBy,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableFilterComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<bool> transferItemsRefs(
+      Expression<bool> Function($$TransferItemsTableFilterComposer f) f) {
+    final $$TransferItemsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transferItems,
+        getReferencedColumn: (t) => t.transferId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransferItemsTableFilterComposer(
+              $db: $db,
+              $table: $db.transferItems,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$TransfersTableOrderingComposer
+    extends Composer<_$AppDatabase, $TransfersTable> {
+  $$TransfersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+      column: $table.notes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnOrderings(column));
+
+  $$StoresTableOrderingComposer get sourceStoreId {
+    final $$StoresTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.sourceStoreId,
+        referencedTable: $db.stores,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StoresTableOrderingComposer(
+              $db: $db,
+              $table: $db.stores,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$StoresTableOrderingComposer get destinationStoreId {
+    final $$StoresTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.destinationStoreId,
+        referencedTable: $db.stores,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StoresTableOrderingComposer(
+              $db: $db,
+              $table: $db.stores,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$UsersTableOrderingComposer get initiatedBy {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.initiatedBy,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableOrderingComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TransfersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TransfersTable> {
+  $$TransfersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => column);
+
+  $$StoresTableAnnotationComposer get sourceStoreId {
+    final $$StoresTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.sourceStoreId,
+        referencedTable: $db.stores,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StoresTableAnnotationComposer(
+              $db: $db,
+              $table: $db.stores,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$StoresTableAnnotationComposer get destinationStoreId {
+    final $$StoresTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.destinationStoreId,
+        referencedTable: $db.stores,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$StoresTableAnnotationComposer(
+              $db: $db,
+              $table: $db.stores,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$UsersTableAnnotationComposer get initiatedBy {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.initiatedBy,
+        referencedTable: $db.users,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$UsersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.users,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<T> transferItemsRefs<T extends Object>(
+      Expression<T> Function($$TransferItemsTableAnnotationComposer a) f) {
+    final $$TransferItemsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.transferItems,
+        getReferencedColumn: (t) => t.transferId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransferItemsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.transferItems,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$TransfersTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TransfersTable,
+    Transfer,
+    $$TransfersTableFilterComposer,
+    $$TransfersTableOrderingComposer,
+    $$TransfersTableAnnotationComposer,
+    $$TransfersTableCreateCompanionBuilder,
+    $$TransfersTableUpdateCompanionBuilder,
+    (Transfer, $$TransfersTableReferences),
+    Transfer,
+    PrefetchHooks Function(
+        {bool sourceStoreId,
+        bool destinationStoreId,
+        bool initiatedBy,
+        bool transferItemsRefs})> {
+  $$TransfersTableTableManager(_$AppDatabase db, $TransfersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TransfersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TransfersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TransfersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> sourceStoreId = const Value.absent(),
+            Value<String> destinationStoreId = const Value.absent(),
+            Value<String> initiatedBy = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> notes = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> completedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TransfersCompanion(
+            id: id,
+            sourceStoreId: sourceStoreId,
+            destinationStoreId: destinationStoreId,
+            initiatedBy: initiatedBy,
+            status: status,
+            notes: notes,
+            createdAt: createdAt,
+            completedAt: completedAt,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String sourceStoreId,
+            required String destinationStoreId,
+            required String initiatedBy,
+            Value<String> status = const Value.absent(),
+            Value<String?> notes = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+            Value<DateTime?> completedAt = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TransfersCompanion.insert(
+            id: id,
+            sourceStoreId: sourceStoreId,
+            destinationStoreId: destinationStoreId,
+            initiatedBy: initiatedBy,
+            status: status,
+            notes: notes,
+            createdAt: createdAt,
+            completedAt: completedAt,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$TransfersTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {sourceStoreId = false,
+              destinationStoreId = false,
+              initiatedBy = false,
+              transferItemsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (transferItemsRefs) db.transferItems
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (sourceStoreId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.sourceStoreId,
+                    referencedTable:
+                        $$TransfersTableReferences._sourceStoreIdTable(db),
+                    referencedColumn:
+                        $$TransfersTableReferences._sourceStoreIdTable(db).id,
+                  ) as T;
+                }
+                if (destinationStoreId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.destinationStoreId,
+                    referencedTable:
+                        $$TransfersTableReferences._destinationStoreIdTable(db),
+                    referencedColumn: $$TransfersTableReferences
+                        ._destinationStoreIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (initiatedBy) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.initiatedBy,
+                    referencedTable:
+                        $$TransfersTableReferences._initiatedByTable(db),
+                    referencedColumn:
+                        $$TransfersTableReferences._initiatedByTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (transferItemsRefs)
+                    await $_getPrefetchedData(
+                        currentTable: table,
+                        referencedTable: $$TransfersTableReferences
+                            ._transferItemsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$TransfersTableReferences(db, table, p0)
+                                .transferItemsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.transferId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$TransfersTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $TransfersTable,
+    Transfer,
+    $$TransfersTableFilterComposer,
+    $$TransfersTableOrderingComposer,
+    $$TransfersTableAnnotationComposer,
+    $$TransfersTableCreateCompanionBuilder,
+    $$TransfersTableUpdateCompanionBuilder,
+    (Transfer, $$TransfersTableReferences),
+    Transfer,
+    PrefetchHooks Function(
+        {bool sourceStoreId,
+        bool destinationStoreId,
+        bool initiatedBy,
+        bool transferItemsRefs})>;
+typedef $$TransferItemsTableCreateCompanionBuilder = TransferItemsCompanion
+    Function({
+  required String id,
+  required String transferId,
+  required String productId,
+  required int quantity,
+  Value<int> rowid,
+});
+typedef $$TransferItemsTableUpdateCompanionBuilder = TransferItemsCompanion
+    Function({
+  Value<String> id,
+  Value<String> transferId,
+  Value<String> productId,
+  Value<int> quantity,
+  Value<int> rowid,
+});
+
+final class $$TransferItemsTableReferences
+    extends BaseReferences<_$AppDatabase, $TransferItemsTable, TransferItem> {
+  $$TransferItemsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $TransfersTable _transferIdTable(_$AppDatabase db) =>
+      db.transfers.createAlias(
+          $_aliasNameGenerator(db.transferItems.transferId, db.transfers.id));
+
+  $$TransfersTableProcessedTableManager? get transferId {
+    if ($_item.transferId == null) return null;
+    final manager = $$TransfersTableTableManager($_db, $_db.transfers)
+        .filter((f) => f.id($_item.transferId!));
+    final item = $_typedResult.readTableOrNull(_transferIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $ProductsTable _productIdTable(_$AppDatabase db) =>
+      db.products.createAlias(
+          $_aliasNameGenerator(db.transferItems.productId, db.products.id));
+
+  $$ProductsTableProcessedTableManager? get productId {
+    if ($_item.productId == null) return null;
+    final manager = $$ProductsTableTableManager($_db, $_db.products)
+        .filter((f) => f.id($_item.productId!));
+    final item = $_typedResult.readTableOrNull(_productIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$TransferItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $TransferItemsTable> {
+  $$TransferItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get quantity => $composableBuilder(
+      column: $table.quantity, builder: (column) => ColumnFilters(column));
+
+  $$TransfersTableFilterComposer get transferId {
+    final $$TransfersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.transferId,
+        referencedTable: $db.transfers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransfersTableFilterComposer(
+              $db: $db,
+              $table: $db.transfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$ProductsTableFilterComposer get productId {
+    final $$ProductsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableFilterComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TransferItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TransferItemsTable> {
+  $$TransferItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get quantity => $composableBuilder(
+      column: $table.quantity, builder: (column) => ColumnOrderings(column));
+
+  $$TransfersTableOrderingComposer get transferId {
+    final $$TransfersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.transferId,
+        referencedTable: $db.transfers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransfersTableOrderingComposer(
+              $db: $db,
+              $table: $db.transfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$ProductsTableOrderingComposer get productId {
+    final $$ProductsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableOrderingComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TransferItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TransferItemsTable> {
+  $$TransferItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  $$TransfersTableAnnotationComposer get transferId {
+    final $$TransfersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.transferId,
+        referencedTable: $db.transfers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$TransfersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.transfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$ProductsTableAnnotationComposer get productId {
+    final $$ProductsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.productId,
+        referencedTable: $db.products,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$ProductsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.products,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$TransferItemsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $TransferItemsTable,
+    TransferItem,
+    $$TransferItemsTableFilterComposer,
+    $$TransferItemsTableOrderingComposer,
+    $$TransferItemsTableAnnotationComposer,
+    $$TransferItemsTableCreateCompanionBuilder,
+    $$TransferItemsTableUpdateCompanionBuilder,
+    (TransferItem, $$TransferItemsTableReferences),
+    TransferItem,
+    PrefetchHooks Function({bool transferId, bool productId})> {
+  $$TransferItemsTableTableManager(_$AppDatabase db, $TransferItemsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TransferItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TransferItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TransferItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> transferId = const Value.absent(),
+            Value<String> productId = const Value.absent(),
+            Value<int> quantity = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TransferItemsCompanion(
+            id: id,
+            transferId: transferId,
+            productId: productId,
+            quantity: quantity,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String transferId,
+            required String productId,
+            required int quantity,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              TransferItemsCompanion.insert(
+            id: id,
+            transferId: transferId,
+            productId: productId,
+            quantity: quantity,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$TransferItemsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({transferId = false, productId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (transferId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.transferId,
+                    referencedTable:
+                        $$TransferItemsTableReferences._transferIdTable(db),
+                    referencedColumn:
+                        $$TransferItemsTableReferences._transferIdTable(db).id,
+                  ) as T;
+                }
+                if (productId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.productId,
+                    referencedTable:
+                        $$TransferItemsTableReferences._productIdTable(db),
+                    referencedColumn:
+                        $$TransferItemsTableReferences._productIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$TransferItemsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $TransferItemsTable,
+    TransferItem,
+    $$TransferItemsTableFilterComposer,
+    $$TransferItemsTableOrderingComposer,
+    $$TransferItemsTableAnnotationComposer,
+    $$TransferItemsTableCreateCompanionBuilder,
+    $$TransferItemsTableUpdateCompanionBuilder,
+    (TransferItem, $$TransferItemsTableReferences),
+    TransferItem,
+    PrefetchHooks Function({bool transferId, bool productId})>;
 typedef $$SyncQueueTableCreateCompanionBuilder = SyncQueueCompanion Function({
   Value<int> id,
   required String entityType,
@@ -8753,6 +10672,10 @@ class $AppDatabaseManager {
       $$SaleItemsTableTableManager(_db, _db.saleItems);
   $$AlertsTableTableManager get alerts =>
       $$AlertsTableTableManager(_db, _db.alerts);
+  $$TransfersTableTableManager get transfers =>
+      $$TransfersTableTableManager(_db, _db.transfers);
+  $$TransferItemsTableTableManager get transferItems =>
+      $$TransferItemsTableTableManager(_db, _db.transferItems);
   $$SyncQueueTableTableManager get syncQueue =>
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
 }

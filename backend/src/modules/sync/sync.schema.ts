@@ -20,6 +20,7 @@ export const syncOperationTypeEnum = z.enum([
   'create_product',
   'open_shift',
   'close_shift',
+  'create_transfer',
 ]);
 
 // ============================================================================
@@ -86,6 +87,16 @@ const closeShiftDataSchema = z.object({
   close_balance: z.number().int().min(0).default(0),
 });
 
+/** Салбар хоорондын шилжүүлэг үүсгэх */
+const createTransferDataSchema = z.object({
+  destination_store_id: z.string().uuid(),
+  items: z.array(z.object({
+    product_id: z.string().uuid(),
+    quantity: z.number().int().min(1),
+  })).min(1),
+  notes: z.string().optional(),
+});
+
 /**
  * Single sync operation
  *
@@ -108,6 +119,7 @@ export const syncOperationSchema = z.object({
       create_product: createProductDataSchema,
       open_shift: openShiftDataSchema,
       close_shift: closeShiftDataSchema,
+      create_transfer: createTransferDataSchema,
     };
     const schema = schemas[op.operation_type];
     if (!schema) return true; // Unknown type → service давхаргад шалгана

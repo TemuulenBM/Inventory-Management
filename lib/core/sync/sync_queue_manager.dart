@@ -202,6 +202,13 @@ class SyncQueueManager {
           totalChanges++;
         }
 
+        // Process transfers (салбар хоорондын шилжүүлэг)
+        final transfers = changes['transfers'] as List? ?? [];
+        for (final transfer in transfers) {
+          await _upsertTransfer(transfer);
+          totalChanges++;
+        }
+
         // Update last sync time
         final serverTimestamp = response.data['timestamp'];
         if (serverTimestamp != null) {
@@ -248,6 +255,8 @@ class SyncQueueManager {
         return 'open_shift';
       case 'shift_close_shift':
         return 'close_shift';
+      case 'transfer_create':
+        return 'create_transfer';
       // 'alert_resolve' устгасан - backend дэмждэггүй
       default:
         return '${entityType}_$operation';
@@ -362,6 +371,49 @@ class SyncQueueManager {
           );
     } catch (e) {
       _log('_upsertAlert error: $e');
+    }
+  }
+
+  /// Transfer + TransferItems upsert
+  /// Backend-аас ирсэн transfer өгөгдлийг local DB-д хадгална
+  Future<void> _upsertTransfer(Map<String, dynamic> data) async {
+    try {
+      await db.into(db.transfers).insertOnConflictUpdate(
+            TransfersCompanion.insert(
+              id: data['id'],
+              sourceStoreId: data['source_store_id'],
+              destinationStoreId: data['destination_store_id'],
+              initiatedBy: data['initiated_by'],
+              status: Value(data['status'] ?? 'pending'),
+              notes: Value(data['notes']),
+              createdAt: Value(DateTime.tryParse(data['created_at'] ?? '') ?? DateTime.now()),
+              completedAt: Value(DateTime.tryParse(data['completed_at'] ?? '')),
+            ),
+          );
+
+      // Transfer items upsert (embedded list)
+      final items = data['transfer_items'] as List? ?? [];
+      for (final item in items) {
+        await _upsertTransferItem(item);
+      }
+    } catch (e) {
+      _log('_upsertTransfer error: $e');
+    }
+  }
+
+  /// TransferItem upsert
+  Future<void> _upsertTransferItem(Map<String, dynamic> data) async {
+    try {
+      await db.into(db.transferItems).insertOnConflictUpdate(
+            TransferItemsCompanion.insert(
+              id: data['id'],
+              transferId: data['transfer_id'],
+              productId: data['product_id'],
+              quantity: data['quantity'] ?? 0,
+            ),
+          );
+    } catch (e) {
+      _log('_upsertTransferItem error: $e');
     }
   }
 

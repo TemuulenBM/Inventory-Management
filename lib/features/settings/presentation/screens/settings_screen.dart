@@ -150,6 +150,13 @@ class SettingsScreen extends ConsumerWidget {
                 title: 'АППЛКЕЙШН',
                 tiles: [
                   SettingsTile(
+                    icon: Icons.swap_horiz,
+                    iconColor: AppColors.primary,
+                    title: 'Бараа шилжүүлэг',
+                    subtitle: 'Салбар хоорондын шилжүүлэг',
+                    onTap: () => context.push(RouteNames.transfers),
+                  ),
+                  SettingsTile(
                     icon: Icons.access_time_outlined,
                     iconColor: AppColors.secondary,
                     title: 'Ээлж',

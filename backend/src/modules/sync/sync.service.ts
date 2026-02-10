@@ -11,6 +11,7 @@ import { supabase } from '../../config/supabase.js';
 import type { BatchSyncBody, SyncOperation, ChangesQueryParams } from './sync.schema.js';
 import { createSale, voidSale } from '../sales/sales.service.js';
 import { createInventoryEvent } from '../inventory/inventory.service.js';
+import { createTransfer } from '../transfer/transfer.service.js';
 
 type ServiceResult<T> =
   | { success: true } & T
@@ -115,6 +116,9 @@ async function processSingleOperation(
 
     case 'close_shift':
       return await syncCloseShift(storeId, operation);
+
+    case 'create_transfer':
+      return await syncCreateTransfer(storeId, userId, operation);
 
     default:
       return { success: false, error: 'Unknown operation type' };
@@ -393,6 +397,33 @@ async function syncVoidSale(
 }
 
 /**
+ * Transfer sync - Салбар хоорондын шилжүүлэг (offline sync)
+ */
+async function syncCreateTransfer(
+  storeId: string,
+  userId: string,
+  operation: SyncOperation
+): Promise<{ success: true; server_id: string } | { success: false; error: string }> {
+  const { destination_store_id, items, notes } = operation.data;
+
+  if (!destination_store_id || !items || !Array.isArray(items)) {
+    return { success: false, error: 'Invalid transfer data' };
+  }
+
+  const result = await createTransfer(storeId, userId, {
+    destination_store_id,
+    items,
+    notes,
+  });
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  return { success: true, server_id: result.transfer.id };
+}
+
+/**
  * Delta sync - өөрчлөлт татах
  * Mobile app-д server-ийн шинэ өгөгдлүүдийг татаж авах
  */
@@ -444,6 +475,14 @@ export async function getChanges(
       .or(`resolved.is.false,and(resolved.is.true,resolved_at.gte.${since})`)
       .limit(limit);
 
+    // Transfers өөрчлөлт (source эсвэл destination store-той холбоотой)
+    const { data: transfers } = await supabase
+      .from('transfers')
+      .select('*, transfer_items(*)')
+      .or(`source_store_id.eq.${storeId},destination_store_id.eq.${storeId}`)
+      .gte('created_at', since)
+      .limit(limit);
+
     return {
       success: true,
       changes: {
@@ -452,6 +491,7 @@ export async function getChanges(
         inventory_events: inventory_events || [],
         shifts: shifts || [],
         alerts: alerts || [],
+        transfers: transfers || [],
       },
       timestamp: new Date().toISOString(),
     };

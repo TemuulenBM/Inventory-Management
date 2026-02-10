@@ -53,6 +53,10 @@ class RouteNames {
   static const String employees = '/settings/employees';
   static const String employeeAdd = '/settings/employees/add';
 
+  // Transfer (салбар хоорондын шилжүүлэг)
+  static const String transfers = '/transfers';
+  static const String createTransfer = '/transfers/create';
+
   // Invitations (super-admin only)
   static const String invitations = '/invitations';
   static const String createInvitation = '/invitations/create';
