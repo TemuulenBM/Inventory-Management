@@ -27,8 +27,10 @@ export async function getProducts(storeId: string, query: ProductQueryParams) {
     .eq('is_deleted', false);
 
   // Search filter (name эсвэл SKU)
+  // PostgREST LIKE wildcard тэмдэгтүүдийг escape хийх (SQL injection-аас хамгаалах)
   if (search) {
-    queryBuilder = queryBuilder.or(`name.ilike.%${search}%,sku.ilike.%${search}%`);
+    const sanitized = search.replace(/[%_\\]/g, '\\$&');
+    queryBuilder = queryBuilder.or(`name.ilike.%${sanitized}%,sku.ilike.%${sanitized}%`);
   }
 
   // Unit filter

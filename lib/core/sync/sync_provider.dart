@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:retail_control_platform/core/providers/store_provider.dart';
@@ -64,18 +65,18 @@ class SyncNotifier extends _$SyncNotifier {
       // Simple query - Migration дууссан эсэхийг баталгаажуулах
       await db.select(db.stores).get();
     } catch (e) {
-      print('[SyncNotifier] Database not ready, skipping initial sync: $e');
+      if (kDebugMode) print('[SyncNotifier] Database not ready, skipping initial sync: $e');
       return;
     }
 
-    print('[SyncNotifier] Database ready, checking sync status...');
+    if (kDebugMode) print('[SyncNotifier] Database ready, checking sync status...');
 
     // Online бөгөөд хэзээ ч sync хийгээгүй бол эхлэн sync хийх
     if (state.isOnline && state.lastSyncTime == null) {
-      print('[SyncNotifier] Starting initial sync...');
+      if (kDebugMode) print('[SyncNotifier] Starting initial sync...');
       sync();
     } else {
-      print('[SyncNotifier] Initial sync skipped - isOnline: ${state.isOnline}, lastSync: ${state.lastSyncTime}');
+      if (kDebugMode) print('[SyncNotifier] Initial sync skipped - isOnline: ${state.isOnline}, lastSync: ${state.lastSyncTime}');
     }
   }
 
@@ -85,10 +86,10 @@ class SyncNotifier extends _$SyncNotifier {
     // iOS simulator дээр connectivity_plus unreliable байдаг
     // Backend health check fallback хийх
     if (results.isEmpty || results.first == ConnectivityResult.none) {
-      print('[SyncNotifier] Connectivity check: none - Trying backend fallback...');
+      if (kDebugMode) print('[SyncNotifier] Connectivity check: none - Trying backend fallback...');
       final backendOnline = await _checkBackendConnectivity();
       if (backendOnline) {
-        print('[SyncNotifier] Backend online - Forcing online status');
+        if (kDebugMode) print('[SyncNotifier] Backend online - Forcing online status');
         _updateOnlineStatus(ConnectivityResult.wifi); // Force online
         return;
       }
@@ -126,7 +127,7 @@ class SyncNotifier extends _$SyncNotifier {
 
     // Debug logging - State transition track хийх
     if (isOnline != wasOnline) {
-      print('[SyncNotifier] Connectivity changed: $wasOnline → $isOnline ($result)');
+      if (kDebugMode) print('[SyncNotifier] Connectivity changed: $wasOnline → $isOnline ($result)');
     }
 
     state = state.copyWith(
@@ -147,7 +148,7 @@ class SyncNotifier extends _$SyncNotifier {
   /// Manual sync trigger
   Future<void> sync() async {
     if (!state.isOnline) {
-      print('[SyncNotifier] Sync skipped - offline');
+      if (kDebugMode) print('[SyncNotifier] Sync skipped - offline');
       return;
     }
 
@@ -207,8 +208,8 @@ class SyncNotifier extends _$SyncNotifier {
         );
       }
     } catch (e, stack) {
-      print('[SyncNotifier] Sync error: $e');
-      print('[SyncNotifier] Stack trace: $stack');
+      if (kDebugMode) print('[SyncNotifier] Sync error: $e');
+      if (kDebugMode) print('[SyncNotifier] Stack trace: $stack');
       state = state.copyWith(
         status: SyncStatus.error,
         errorMessage: e.toString(),

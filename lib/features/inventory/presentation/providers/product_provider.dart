@@ -152,7 +152,12 @@ class ProductActions extends _$ProductActions {
       return null;
     }
 
-    final product = result.dataOrNull!;
+    // Null шалгалт — dataOrNull null байвал crash-аас сэргийлэх
+    final product = result.dataOrNull;
+    if (product == null) {
+      state = AsyncValue.error('Бүтээгдэхүүний мэдээлэл олдсонгүй', StackTrace.current);
+      return null;
+    }
 
     // Зураг хадгалах (байвал)
     if (imageFile != null) {

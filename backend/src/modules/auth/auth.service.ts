@@ -424,17 +424,20 @@ export async function isDeviceTrusted(userId: string, deviceId: string): Promise
  * @param userId - Хэрэглэгчийн ID
  * @param deviceId - Төхөөрөмжийн UUID
  * @param deviceName - Төхөөрөмжийн нэр (optional, e.g., "iPhone 15")
+ * @param deviceInfo - Төхөөрөмжийн metadata (platform, model, osVersion)
  */
 export async function trustDevice(
   userId: string,
   deviceId: string,
-  deviceName?: string
+  deviceName?: string,
+  deviceInfo?: { platform?: string; model?: string; osVersion?: string }
 ): Promise<{ success: boolean; error?: string }> {
   const { error } = await supabase.from('trusted_devices' as any).upsert(
     {
       user_id: userId,
       device_id: deviceId,
       device_name: deviceName,
+      device_info: deviceInfo ?? {},
       last_used_at: new Date().toISOString(),
     },
     {
@@ -518,12 +521,14 @@ export async function generateTokens(
  * @param phone - Утасны дугаар
  * @param deviceId - Төхөөрөмжийн UUID
  * @param server - Fastify instance
+ * @param currentDeviceInfo - Одоогийн төхөөрөмжийн мэдээлэл (platform шалгахад ашиглана)
  * @returns User болон tokens
  */
 export async function deviceLogin(
   phone: string,
   deviceId: string,
-  server: FastifyInstance
+  server: FastifyInstance,
+  currentDeviceInfo?: { platform?: string; model?: string; osVersion?: string }
 ): Promise<{
   success: boolean;
   user?: any;
@@ -542,7 +547,27 @@ export async function deviceLogin(
     return { success: false, error: 'Төхөөрөмж итгэмжлэгдээгүй байна. OTP ашиглан нэвтэрнэ үү.' };
   }
 
-  // 3. Tokens үүсгэх
+  // 3. Platform шалгалт — хулгайлагдсан device_id-г өөр platform-аас ашиглахаас сэргийлэх
+  if (currentDeviceInfo?.platform) {
+    const { data: deviceRecord } = await supabase
+      .from('trusted_devices' as any)
+      .select('device_info')
+      .eq('user_id', user.id)
+      .eq('device_id', deviceId)
+      .single();
+
+    const record = deviceRecord as { device_info?: { platform?: string } } | null;
+    const storedInfo = record?.device_info;
+    if (storedInfo?.platform && storedInfo.platform !== currentDeviceInfo.platform) {
+      // Platform таарахгүй — warning log, гэхдээ login зөвшөөрөх (UX-д сөрөг нөлөөгүй)
+      console.warn(
+        `⚠️ Platform mismatch for device ${deviceId.substring(0, 8)}...: ` +
+        `stored=${storedInfo.platform}, current=${currentDeviceInfo.platform}`
+      );
+    }
+  }
+
+  // 4. Tokens үүсгэх
   const tokens = await generateTokens(user, server);
 
   console.log(`✅ Device login: ${user.phone} via trusted device ${deviceId.substring(0, 8)}...`);

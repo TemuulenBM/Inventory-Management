@@ -312,13 +312,29 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Олон барааны үлдэгдлийг нэгэн зэрэг тооцоолох (Dashboard-д ашиглах)
+  ///
+  /// N+1 query-ийн оронд нэг GROUP BY query ашиглана.
+  /// 100 бараатай бол 100 query → 1 query (performance сайжруулалт)
   Future<Map<String, int>> getStockLevels(List<String> productIds) async {
-    final Map<String, int> stockMap = {};
+    if (productIds.isEmpty) return {};
 
-    for (final productId in productIds) {
-      stockMap[productId] = await getCurrentStock(productId);
+    final placeholders = List.filled(productIds.length, '?').join(', ');
+    final result = await customSelect(
+      'SELECT product_id, COALESCE(SUM(qty_change), 0) AS total '
+      'FROM inventory_events '
+      'WHERE product_id IN ($placeholders) '
+      'GROUP BY product_id',
+      variables: productIds.map((id) => Variable.withString(id)).toList(),
+    ).get();
+
+    final stockMap = <String, int>{};
+    for (final row in result) {
+      stockMap[row.read<String>('product_id')] = row.read<int>('total');
     }
-
+    // Event байхгүй бүтээгдэхүүнийг 0-ээр нэмэх
+    for (final id in productIds) {
+      stockMap.putIfAbsent(id, () => 0);
+    }
     return stockMap;
   }
 
