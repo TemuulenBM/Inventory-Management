@@ -339,21 +339,39 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// Бага үлдэгдэлтэй бараанууд олох (Alert engine-д ашиглах)
+  ///
+  /// Хуучин хувилбар: product бүрт getCurrentStock() дуудаж байсан (N+1 query)
+  /// Шинэ: Нэг GROUP BY query-р бүгдийг тооцоолно (100 бараа = 1 query)
   Future<List<Product>> getLowStockProducts(String storeId) async {
-    final allProducts = await (select(products)
-          ..where((p) => p.storeId.equals(storeId) & p.isDeleted.equals(false)))
-        .get();
+    final result = await customSelect(
+      'SELECT p.* FROM products p '
+      'LEFT JOIN ('
+      '  SELECT product_id, COALESCE(SUM(qty_change), 0) AS current_stock '
+      '  FROM inventory_events GROUP BY product_id'
+      ') ie ON p.id = ie.product_id '
+      'WHERE p.store_id = ? AND p.is_deleted = 0 '
+      'AND COALESCE(ie.current_stock, 0) <= p.low_stock_threshold',
+      variables: [Variable.withString(storeId)],
+    ).get();
 
-    final lowStockProducts = <Product>[];
-
-    for (final product in allProducts) {
-      final currentStock = await getCurrentStock(product.id);
-      if (currentStock <= product.lowStockThreshold) {
-        lowStockProducts.add(product);
-      }
-    }
-
-    return lowStockProducts;
+    return result.map((row) => Product(
+      id: row.read<String>('id'),
+      storeId: row.read<String>('store_id'),
+      name: row.read<String>('name'),
+      sku: row.read<String>('sku'),
+      unit: row.read<String>('unit'),
+      sellPrice: row.read<int>('sell_price'),
+      costPrice: row.readNullable<int>('cost_price'),
+      lowStockThreshold: row.read<int>('low_stock_threshold'),
+      note: row.readNullable<String>('note'),
+      isDeleted: row.read<bool>('is_deleted'),
+      imageUrl: row.readNullable<String>('image_url'),
+      localImagePath: row.readNullable<String>('local_image_path'),
+      imageSynced: row.readNullable<bool>('image_synced') ?? false,
+      category: row.readNullable<String>('category'),
+      createdAt: row.read<DateTime>('created_at'),
+      updatedAt: row.read<DateTime>('updated_at'),
+    )).toList();
   }
 
   /// Өнөөдрийн нийт борлуулалт (Dashboard)

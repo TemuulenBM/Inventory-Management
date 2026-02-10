@@ -117,21 +117,44 @@ export async function verifyOTP(
     return { success: false, error: 'OTP олдсонгүй. Дахин OTP хүсэх хэрэгтэй.' };
   }
 
-  const otpToken = otpTokens[0];
+  // attempt_count нь migration-р нэмэгдсэн багана (Supabase type дахин generate хийх хүртэл)
+  const otpToken = otpTokens[0] as typeof otpTokens[0] & { attempt_count?: number };
 
   // 3. OTP хүчинтэй эсэх шалгах
   if (!isOTPValid(new Date(otpToken.expires_at))) {
     return { success: false, error: 'OTP хугацаа дууссан байна. Дахин OTP хүсэх хэрэгтэй.' };
   }
 
-  // 4. OTP verify хийх
-  const isValid = verifyOTPCode(otpInput, otpToken.otp_code);
-
-  // 5. Буруу бол алдаа буцаах
-  if (!isValid) {
+  // 4. Brute-force хамгаалалт - оролдлогын тоо шалгах (MAX_ATTEMPTS = 3)
+  const maxAttempts = OTP_CONFIG.MAX_ATTEMPTS || 3;
+  if ((otpToken.attempt_count ?? 0) >= maxAttempts) {
     return {
       success: false,
-      error: 'OTP буруу байна. Дахин оролдоно уу.',
+      error: `OTP ${maxAttempts} удаа буруу оруулсан тул хүчингүй болсон. Дахин OTP хүсэх хэрэгтэй.`,
+    };
+  }
+
+  // 5. OTP verify хийх
+  const isValid = verifyOTPCode(otpInput, otpToken.otp_code);
+
+  // 6. Буруу бол attempt_count нэмэгдүүлж, алдаа буцаах
+  if (!isValid) {
+    const newAttemptCount = (otpToken.attempt_count || 0) + 1;
+    await supabase
+      .from('otp_tokens')
+      .update({ attempt_count: newAttemptCount } as any)
+      .eq('id', otpToken.id);
+
+    const remaining = maxAttempts - newAttemptCount;
+    if (remaining <= 0) {
+      return {
+        success: false,
+        error: `OTP ${maxAttempts} удаа буруу оруулсан тул хүчингүй болсон. Дахин OTP хүсэх хэрэгтэй.`,
+      };
+    }
+    return {
+      success: false,
+      error: `OTP буруу байна. ${remaining} удаа оролдох боломжтой.`,
     };
   }
 

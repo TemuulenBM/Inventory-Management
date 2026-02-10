@@ -80,11 +80,10 @@ function validateEnv(): EnvConfig {
 
 export const env = validateEnv();
 
-// Log configuration (development only)
+// Тохиргоо лог хийх (development only, secret-гүй)
 if (env.NODE_ENV === 'development') {
   console.log('🔧 Environment Configuration:');
   console.log(`  - NODE_ENV: ${env.NODE_ENV}`);
   console.log(`  - PORT: ${env.PORT}`);
   console.log(`  - SUPABASE_URL: ${env.SUPABASE_URL}`);
-  console.log(`  - JWT_SECRET: ${env.JWT_SECRET.substring(0, 10)}...`);
 }

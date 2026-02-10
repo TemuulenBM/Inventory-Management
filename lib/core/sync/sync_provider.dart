@@ -147,6 +147,12 @@ class SyncNotifier extends _$SyncNotifier {
 
   /// Manual sync trigger
   Future<void> sync() async {
+    // Race condition хамгаалалт: sync аль хэдийн явж байвал давхар дуудахгүй
+    if (state.status == SyncStatus.syncing) {
+      if (kDebugMode) print('[SyncNotifier] Sync skipped - already syncing');
+      return;
+    }
+
     if (!state.isOnline) {
       if (kDebugMode) print('[SyncNotifier] Sync skipped - offline');
       return;
