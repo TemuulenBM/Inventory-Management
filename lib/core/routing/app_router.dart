@@ -31,6 +31,7 @@ import 'package:retail_control_platform/features/sync/presentation/screens/sync_
 import 'package:retail_control_platform/features/employees/presentation/screens/employee_form_screen.dart';
 import 'package:retail_control_platform/features/transfer/presentation/screens/transfer_list_screen.dart';
 import 'package:retail_control_platform/features/transfer/presentation/screens/create_transfer_screen.dart';
+import 'package:retail_control_platform/features/employees/presentation/screens/seller_performance_screen.dart';
 
 /// GoRouter configuration for app navigation
 /// Auth guards, deep linking, route transitions
@@ -235,6 +236,12 @@ final GoRouter appRouter = GoRouter(
           path: RouteNames.employeeAdd,
           name: 'employee-add',
           builder: (context, state) => const EmployeeFormScreen(),
+        ),
+        // Seller Performance
+        GoRoute(
+          path: RouteNames.sellerPerformance,
+          name: 'seller-performance',
+          builder: (context, state) => const SellerPerformanceScreen(),
         ),
         // Employee Edit
         GoRoute(

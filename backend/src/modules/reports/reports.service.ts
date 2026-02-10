@@ -267,18 +267,20 @@ export async function getSellerPerformance(
       });
     });
 
-    // 3. Ээлжийн тоог тооцоолох
+    // 3. Ээлжийн тоо + мөнгөн тулгалт тооцоолох
     const sellerIds = Array.from(sellersMap.keys());
+    // select('*') — discrepancy column migration-аар нэмэгдсэн,
+    // generated types-д байхгүй байж болох тул '*' ашиглана
     const { data: shifts } = await supabase
       .from('shifts')
-      .select('seller_id')
+      .select('*')
       .eq('store_id', storeId)
       .in('seller_id', sellerIds)
       .gte('opened_at', from)
       .lte('opened_at', to);
 
     const shiftsCountMap = new Map<string, number>();
-    (shifts ?? []).forEach((shift) => {
+    (shifts ?? []).forEach((shift: any) => {
       shiftsCountMap.set(shift.seller_id, (shiftsCountMap.get(shift.seller_id) ?? 0) + 1);
     });
 
@@ -306,7 +308,40 @@ export async function getSellerPerformance(
       });
     }
 
-    // 5. Response format
+    // 5. Мөнгөн тулгалтын зөрүү тооцоолох (discrepancy history)
+    const discrepancyMap = new Map<string, { total: number; count: number }>();
+    (shifts ?? []).forEach((shift: any) => {
+      if (shift.discrepancy !== null && shift.discrepancy !== undefined) {
+        const existing = discrepancyMap.get(shift.seller_id) ?? { total: 0, count: 0 };
+        discrepancyMap.set(shift.seller_id, {
+          total: existing.total + Math.abs(parseFloat(String(shift.discrepancy))),
+          count: existing.count + (Math.abs(parseFloat(String(shift.discrepancy))) > 5000 ? 1 : 0),
+        });
+      }
+    });
+
+    // 6. Нийт хөнгөлөлт тооцоолох (seller бүрээр)
+    const discountMap = new Map<string, number>();
+    if (saleIds.length > 0) {
+      const { data: discountItems } = await supabase
+        .from('sale_items')
+        .select('sale_id, discount_amount, quantity')
+        .in('sale_id', saleIds)
+        .gt('discount_amount', 0);
+
+      (discountItems ?? []).forEach((item: any) => {
+        const sellerId = new Map<string, string>();
+        (sales ?? []).forEach((sale: any) => {
+          sellerId.set(sale.id, sale.seller_id);
+        });
+        const sid = sellerId.get(item.sale_id);
+        if (sid) {
+          discountMap.set(sid, (discountMap.get(sid) ?? 0) + item.discount_amount * item.quantity);
+        }
+      });
+    }
+
+    // 7. Response format
     const sellersPerformance = Array.from(sellersMap.entries())
       .map(([sellerId, data]) => ({
         seller_id: sellerId,
@@ -316,6 +351,9 @@ export async function getSellerPerformance(
         total_items_sold: itemsSoldMap.get(sellerId) ?? 0,
         average_sale: data.totalSalesCount > 0 ? data.totalSales / data.totalSalesCount : 0,
         shifts_count: shiftsCountMap.get(sellerId) ?? 0,
+        total_discrepancy: discrepancyMap.get(sellerId)?.total ?? 0,
+        discrepancy_count: discrepancyMap.get(sellerId)?.count ?? 0,
+        total_discount_given: discountMap.get(sellerId) ?? 0,
       }))
       .sort((a, b) => b.total_sales - a.total_sales);
 

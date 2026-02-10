@@ -22,8 +22,8 @@ void main() {
       await db.close();
     });
 
-    test('Schema version 10 эсэхийг шалгах', () {
-      expect(db.schemaVersion, equals(10));
+    test('Schema version 11 эсэхийг шалгах', () {
+      expect(db.schemaVersion, equals(11));
     });
 
     group('Migration v5: users.store_id nullable', () {

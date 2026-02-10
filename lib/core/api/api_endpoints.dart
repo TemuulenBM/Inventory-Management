@@ -53,6 +53,7 @@ class ApiEndpoints {
 
   // Reports
   static String reports(String storeId) => '/stores/$storeId/reports';
+  static String sellerPerformance(String storeId) => '/stores/$storeId/reports/seller-performance';
 
   // Sync
   static String sync(String storeId) => '/stores/$storeId/sync';

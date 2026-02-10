@@ -32,6 +32,18 @@ mixin _$ShiftModel {
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
+  /// Ээлж эхлэх мөнгө
+  int? get openBalance => throw _privateConstructorUsedError;
+
+  /// Ээлж хаах мөнгө (бодит тоолсон)
+  int? get closeBalance => throw _privateConstructorUsedError;
+
+  /// Хүлээгдэж буй мөнгө (open_balance + cash борлуулалт)
+  int? get expectedBalance => throw _privateConstructorUsedError;
+
+  /// Мөнгөн зөрүү (close_balance - expected_balance)
+  int? get discrepancy => throw _privateConstructorUsedError;
+
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $ShiftModelCopyWith<ShiftModel> get copyWith =>
@@ -55,7 +67,11 @@ abstract class $ShiftModelCopyWith<$Res> {
       int transactionCount,
       String? notes,
       DateTime? createdAt,
-      DateTime? updatedAt});
+      DateTime? updatedAt,
+      int? openBalance,
+      int? closeBalance,
+      int? expectedBalance,
+      int? discrepancy});
 }
 
 /// @nodoc
@@ -82,6 +98,10 @@ class _$ShiftModelCopyWithImpl<$Res, $Val extends ShiftModel>
     Object? notes = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
+    Object? openBalance = freezed,
+    Object? closeBalance = freezed,
+    Object? expectedBalance = freezed,
+    Object? discrepancy = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -128,6 +148,22 @@ class _$ShiftModelCopyWithImpl<$Res, $Val extends ShiftModel>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      openBalance: freezed == openBalance
+          ? _value.openBalance
+          : openBalance // ignore: cast_nullable_to_non_nullable
+              as int?,
+      closeBalance: freezed == closeBalance
+          ? _value.closeBalance
+          : closeBalance // ignore: cast_nullable_to_non_nullable
+              as int?,
+      expectedBalance: freezed == expectedBalance
+          ? _value.expectedBalance
+          : expectedBalance // ignore: cast_nullable_to_non_nullable
+              as int?,
+      discrepancy: freezed == discrepancy
+          ? _value.discrepancy
+          : discrepancy // ignore: cast_nullable_to_non_nullable
+              as int?,
     ) as $Val);
   }
 }
@@ -151,7 +187,11 @@ abstract class _$$ShiftModelImplCopyWith<$Res>
       int transactionCount,
       String? notes,
       DateTime? createdAt,
-      DateTime? updatedAt});
+      DateTime? updatedAt,
+      int? openBalance,
+      int? closeBalance,
+      int? expectedBalance,
+      int? discrepancy});
 }
 
 /// @nodoc
@@ -176,6 +216,10 @@ class __$$ShiftModelImplCopyWithImpl<$Res>
     Object? notes = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
+    Object? openBalance = freezed,
+    Object? closeBalance = freezed,
+    Object? expectedBalance = freezed,
+    Object? discrepancy = freezed,
   }) {
     return _then(_$ShiftModelImpl(
       id: null == id
@@ -222,6 +266,22 @@ class __$$ShiftModelImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      openBalance: freezed == openBalance
+          ? _value.openBalance
+          : openBalance // ignore: cast_nullable_to_non_nullable
+              as int?,
+      closeBalance: freezed == closeBalance
+          ? _value.closeBalance
+          : closeBalance // ignore: cast_nullable_to_non_nullable
+              as int?,
+      expectedBalance: freezed == expectedBalance
+          ? _value.expectedBalance
+          : expectedBalance // ignore: cast_nullable_to_non_nullable
+              as int?,
+      discrepancy: freezed == discrepancy
+          ? _value.discrepancy
+          : discrepancy // ignore: cast_nullable_to_non_nullable
+              as int?,
     ));
   }
 }
@@ -240,7 +300,11 @@ class _$ShiftModelImpl extends _ShiftModel {
       required this.transactionCount,
       this.notes,
       this.createdAt,
-      this.updatedAt})
+      this.updatedAt,
+      this.openBalance,
+      this.closeBalance,
+      this.expectedBalance,
+      this.discrepancy})
       : super._();
 
   factory _$ShiftModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -269,9 +333,25 @@ class _$ShiftModelImpl extends _ShiftModel {
   @override
   final DateTime? updatedAt;
 
+  /// Ээлж эхлэх мөнгө
+  @override
+  final int? openBalance;
+
+  /// Ээлж хаах мөнгө (бодит тоолсон)
+  @override
+  final int? closeBalance;
+
+  /// Хүлээгдэж буй мөнгө (open_balance + cash борлуулалт)
+  @override
+  final int? expectedBalance;
+
+  /// Мөнгөн зөрүү (close_balance - expected_balance)
+  @override
+  final int? discrepancy;
+
   @override
   String toString() {
-    return 'ShiftModel(id: $id, sellerId: $sellerId, sellerName: $sellerName, storeId: $storeId, startTime: $startTime, endTime: $endTime, totalSales: $totalSales, transactionCount: $transactionCount, notes: $notes, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'ShiftModel(id: $id, sellerId: $sellerId, sellerName: $sellerName, storeId: $storeId, startTime: $startTime, endTime: $endTime, totalSales: $totalSales, transactionCount: $transactionCount, notes: $notes, createdAt: $createdAt, updatedAt: $updatedAt, openBalance: $openBalance, closeBalance: $closeBalance, expectedBalance: $expectedBalance, discrepancy: $discrepancy)';
   }
 
   @override
@@ -296,7 +376,15 @@ class _$ShiftModelImpl extends _ShiftModel {
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt));
+                other.updatedAt == updatedAt) &&
+            (identical(other.openBalance, openBalance) ||
+                other.openBalance == openBalance) &&
+            (identical(other.closeBalance, closeBalance) ||
+                other.closeBalance == closeBalance) &&
+            (identical(other.expectedBalance, expectedBalance) ||
+                other.expectedBalance == expectedBalance) &&
+            (identical(other.discrepancy, discrepancy) ||
+                other.discrepancy == discrepancy));
   }
 
   @JsonKey(ignore: true)
@@ -313,7 +401,11 @@ class _$ShiftModelImpl extends _ShiftModel {
       transactionCount,
       notes,
       createdAt,
-      updatedAt);
+      updatedAt,
+      openBalance,
+      closeBalance,
+      expectedBalance,
+      discrepancy);
 
   @JsonKey(ignore: true)
   @override
@@ -341,7 +433,11 @@ abstract class _ShiftModel extends ShiftModel {
       required final int transactionCount,
       final String? notes,
       final DateTime? createdAt,
-      final DateTime? updatedAt}) = _$ShiftModelImpl;
+      final DateTime? updatedAt,
+      final int? openBalance,
+      final int? closeBalance,
+      final int? expectedBalance,
+      final int? discrepancy}) = _$ShiftModelImpl;
   const _ShiftModel._() : super._();
 
   factory _ShiftModel.fromJson(Map<String, dynamic> json) =
@@ -369,6 +465,22 @@ abstract class _ShiftModel extends ShiftModel {
   DateTime? get createdAt;
   @override
   DateTime? get updatedAt;
+  @override
+
+  /// Ээлж эхлэх мөнгө
+  int? get openBalance;
+  @override
+
+  /// Ээлж хаах мөнгө (бодит тоолсон)
+  int? get closeBalance;
+  @override
+
+  /// Хүлээгдэж буй мөнгө (open_balance + cash борлуулалт)
+  int? get expectedBalance;
+  @override
+
+  /// Мөнгөн зөрүү (close_balance - expected_balance)
+  int? get discrepancy;
   @override
   @JsonKey(ignore: true)
   _$$ShiftModelImplCopyWith<_$ShiftModelImpl> get copyWith =>

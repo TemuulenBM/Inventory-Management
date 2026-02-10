@@ -25,6 +25,10 @@ _$ShiftModelImpl _$$ShiftModelImplFromJson(Map<String, dynamic> json) =>
       updatedAt: json['updatedAt'] == null
           ? null
           : DateTime.parse(json['updatedAt'] as String),
+      openBalance: (json['openBalance'] as num?)?.toInt(),
+      closeBalance: (json['closeBalance'] as num?)?.toInt(),
+      expectedBalance: (json['expectedBalance'] as num?)?.toInt(),
+      discrepancy: (json['discrepancy'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$$ShiftModelImplToJson(_$ShiftModelImpl instance) =>
@@ -40,4 +44,8 @@ Map<String, dynamic> _$$ShiftModelImplToJson(_$ShiftModelImpl instance) =>
       'notes': instance.notes,
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
+      'openBalance': instance.openBalance,
+      'closeBalance': instance.closeBalance,
+      'expectedBalance': instance.expectedBalance,
+      'discrepancy': instance.discrepancy,
     };

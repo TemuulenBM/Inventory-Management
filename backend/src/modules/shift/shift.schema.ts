@@ -53,6 +53,8 @@ export type CloseShiftResponse = {
     closed_at: string;
     open_balance: number | null;
     close_balance: number | null;
+    expected_balance: number;
+    discrepancy: number | null;
     total_sales: number;
     total_sales_count: number;
   };
@@ -81,6 +83,8 @@ export type ShiftListResponse = {
     closed_at: string | null;
     open_balance: number | null;
     close_balance: number | null;
+    expected_balance: number | null;
+    discrepancy: number | null;
     synced_at: string;
   }>;
   pagination: {

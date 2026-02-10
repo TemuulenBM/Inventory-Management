@@ -1620,6 +1620,18 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
   late final GeneratedColumn<int> closeBalance = GeneratedColumn<int>(
       'close_balance', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _expectedBalanceMeta =
+      const VerificationMeta('expectedBalance');
+  @override
+  late final GeneratedColumn<int> expectedBalance = GeneratedColumn<int>(
+      'expected_balance', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _discrepancyMeta =
+      const VerificationMeta('discrepancy');
+  @override
+  late final GeneratedColumn<int> discrepancy = GeneratedColumn<int>(
+      'discrepancy', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
   static const VerificationMeta _syncedAtMeta =
       const VerificationMeta('syncedAt');
   @override
@@ -1635,6 +1647,8 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
         closedAt,
         openBalance,
         closeBalance,
+        expectedBalance,
+        discrepancy,
         syncedAt
       ];
   @override
@@ -1684,6 +1698,18 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
           closeBalance.isAcceptableOrUnknown(
               data['close_balance']!, _closeBalanceMeta));
     }
+    if (data.containsKey('expected_balance')) {
+      context.handle(
+          _expectedBalanceMeta,
+          expectedBalance.isAcceptableOrUnknown(
+              data['expected_balance']!, _expectedBalanceMeta));
+    }
+    if (data.containsKey('discrepancy')) {
+      context.handle(
+          _discrepancyMeta,
+          discrepancy.isAcceptableOrUnknown(
+              data['discrepancy']!, _discrepancyMeta));
+    }
     if (data.containsKey('synced_at')) {
       context.handle(_syncedAtMeta,
           syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta));
@@ -1711,6 +1737,10 @@ class $ShiftsTable extends Shifts with TableInfo<$ShiftsTable, Shift> {
           .read(DriftSqlType.int, data['${effectivePrefix}open_balance']),
       closeBalance: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}close_balance']),
+      expectedBalance: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}expected_balance']),
+      discrepancy: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}discrepancy']),
       syncedAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}synced_at']),
     );
@@ -1730,6 +1760,12 @@ class Shift extends DataClass implements Insertable<Shift> {
   final DateTime? closedAt;
   final int? openBalance;
   final int? closeBalance;
+
+  /// ШИНЭ v11: Хүлээгдэж буй мөнгө (open_balance + cash борлуулалт)
+  final int? expectedBalance;
+
+  /// ШИНЭ v11: Мөнгөн зөрүү (close_balance - expected_balance)
+  final int? discrepancy;
   final DateTime? syncedAt;
   const Shift(
       {required this.id,
@@ -1739,6 +1775,8 @@ class Shift extends DataClass implements Insertable<Shift> {
       this.closedAt,
       this.openBalance,
       this.closeBalance,
+      this.expectedBalance,
+      this.discrepancy,
       this.syncedAt});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1755,6 +1793,12 @@ class Shift extends DataClass implements Insertable<Shift> {
     }
     if (!nullToAbsent || closeBalance != null) {
       map['close_balance'] = Variable<int>(closeBalance);
+    }
+    if (!nullToAbsent || expectedBalance != null) {
+      map['expected_balance'] = Variable<int>(expectedBalance);
+    }
+    if (!nullToAbsent || discrepancy != null) {
+      map['discrepancy'] = Variable<int>(discrepancy);
     }
     if (!nullToAbsent || syncedAt != null) {
       map['synced_at'] = Variable<DateTime>(syncedAt);
@@ -1777,6 +1821,12 @@ class Shift extends DataClass implements Insertable<Shift> {
       closeBalance: closeBalance == null && nullToAbsent
           ? const Value.absent()
           : Value(closeBalance),
+      expectedBalance: expectedBalance == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expectedBalance),
+      discrepancy: discrepancy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(discrepancy),
       syncedAt: syncedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(syncedAt),
@@ -1794,6 +1844,8 @@ class Shift extends DataClass implements Insertable<Shift> {
       closedAt: serializer.fromJson<DateTime?>(json['closedAt']),
       openBalance: serializer.fromJson<int?>(json['openBalance']),
       closeBalance: serializer.fromJson<int?>(json['closeBalance']),
+      expectedBalance: serializer.fromJson<int?>(json['expectedBalance']),
+      discrepancy: serializer.fromJson<int?>(json['discrepancy']),
       syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
     );
   }
@@ -1808,6 +1860,8 @@ class Shift extends DataClass implements Insertable<Shift> {
       'closedAt': serializer.toJson<DateTime?>(closedAt),
       'openBalance': serializer.toJson<int?>(openBalance),
       'closeBalance': serializer.toJson<int?>(closeBalance),
+      'expectedBalance': serializer.toJson<int?>(expectedBalance),
+      'discrepancy': serializer.toJson<int?>(discrepancy),
       'syncedAt': serializer.toJson<DateTime?>(syncedAt),
     };
   }
@@ -1820,6 +1874,8 @@ class Shift extends DataClass implements Insertable<Shift> {
           Value<DateTime?> closedAt = const Value.absent(),
           Value<int?> openBalance = const Value.absent(),
           Value<int?> closeBalance = const Value.absent(),
+          Value<int?> expectedBalance = const Value.absent(),
+          Value<int?> discrepancy = const Value.absent(),
           Value<DateTime?> syncedAt = const Value.absent()}) =>
       Shift(
         id: id ?? this.id,
@@ -1830,6 +1886,10 @@ class Shift extends DataClass implements Insertable<Shift> {
         openBalance: openBalance.present ? openBalance.value : this.openBalance,
         closeBalance:
             closeBalance.present ? closeBalance.value : this.closeBalance,
+        expectedBalance: expectedBalance.present
+            ? expectedBalance.value
+            : this.expectedBalance,
+        discrepancy: discrepancy.present ? discrepancy.value : this.discrepancy,
         syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
       );
   Shift copyWithCompanion(ShiftsCompanion data) {
@@ -1844,6 +1904,11 @@ class Shift extends DataClass implements Insertable<Shift> {
       closeBalance: data.closeBalance.present
           ? data.closeBalance.value
           : this.closeBalance,
+      expectedBalance: data.expectedBalance.present
+          ? data.expectedBalance.value
+          : this.expectedBalance,
+      discrepancy:
+          data.discrepancy.present ? data.discrepancy.value : this.discrepancy,
       syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
     );
   }
@@ -1858,6 +1923,8 @@ class Shift extends DataClass implements Insertable<Shift> {
           ..write('closedAt: $closedAt, ')
           ..write('openBalance: $openBalance, ')
           ..write('closeBalance: $closeBalance, ')
+          ..write('expectedBalance: $expectedBalance, ')
+          ..write('discrepancy: $discrepancy, ')
           ..write('syncedAt: $syncedAt')
           ..write(')'))
         .toString();
@@ -1865,7 +1932,7 @@ class Shift extends DataClass implements Insertable<Shift> {
 
   @override
   int get hashCode => Object.hash(id, storeId, sellerId, openedAt, closedAt,
-      openBalance, closeBalance, syncedAt);
+      openBalance, closeBalance, expectedBalance, discrepancy, syncedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1877,6 +1944,8 @@ class Shift extends DataClass implements Insertable<Shift> {
           other.closedAt == this.closedAt &&
           other.openBalance == this.openBalance &&
           other.closeBalance == this.closeBalance &&
+          other.expectedBalance == this.expectedBalance &&
+          other.discrepancy == this.discrepancy &&
           other.syncedAt == this.syncedAt);
 }
 
@@ -1888,6 +1957,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
   final Value<DateTime?> closedAt;
   final Value<int?> openBalance;
   final Value<int?> closeBalance;
+  final Value<int?> expectedBalance;
+  final Value<int?> discrepancy;
   final Value<DateTime?> syncedAt;
   final Value<int> rowid;
   const ShiftsCompanion({
@@ -1898,6 +1969,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     this.closedAt = const Value.absent(),
     this.openBalance = const Value.absent(),
     this.closeBalance = const Value.absent(),
+    this.expectedBalance = const Value.absent(),
+    this.discrepancy = const Value.absent(),
     this.syncedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1909,6 +1982,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     this.closedAt = const Value.absent(),
     this.openBalance = const Value.absent(),
     this.closeBalance = const Value.absent(),
+    this.expectedBalance = const Value.absent(),
+    this.discrepancy = const Value.absent(),
     this.syncedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -1922,6 +1997,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     Expression<DateTime>? closedAt,
     Expression<int>? openBalance,
     Expression<int>? closeBalance,
+    Expression<int>? expectedBalance,
+    Expression<int>? discrepancy,
     Expression<DateTime>? syncedAt,
     Expression<int>? rowid,
   }) {
@@ -1933,6 +2010,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
       if (closedAt != null) 'closed_at': closedAt,
       if (openBalance != null) 'open_balance': openBalance,
       if (closeBalance != null) 'close_balance': closeBalance,
+      if (expectedBalance != null) 'expected_balance': expectedBalance,
+      if (discrepancy != null) 'discrepancy': discrepancy,
       if (syncedAt != null) 'synced_at': syncedAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1946,6 +2025,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
       Value<DateTime?>? closedAt,
       Value<int?>? openBalance,
       Value<int?>? closeBalance,
+      Value<int?>? expectedBalance,
+      Value<int?>? discrepancy,
       Value<DateTime?>? syncedAt,
       Value<int>? rowid}) {
     return ShiftsCompanion(
@@ -1956,6 +2037,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
       closedAt: closedAt ?? this.closedAt,
       openBalance: openBalance ?? this.openBalance,
       closeBalance: closeBalance ?? this.closeBalance,
+      expectedBalance: expectedBalance ?? this.expectedBalance,
+      discrepancy: discrepancy ?? this.discrepancy,
       syncedAt: syncedAt ?? this.syncedAt,
       rowid: rowid ?? this.rowid,
     );
@@ -1985,6 +2068,12 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
     if (closeBalance.present) {
       map['close_balance'] = Variable<int>(closeBalance.value);
     }
+    if (expectedBalance.present) {
+      map['expected_balance'] = Variable<int>(expectedBalance.value);
+    }
+    if (discrepancy.present) {
+      map['discrepancy'] = Variable<int>(discrepancy.value);
+    }
     if (syncedAt.present) {
       map['synced_at'] = Variable<DateTime>(syncedAt.value);
     }
@@ -2004,6 +2093,8 @@ class ShiftsCompanion extends UpdateCompanion<Shift> {
           ..write('closedAt: $closedAt, ')
           ..write('openBalance: $openBalance, ')
           ..write('closeBalance: $closeBalance, ')
+          ..write('expectedBalance: $expectedBalance, ')
+          ..write('discrepancy: $discrepancy, ')
           ..write('syncedAt: $syncedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -7323,6 +7414,8 @@ typedef $$ShiftsTableCreateCompanionBuilder = ShiftsCompanion Function({
   Value<DateTime?> closedAt,
   Value<int?> openBalance,
   Value<int?> closeBalance,
+  Value<int?> expectedBalance,
+  Value<int?> discrepancy,
   Value<DateTime?> syncedAt,
   Value<int> rowid,
 });
@@ -7334,6 +7427,8 @@ typedef $$ShiftsTableUpdateCompanionBuilder = ShiftsCompanion Function({
   Value<DateTime?> closedAt,
   Value<int?> openBalance,
   Value<int?> closeBalance,
+  Value<int?> expectedBalance,
+  Value<int?> discrepancy,
   Value<DateTime?> syncedAt,
   Value<int> rowid,
 });
@@ -7423,6 +7518,13 @@ class $$ShiftsTableFilterComposer
 
   ColumnFilters<int> get closeBalance => $composableBuilder(
       column: $table.closeBalance, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get expectedBalance => $composableBuilder(
+      column: $table.expectedBalance,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get discrepancy => $composableBuilder(
+      column: $table.discrepancy, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get syncedAt => $composableBuilder(
       column: $table.syncedAt, builder: (column) => ColumnFilters(column));
@@ -7535,6 +7637,13 @@ class $$ShiftsTableOrderingComposer
       column: $table.closeBalance,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get expectedBalance => $composableBuilder(
+      column: $table.expectedBalance,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get discrepancy => $composableBuilder(
+      column: $table.discrepancy, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
       column: $table.syncedAt, builder: (column) => ColumnOrderings(column));
 
@@ -7602,6 +7711,12 @@ class $$ShiftsTableAnnotationComposer
 
   GeneratedColumn<int> get closeBalance => $composableBuilder(
       column: $table.closeBalance, builder: (column) => column);
+
+  GeneratedColumn<int> get expectedBalance => $composableBuilder(
+      column: $table.expectedBalance, builder: (column) => column);
+
+  GeneratedColumn<int> get discrepancy => $composableBuilder(
+      column: $table.discrepancy, builder: (column) => column);
 
   GeneratedColumn<DateTime> get syncedAt =>
       $composableBuilder(column: $table.syncedAt, builder: (column) => column);
@@ -7723,6 +7838,8 @@ class $$ShiftsTableTableManager extends RootTableManager<
             Value<DateTime?> closedAt = const Value.absent(),
             Value<int?> openBalance = const Value.absent(),
             Value<int?> closeBalance = const Value.absent(),
+            Value<int?> expectedBalance = const Value.absent(),
+            Value<int?> discrepancy = const Value.absent(),
             Value<DateTime?> syncedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -7734,6 +7851,8 @@ class $$ShiftsTableTableManager extends RootTableManager<
             closedAt: closedAt,
             openBalance: openBalance,
             closeBalance: closeBalance,
+            expectedBalance: expectedBalance,
+            discrepancy: discrepancy,
             syncedAt: syncedAt,
             rowid: rowid,
           ),
@@ -7745,6 +7864,8 @@ class $$ShiftsTableTableManager extends RootTableManager<
             Value<DateTime?> closedAt = const Value.absent(),
             Value<int?> openBalance = const Value.absent(),
             Value<int?> closeBalance = const Value.absent(),
+            Value<int?> expectedBalance = const Value.absent(),
+            Value<int?> discrepancy = const Value.absent(),
             Value<DateTime?> syncedAt = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -7756,6 +7877,8 @@ class $$ShiftsTableTableManager extends RootTableManager<
             closedAt: closedAt,
             openBalance: openBalance,
             closeBalance: closeBalance,
+            expectedBalance: expectedBalance,
+            discrepancy: discrepancy,
             syncedAt: syncedAt,
             rowid: rowid,
           ),

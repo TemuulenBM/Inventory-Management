@@ -11,7 +11,7 @@
 import { supabase } from '../../config/supabase.js';
 import type { SaleInsert, SaleItemInsert } from '../../config/supabase.js';
 import type { CreateSaleBody, SalesQueryParams } from './sales.schema.js';
-import { checkLowStock, checkNegativeStock } from '../alerts/alerts.service.js';
+import { checkLowStock, checkNegativeStock, createAlert } from '../alerts/alerts.service.js';
 
 type ServiceResult<T> =
   | { success: true } & T
@@ -147,6 +147,27 @@ export async function createSale(
       checkNegativeStock(storeId, item.product_id).catch((err) =>
         console.error('Negative stock check failed:', err)
       );
+    }
+
+    // 8.1 Хэт их хөнгөлөлтийн alert (EXCESSIVE_DISCOUNT)
+    // Нэг борлуулалтад 20%-иас дээш хөнгөлөлт өгсөн бол сэрэмжлүүлэг
+    if (totalDiscount > 0) {
+      const originalTotal = totalAmount + totalDiscount;
+      const discountPercent = (totalDiscount / originalTotal) * 100;
+      if (discountPercent > 20) {
+        // Худалдагчийн нэр авах
+        const { data: seller } = await supabase
+          .from('users')
+          .select('name')
+          .eq('id', sellerId)
+          .single();
+
+        createAlert(storeId, {
+          alert_type: 'excessive_discount',
+          message: `Худалдагч "${seller?.name ?? '?'}" ${discountPercent.toFixed(0)}% хөнгөлөлт өгсөн (₮${totalDiscount.toLocaleString()}) — Борлуулалт #${String(sale.id).substring(0, 8)}`,
+          level: 'warning',
+        }).catch(() => { /* silent */ });
+      }
     }
 
     // 9. Response format
@@ -382,6 +403,32 @@ export async function voidSale(
       checkNegativeStock(storeId, item.product_id).catch((err) =>
         console.error('Negative stock check failed:', err)
       );
+    }
+
+    // 7. HIGH_VOID_RATE alert шалгах
+    // Өнөөдөр 3-с олон void хийсэн бол сэрэмжлүүлэг
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const { count: voidCount } = await supabase
+      .from('inventory_events')
+      .select('*', { count: 'exact', head: true })
+      .eq('store_id', storeId)
+      .eq('event_type', 'RETURN')
+      .eq('actor_id', actorId)
+      .gte('timestamp', todayStart.toISOString());
+
+    if (voidCount !== null && voidCount >= 3) {
+      const { data: actor } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', actorId)
+        .single();
+
+      createAlert(storeId, {
+        alert_type: 'high_void_rate',
+        message: `Худалдагч "${actor?.name ?? '?'}" өнөөдөр ${voidCount} борлуулалт цуцалсан`,
+        level: 'warning',
+      }).catch(() => { /* silent */ });
     }
 
     return {

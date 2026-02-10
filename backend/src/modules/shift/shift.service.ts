@@ -11,6 +11,7 @@
 
 import { supabase } from '../../config/supabase.js';
 import type { OpenShiftBody, CloseShiftBody, ShiftQueryParams } from './shift.schema.js';
+import { createAlert } from '../alerts/alerts.service.js';
 
 type ServiceResult<T> =
   | { success: true } & T
@@ -120,19 +121,33 @@ export async function closeShift(
     // 2. Ээлжийн борлуулалтуудыг тооцоолох
     const { data: sales } = await supabase
       .from('sales')
-      .select('total_amount')
+      .select('total_amount, payment_method')
       .eq('shift_id', shift.id);
 
     const totalSales = sales?.reduce((sum, sale) => sum + parseFloat(String(sale.total_amount)), 0) ?? 0;
     const totalSalesCount = sales?.length ?? 0;
 
-    // 3. Ээлж хаах
+    // 3. Мөнгөн тулгалт (cash reconciliation) тооцоолох
+    // Бэлэн мөнгөний борлуулалт (зөвхөн cash payment method)
+    const cashSales = (sales ?? [])
+      .filter((sale) => sale.payment_method === 'cash')
+      .reduce((sum, sale) => sum + parseFloat(String(sale.total_amount)), 0);
+
+    const openBalance = shift.open_balance ? parseFloat(String(shift.open_balance)) : 0;
+    const expectedBalance = openBalance + cashSales;
+    const closeBalance = data.close_balance ?? null;
+    // Зөрүү: бодит тоолсон мөнгө - хүлээгдэж буй мөнгө
+    const discrepancy = closeBalance !== null ? closeBalance - expectedBalance : null;
+
+    // 4. Ээлж хаах (тулгалтын тоогоор хамт)
     const { data: closedShift, error: closeError } = await supabase
       .from('shifts')
       .update({
         closed_at: new Date().toISOString(),
-        close_balance: data.close_balance ?? null,
-        synced_at: new Date().toISOString(), // Sync timestamp update
+        close_balance: closeBalance,
+        expected_balance: expectedBalance,
+        discrepancy: discrepancy,
+        synced_at: new Date().toISOString(),
       })
       .eq('id', shift.id)
       .select()
@@ -140,6 +155,24 @@ export async function closeShift(
 
     if (closeError || !closedShift) {
       return { success: false, error: 'Ээлж хаахад алдаа гарлаа' };
+    }
+
+    // 5. Мөнгөн зөрүү ихтэй бол ALERT үүсгэх (₮5,000-с дээш)
+    if (discrepancy !== null && Math.abs(discrepancy) > 5000) {
+      // Худалдагчийн нэр авах
+      const { data: seller } = await supabase
+        .from('users')
+        .select('name')
+        .eq('id', shift.seller_id)
+        .single();
+      const sellerName = seller?.name ?? 'Тодорхойгүй';
+
+      const alertLevel = Math.abs(discrepancy) > 20000 ? 'critical' as const : 'warning' as const;
+      await createAlert(storeId, {
+        alert_type: 'cash_discrepancy',
+        message: `Худалдагч "${sellerName}" ээлжийн мөнгөн тулгалт зөрүүтэй: ₮${discrepancy.toLocaleString()} (хүлээгдэж буй: ₮${expectedBalance.toLocaleString()}, бодит: ₮${closeBalance?.toLocaleString() ?? '?'})`,
+        level: alertLevel,
+      });
     }
 
     return {
@@ -152,6 +185,8 @@ export async function closeShift(
         closed_at: closedShift.closed_at,
         open_balance: closedShift.open_balance,
         close_balance: closedShift.close_balance,
+        expected_balance: expectedBalance,
+        discrepancy: discrepancy,
         total_sales: totalSales,
         total_sales_count: totalSalesCount,
       },
@@ -200,6 +235,8 @@ export async function getShifts(
       closed_at: shift.closed_at,
       open_balance: shift.open_balance,
       close_balance: shift.close_balance,
+      expected_balance: shift.expected_balance,
+      discrepancy: shift.discrepancy,
       synced_at: shift.synced_at,
     }));
 

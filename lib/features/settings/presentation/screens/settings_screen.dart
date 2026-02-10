@@ -135,6 +135,12 @@ class SettingsScreen extends ConsumerWidget {
                         subtitle: 'Худалдагч, менежер удирдах',
                         onTap: () => context.push(RouteNames.employees),
                       ),
+                      SettingsTile(
+                        icon: Icons.leaderboard_outlined,
+                        title: 'Гүйцэтгэл',
+                        subtitle: 'Худалдагчийн борлуулалт, зөрүү',
+                        onTap: () => context.push(RouteNames.sellerPerformance),
+                      ),
                     ],
                   );
                 },

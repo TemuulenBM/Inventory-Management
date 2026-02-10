@@ -133,6 +133,10 @@ class Shifts extends Table {
   DateTimeColumn get closedAt => dateTime().nullable()();
   IntColumn get openBalance => integer().nullable()(); // Эхлэх мөнгө (optional)
   IntColumn get closeBalance => integer().nullable()(); // Хаах мөнгө
+  /// ШИНЭ v11: Хүлээгдэж буй мөнгө (open_balance + cash борлуулалт)
+  IntColumn get expectedBalance => integer().nullable()();
+  /// ШИНЭ v11: Мөнгөн зөрүү (close_balance - expected_balance)
+  IntColumn get discrepancy => integer().nullable()();
   // ШИНЭ v7: Sync хийгдсэн огноо
   DateTimeColumn get syncedAt => dateTime().nullable()();
 
@@ -234,7 +238,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 10; // v10: Хөнгөлөлт + ашгийн тооцоо
+  int get schemaVersion => 11; // v11: Мөнгөн тулгалт (cash reconciliation)
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -349,6 +353,13 @@ class AppDatabase extends _$AppDatabase {
             await customStatement(
               'UPDATE sale_items SET original_price = unit_price WHERE original_price = 0 AND unit_price > 0',
             );
+          }
+
+          if (from < 11) {
+            // Version 11: Мөнгөн тулгалт (cash reconciliation)
+            // shifts.expected_balance + shifts.discrepancy нэмэх
+            await m.addColumn(shifts, shifts.expectedBalance);
+            await m.addColumn(shifts, shifts.discrepancy);
           }
         },
       );

@@ -52,6 +52,7 @@ class RouteNames {
   // Employees
   static const String employees = '/settings/employees';
   static const String employeeAdd = '/settings/employees/add';
+  static const String sellerPerformance = '/settings/employees/performance';
 
   // Transfer (салбар хоорондын шилжүүлэг)
   static const String transfers = '/transfers';

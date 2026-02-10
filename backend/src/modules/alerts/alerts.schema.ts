@@ -17,6 +17,9 @@ export const alertTypeEnum = z.enum([
   'low_stock',
   'negative_inventory',
   'suspicious_activity',
+  'cash_discrepancy',
+  'excessive_discount',
+  'high_void_rate',
   'system',
 ]);
 

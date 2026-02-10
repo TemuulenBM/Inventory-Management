@@ -168,24 +168,37 @@ class ShiftService extends BaseService {
     final now = DateTime.now();
 
     try {
-      // 1. Local DB-д update хийх
+      // 1. Ээлжийн борлуулалт тооцоолох
+      final salesData = await _calculateShiftSales(shiftId);
+
+      // 2. Мөнгөн тулгалт (cash reconciliation) тооцоолох
+      final currentShift = await (db.select(db.shifts)
+            ..where((s) => s.id.equals(shiftId)))
+          .getSingleOrNull();
+      final openBal = currentShift?.openBalance ?? 0;
+      // Бэлэн мөнгөний борлуулалт (зөвхөн cash payment method)
+      final cashSalesTotal = await _calculateCashSales(shiftId);
+      final expectedBal = openBal + cashSalesTotal;
+      // Зөрүү: бодит тоолсон мөнгө - хүлээгдэж буй мөнгө
+      final disc = closeBalance != null ? closeBalance - expectedBal : null;
+
+      // 3. Local DB-д update хийх (тулгалтын тоогоор хамт)
       await (db.update(db.shifts)..where((s) => s.id.equals(shiftId))).write(
         ShiftsCompanion(
           closedAt: Value(now),
           closeBalance: Value(closeBalance),
+          expectedBalance: Value(expectedBal),
+          discrepancy: Value(disc),
         ),
       );
 
-      // 2. Ээлжийн борлуулалт тооцоолох
-      final salesData = await _calculateShiftSales(shiftId);
-
-      // 3. Online бол API руу илгээх
+      // 5. Online бол API руу илгээх
       if (await isOnline) {
         try {
           await api.post(
             ApiEndpoints.closeShift(storeId),
             data: {
-              'shift_id': shiftId, // Backend-д shift_id шаардлагатай
+              'shift_id': shiftId,
               'close_balance': closeBalance,
             },
           );
@@ -213,7 +226,7 @@ class ShiftService extends BaseService {
         );
       }
 
-      // 4. Updated shift буцаах
+      // 6. Updated shift буцаах
       final shift = await _getLocalShift(shiftId);
       if (shift == null) {
         return const ApiResult.error('Ээлж олдсонгүй');
@@ -303,6 +316,10 @@ class ShiftService extends BaseService {
       totalSales: salesData['totalSales']!,
       transactionCount: salesData['transactionCount']!.toInt(),
       createdAt: shift.openedAt,
+      openBalance: shift.openBalance,
+      closeBalance: shift.closeBalance,
+      expectedBalance: shift.expectedBalance,
+      discrepancy: shift.discrepancy,
     );
   }
 
@@ -328,6 +345,10 @@ class ShiftService extends BaseService {
       totalSales: salesData['totalSales']!,
       transactionCount: salesData['transactionCount']!.toInt(),
       createdAt: shift.openedAt,
+      openBalance: shift.openBalance,
+      closeBalance: shift.closeBalance,
+      expectedBalance: shift.expectedBalance,
+      discrepancy: shift.discrepancy,
     );
   }
 
@@ -364,6 +385,10 @@ class ShiftService extends BaseService {
         totalSales: salesData['totalSales']!,
         transactionCount: salesData['transactionCount']!.toInt(),
         createdAt: shift.openedAt,
+        openBalance: shift.openBalance,
+        closeBalance: shift.closeBalance,
+        expectedBalance: shift.expectedBalance,
+        discrepancy: shift.discrepancy,
       ));
     }
 
@@ -381,6 +406,18 @@ class ShiftService extends BaseService {
       'totalSales': totalSales,
       'transactionCount': transactionCount,
     };
+  }
+
+  /// Бэлэн мөнгөний борлуулалт тооцоолох (зөвхөн cash payment method)
+  /// Cash reconciliation-д ашиглана: expected = open_balance + cash_sales
+  Future<int> _calculateCashSales(String shiftId) async {
+    final cashSales = await (db.select(db.sales)
+          ..where((s) =>
+              s.shiftId.equals(shiftId) &
+              s.paymentMethod.equals('cash')))
+        .get();
+
+    return cashSales.fold<int>(0, (sum, sale) => sum + sale.totalAmount);
   }
 
   /// API-аас идэвхтэй ээлж refresh
@@ -430,6 +467,8 @@ class ShiftService extends BaseService {
                 : const Value.absent(),
             openBalance: Value((data['open_balance'] as num?)?.toInt()),
             closeBalance: Value((data['close_balance'] as num?)?.toInt()),
+            expectedBalance: Value((data['expected_balance'] as num?)?.toInt()),
+            discrepancy: Value((data['discrepancy'] as num?)?.toInt()),
           );
 
           await db.into(db.shifts).insertOnConflictUpdate(companion);
