@@ -24,7 +24,7 @@ final salesServiceProvider = AutoDisposeProvider<SalesService>.internal(
 typedef SalesServiceRef = AutoDisposeProviderRef<SalesService>;
 String _$cartTotalHash() => r'269e669015ac6baa8b61eccc7e172684b2d6d118';
 
-/// Cart total (sum of all item subtotals)
+/// Cart total (sum of all item subtotals) - хөнгөлөлтийн дараах
 ///
 /// Copied from [cartTotal].
 @ProviderFor(cartTotal)
@@ -38,6 +38,23 @@ final cartTotalProvider = AutoDisposeProvider<double>.internal(
 );
 
 typedef CartTotalRef = AutoDisposeProviderRef<double>;
+String _$cartTotalDiscountHash() => r'c68bf57c045420f2f6ef60078eff6061dab2845c';
+
+/// Нийт хөнгөлөлтийн дүн
+///
+/// Copied from [cartTotalDiscount].
+@ProviderFor(cartTotalDiscount)
+final cartTotalDiscountProvider = AutoDisposeProvider<int>.internal(
+  cartTotalDiscount,
+  name: r'cartTotalDiscountProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$cartTotalDiscountHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef CartTotalDiscountRef = AutoDisposeProviderRef<int>;
 String _$cartItemCountHash() => r'7c44326ddcfffc9929119f838e6e5195512ab77c';
 
 /// Cart item count
@@ -253,6 +270,26 @@ final yesterdaySalesTotalProvider = AutoDisposeFutureProvider<int>.internal(
 );
 
 typedef YesterdaySalesTotalRef = AutoDisposeFutureProviderRef<int>;
+String _$todayProfitSummaryHash() =>
+    r'016a44f74ce2832f4a8d658d75cba80deb9e87dd';
+
+/// Өнөөдрийн ашгийн хураангуй (Dashboard-д харуулах)
+/// {revenue, cost, discount, profit}
+///
+/// Copied from [todayProfitSummary].
+@ProviderFor(todayProfitSummary)
+final todayProfitSummaryProvider =
+    AutoDisposeFutureProvider<Map<String, int>>.internal(
+  todayProfitSummary,
+  name: r'todayProfitSummaryProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$todayProfitSummaryHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef TodayProfitSummaryRef = AutoDisposeFutureProviderRef<Map<String, int>>;
 String _$topProductsHash() => r'21e95a59fb5a956859cec3b3d4182edb3e0cc57f';
 
 /// Өнөөдрийн шилдэг борлуулалттай бүтээгдэхүүнүүд (Top 5)
@@ -270,7 +307,7 @@ final topProductsProvider =
 );
 
 typedef TopProductsRef = AutoDisposeFutureProviderRef<List<TopProductItem>>;
-String _$cartNotifierHash() => r'2db98b97a7fa24552e82c5956d8ad84b5c6b33d7';
+String _$cartNotifierHash() => r'10245f233a989718590fbe6cb0df100ffbb4998c';
 
 /// Cart state notifier
 ///

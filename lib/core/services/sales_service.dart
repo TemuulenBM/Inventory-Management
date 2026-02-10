@@ -31,6 +31,7 @@ class SalesService extends BaseService {
     final saleId = const Uuid().v4();
     final now = DateTime.now();
     final totalAmount = items.fold(0, (sum, item) => sum + item.subtotal);
+    final totalDiscount = items.fold(0, (sum, item) => sum + item.totalDiscount);
 
     try {
       // Transaction - бүгд амжилттай эсвэл бүгд буцаах
@@ -42,20 +43,24 @@ class SalesService extends BaseService {
           sellerId: sellerId,
           shiftId: Value(shiftId),
           totalAmount: totalAmount,
+          totalDiscount: Value(totalDiscount),
           paymentMethod: Value(paymentMethod),
           timestamp: Value(now),
         );
         await db.into(db.sales).insert(saleCompanion);
 
-        // 2. Sale items үүсгэх
+        // 2. Sale items үүсгэх (хөнгөлөлт + өртөгтэй)
         for (final item in items) {
           final saleItemCompanion = SaleItemsCompanion.insert(
             id: const Uuid().v4(),
             saleId: saleId,
             productId: item.product.id,
             quantity: item.quantity,
-            unitPrice: item.product.sellPrice,
+            unitPrice: item.effectivePrice,
             subtotal: item.subtotal,
+            originalPrice: Value(item.originalPrice),
+            discountAmount: Value(item.discountAmount),
+            costPrice: Value(item.product.costPrice),
           );
           await db.into(db.saleItems).insert(saleItemCompanion);
         }
@@ -90,12 +95,15 @@ class SalesService extends BaseService {
             'seller_id': sellerId,
             'shift_id': shiftId,
             'total_amount': totalAmount,
+            'total_discount': totalDiscount,
             'payment_method': paymentMethod,
             'items': items
                 .map((item) => {
                       'product_id': item.product.id,
                       'quantity': item.quantity,
-                      'unit_price': item.product.sellPrice,
+                      'unit_price': item.effectivePrice,
+                      'original_price': item.originalPrice,
+                      'discount_amount': item.discountAmount,
                     })
                 .toList(),
           },
@@ -358,7 +366,9 @@ class SalesService extends BaseService {
               .map((item) => {
                     'product_id': item.product.id,
                     'quantity': item.quantity,
-                    'unit_price': item.product.sellPrice,
+                    'unit_price': item.effectivePrice,
+                    'original_price': item.originalPrice,
+                    'discount_amount': item.discountAmount,
                   })
               .toList(),
           'payment_method': paymentMethod,
@@ -380,7 +390,9 @@ class SalesService extends BaseService {
               .map((item) => {
                     'product_id': item.product.id,
                     'quantity': item.quantity,
-                    'unit_price': item.product.sellPrice,
+                    'unit_price': item.effectivePrice,
+                    'original_price': item.originalPrice,
+                    'discount_amount': item.discountAmount,
                   })
               .toList(),
         },

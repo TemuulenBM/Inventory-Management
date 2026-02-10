@@ -23,6 +23,9 @@ mixin _$CartItem {
   ProductWithStock get product => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
 
+  /// Хөнгөлөлтийн дүн (₮) - нэг ширхэгт ноогдох
+  int get discountAmount => throw _privateConstructorUsedError;
+
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $CartItemCopyWith<CartItem> get copyWith =>
@@ -34,7 +37,7 @@ abstract class $CartItemCopyWith<$Res> {
   factory $CartItemCopyWith(CartItem value, $Res Function(CartItem) then) =
       _$CartItemCopyWithImpl<$Res, CartItem>;
   @useResult
-  $Res call({ProductWithStock product, int quantity});
+  $Res call({ProductWithStock product, int quantity, int discountAmount});
 
   $ProductWithStockCopyWith<$Res> get product;
 }
@@ -54,6 +57,7 @@ class _$CartItemCopyWithImpl<$Res, $Val extends CartItem>
   $Res call({
     Object? product = null,
     Object? quantity = null,
+    Object? discountAmount = null,
   }) {
     return _then(_value.copyWith(
       product: null == product
@@ -63,6 +67,10 @@ class _$CartItemCopyWithImpl<$Res, $Val extends CartItem>
       quantity: null == quantity
           ? _value.quantity
           : quantity // ignore: cast_nullable_to_non_nullable
+              as int,
+      discountAmount: null == discountAmount
+          ? _value.discountAmount
+          : discountAmount // ignore: cast_nullable_to_non_nullable
               as int,
     ) as $Val);
   }
@@ -84,7 +92,7 @@ abstract class _$$CartItemImplCopyWith<$Res>
       __$$CartItemImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({ProductWithStock product, int quantity});
+  $Res call({ProductWithStock product, int quantity, int discountAmount});
 
   @override
   $ProductWithStockCopyWith<$Res> get product;
@@ -103,6 +111,7 @@ class __$$CartItemImplCopyWithImpl<$Res>
   $Res call({
     Object? product = null,
     Object? quantity = null,
+    Object? discountAmount = null,
   }) {
     return _then(_$CartItemImpl(
       product: null == product
@@ -113,6 +122,10 @@ class __$$CartItemImplCopyWithImpl<$Res>
           ? _value.quantity
           : quantity // ignore: cast_nullable_to_non_nullable
               as int,
+      discountAmount: null == discountAmount
+          ? _value.discountAmount
+          : discountAmount // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 }
@@ -120,7 +133,8 @@ class __$$CartItemImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$CartItemImpl extends _CartItem {
-  const _$CartItemImpl({required this.product, required this.quantity})
+  const _$CartItemImpl(
+      {required this.product, required this.quantity, this.discountAmount = 0})
       : super._();
 
   factory _$CartItemImpl.fromJson(Map<String, dynamic> json) =>
@@ -131,9 +145,14 @@ class _$CartItemImpl extends _CartItem {
   @override
   final int quantity;
 
+  /// Хөнгөлөлтийн дүн (₮) - нэг ширхэгт ноогдох
+  @override
+  @JsonKey()
+  final int discountAmount;
+
   @override
   String toString() {
-    return 'CartItem(product: $product, quantity: $quantity)';
+    return 'CartItem(product: $product, quantity: $quantity, discountAmount: $discountAmount)';
   }
 
   @override
@@ -143,12 +162,15 @@ class _$CartItemImpl extends _CartItem {
             other is _$CartItemImpl &&
             (identical(other.product, product) || other.product == product) &&
             (identical(other.quantity, quantity) ||
-                other.quantity == quantity));
+                other.quantity == quantity) &&
+            (identical(other.discountAmount, discountAmount) ||
+                other.discountAmount == discountAmount));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, product, quantity);
+  int get hashCode =>
+      Object.hash(runtimeType, product, quantity, discountAmount);
 
   @JsonKey(ignore: true)
   @override
@@ -167,7 +189,8 @@ class _$CartItemImpl extends _CartItem {
 abstract class _CartItem extends CartItem {
   const factory _CartItem(
       {required final ProductWithStock product,
-      required final int quantity}) = _$CartItemImpl;
+      required final int quantity,
+      final int discountAmount}) = _$CartItemImpl;
   const _CartItem._() : super._();
 
   factory _CartItem.fromJson(Map<String, dynamic> json) =
@@ -177,6 +200,10 @@ abstract class _CartItem extends CartItem {
   ProductWithStock get product;
   @override
   int get quantity;
+  @override
+
+  /// Хөнгөлөлтийн дүн (₮) - нэг ширхэгт ноогдох
+  int get discountAmount;
   @override
   @JsonKey(ignore: true)
   _$$CartItemImplCopyWith<_$CartItemImpl> get copyWith =>

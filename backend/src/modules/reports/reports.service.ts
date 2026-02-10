@@ -12,6 +12,8 @@ import type {
   DailyReportQueryParams,
   TopProductsQueryParams,
   SellerPerformanceQueryParams,
+  ProfitReportQueryParams,
+  SlowMovingQueryParams,
 } from './reports.schema.js';
 
 type ServiceResult<T> =
@@ -318,6 +320,229 @@ export async function getSellerPerformance(
       .sort((a, b) => b.total_sales - a.total_sales);
 
     return { success: true, sellers: sellersPerformance };
+  } catch (error) {
+    return { success: false, error: 'Серверийн алдаа' };
+  }
+}
+
+/**
+ * Ашгийн тайлан
+ * - Нийт орлого, өртөг, хөнгөлөлт, цэвэр ашиг
+ * - Бараагаар задаргаа
+ */
+export async function getProfitReport(
+  storeId: string,
+  query: ProfitReportQueryParams
+): Promise<ServiceResult<{ report: Record<string, unknown> }>> {
+  try {
+    // Default: сүүлийн 30 хоног
+    const endDate = query.endDate ?? new Date().toISOString().split('T')[0];
+    const startDate = query.startDate ??
+      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const startOfDay = `${startDate}T00:00:00.000Z`;
+    const endOfDay = `${endDate}T23:59:59.999Z`;
+
+    // 1. Хугацааны борлуулалтуудын ID авах
+    const { data: sales, error: salesError } = await supabase
+      .from('sales')
+      .select('id')
+      .eq('store_id', storeId)
+      .gte('timestamp', startOfDay)
+      .lte('timestamp', endOfDay);
+
+    if (salesError) {
+      return { success: false, error: 'Борлуулалтын мэдээлэл авахад алдаа гарлаа' };
+    }
+
+    const saleIds = (sales ?? []).map((s) => s.id);
+    if (saleIds.length === 0) {
+      return {
+        success: true,
+        report: {
+          totalRevenue: 0,
+          totalCost: 0,
+          totalDiscount: 0,
+          grossProfit: 0,
+          profitMargin: 0,
+          byProduct: [],
+        },
+      };
+    }
+
+    // 2. Sale items + products авах (cost_price, discount_amount-тай)
+    const { data: saleItems, error: itemsError } = await supabase
+      .from('sale_items')
+      .select('product_id, quantity, unit_price, subtotal, original_price, discount_amount, cost_price, products!inner(id, name)')
+      .in('sale_id', saleIds);
+
+    if (itemsError) {
+      return { success: false, error: 'Sale items авахад алдаа гарлаа' };
+    }
+
+    // 3. Бараагаар нэгтгэх
+    const productsMap = new Map<string, {
+      name: string;
+      revenue: number;
+      cost: number;
+      discount: number;
+      quantity: number;
+    }>();
+
+    let totalRevenue = 0;
+    let totalCost = 0;
+    let totalDiscount = 0;
+
+    for (const item of saleItems ?? []) {
+      const revenue = item.subtotal ?? 0;
+      const cost = (item.cost_price ?? 0) * item.quantity;
+      const discount = (item.discount_amount ?? 0) * item.quantity;
+
+      totalRevenue += revenue;
+      totalCost += cost;
+      totalDiscount += discount;
+
+      const existing = productsMap.get(item.product_id) ?? {
+        name: (item as Record<string, unknown> & { products: { name: string } }).products?.name ?? 'Unknown',
+        revenue: 0,
+        cost: 0,
+        discount: 0,
+        quantity: 0,
+      };
+
+      productsMap.set(item.product_id, {
+        name: existing.name,
+        revenue: existing.revenue + revenue,
+        cost: existing.cost + cost,
+        discount: existing.discount + discount,
+        quantity: existing.quantity + item.quantity,
+      });
+    }
+
+    const grossProfit = totalRevenue - totalCost;
+    const profitMargin = totalRevenue > 0 ? Math.round((grossProfit / totalRevenue) * 100) : 0;
+
+    // 4. Бараагаар задаргаа (ашиг буурах дарааллаар)
+    const byProduct = Array.from(productsMap.entries())
+      .map(([productId, data]) => {
+        const profit = data.revenue - data.cost;
+        const margin = data.revenue > 0 ? Math.round((profit / data.revenue) * 100) : 0;
+        return {
+          product_id: productId,
+          name: data.name,
+          revenue: data.revenue,
+          cost: data.cost,
+          discount: data.discount,
+          profit,
+          margin,
+          quantity: data.quantity,
+        };
+      })
+      .sort((a, b) => b.profit - a.profit);
+
+    return {
+      success: true,
+      report: {
+        totalRevenue,
+        totalCost,
+        totalDiscount,
+        grossProfit,
+        profitMargin,
+        byProduct,
+      },
+    };
+  } catch (error) {
+    return { success: false, error: 'Серверийн алдаа' };
+  }
+}
+
+/**
+ * Муу зарагддаг бараа тайлан
+ * Сүүлийн N хоногт бага зарагдсан бараанууд
+ */
+export async function getSlowMovingProducts(
+  storeId: string,
+  query: SlowMovingQueryParams
+): Promise<ServiceResult<{ products: Record<string, unknown>[] }>> {
+  try {
+    const sinceDate = new Date(Date.now() - query.days * 24 * 60 * 60 * 1000).toISOString();
+
+    // 1. Бүх идэвхтэй бараанууд
+    const { data: products, error: productsError } = await supabase
+      .from('products')
+      .select('id, name, sku, cost_price')
+      .eq('store_id', storeId)
+      .eq('is_deleted', false);
+
+    if (productsError || !products) {
+      return { success: false, error: 'Барааны мэдээлэл авахад алдаа гарлаа' };
+    }
+
+    // 2. Хугацааны борлуулалтууд
+    const { data: sales } = await supabase
+      .from('sales')
+      .select('id')
+      .eq('store_id', storeId)
+      .gte('timestamp', sinceDate);
+
+    const saleIds = (sales ?? []).map((s) => s.id);
+
+    // 3. Бараа бүрийн зарагдсан тоо
+    const soldMap = new Map<string, { quantity: number; lastSoldAt: string | null }>();
+
+    if (saleIds.length > 0) {
+      const { data: saleItems } = await supabase
+        .from('sale_items')
+        .select('product_id, quantity, sales!inner(timestamp)')
+        .in('sale_id', saleIds);
+
+      for (const item of saleItems ?? []) {
+        const existing = soldMap.get(item.product_id) ?? { quantity: 0, lastSoldAt: null };
+        const itemTimestamp = (item as Record<string, unknown> & { sales: { timestamp: string } }).sales?.timestamp ?? null;
+        soldMap.set(item.product_id, {
+          quantity: existing.quantity + item.quantity,
+          lastSoldAt: !existing.lastSoldAt || (itemTimestamp && itemTimestamp > existing.lastSoldAt)
+            ? itemTimestamp
+            : existing.lastSoldAt,
+        });
+      }
+    }
+
+    // 4. Stock levels (materialized view эсвэл events)
+    const productIds = products.map((p) => p.id);
+    const { data: stockData } = await supabase
+      .from('product_stock_levels')
+      .select('product_id, current_stock')
+      .in('product_id', productIds);
+
+    const stockMap = new Map<string, number>();
+    for (const s of stockData ?? []) {
+      if (s.product_id) {
+        stockMap.set(s.product_id, s.current_stock ?? 0);
+      }
+    }
+
+    // 5. Муу зарагддаг бараа шүүх
+    const slowMoving = products
+      .map((product) => {
+        const sold = soldMap.get(product.id);
+        const soldQty = sold?.quantity ?? 0;
+        const stock = stockMap.get(product.id) ?? 0;
+
+        return {
+          product_id: product.id,
+          name: product.name,
+          sku: product.sku,
+          stock_quantity: stock,
+          sold_quantity: soldQty,
+          last_sold_at: sold?.lastSoldAt ?? null,
+          cost_value: stock * (product.cost_price ?? 0),
+        };
+      })
+      .filter((p) => p.sold_quantity <= query.maxSold)
+      .sort((a, b) => a.sold_quantity - b.sold_quantity);
+
+    return { success: true, products: slowMoving };
   } catch (error) {
     return { success: false, error: 'Серверийн алдаа' };
   }

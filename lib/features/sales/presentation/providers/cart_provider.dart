@@ -63,17 +63,37 @@ class CartNotifier extends _$CartNotifier {
     state = state.where((item) => item.product.id != productId).toList();
   }
 
+  /// Хөнгөлөлт оруулах (нэг ширхэгт ноогдох дүн)
+  void setDiscount(String productId, int discountAmount) {
+    final updatedCart = state.map((item) {
+      if (item.product.id == productId) {
+        // Хөнгөлөлт нь анхны үнээс хэтрэхгүй байх
+        final clampedDiscount = discountAmount.clamp(0, item.originalPrice);
+        return item.copyWith(discountAmount: clampedDiscount);
+      }
+      return item;
+    }).toList();
+    state = updatedCart;
+  }
+
   /// Clear entire cart
   void clear() {
     state = [];
   }
 }
 
-/// Cart total (sum of all item subtotals)
+/// Cart total (sum of all item subtotals) - хөнгөлөлтийн дараах
 @riverpod
 double cartTotal(CartTotalRef ref) {
   final cartItems = ref.watch(cartNotifierProvider);
   return cartItems.fold(0.0, (sum, item) => sum + item.subtotal);
+}
+
+/// Нийт хөнгөлөлтийн дүн
+@riverpod
+int cartTotalDiscount(CartTotalDiscountRef ref) {
+  final cartItems = ref.watch(cartNotifierProvider);
+  return cartItems.fold(0, (sum, item) => sum + item.totalDiscount);
 }
 
 /// Cart item count
@@ -190,6 +210,17 @@ Future<int> yesterdaySalesTotal(YesterdaySalesTotalRef ref) async {
     success: (total) => total,
     error: (_, __, ___) => 0,
   );
+}
+
+/// Өнөөдрийн ашгийн хураангуй (Dashboard-д харуулах)
+/// {revenue, cost, discount, profit}
+@riverpod
+Future<Map<String, int>> todayProfitSummary(TodayProfitSummaryRef ref) async {
+  final storeId = ref.watch(storeIdProvider);
+  if (storeId == null) return {'revenue': 0, 'cost': 0, 'discount': 0, 'profit': 0};
+
+  final db = ref.watch(databaseProvider);
+  return db.getTodayProfitSummary(storeId);
 }
 
 /// Шилдэг борлуулалттай бүтээгдэхүүн (Top products)

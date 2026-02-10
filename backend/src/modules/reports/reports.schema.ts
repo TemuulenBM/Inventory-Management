@@ -87,3 +87,59 @@ export type SellerPerformanceResponse = {
     shifts_count: number;
   }>;
 };
+
+/**
+ * GET /stores/:storeId/reports/profit
+ * Ашгийн тайлан
+ */
+export const profitReportQuerySchema = z.object({
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+
+export type ProfitReportQueryParams = z.infer<typeof profitReportQuerySchema>;
+
+export type ProfitReportResponse = {
+  success: true;
+  report: {
+    totalRevenue: number;
+    totalCost: number;
+    totalDiscount: number;
+    grossProfit: number;
+    profitMargin: number;
+    byProduct: Array<{
+      product_id: string;
+      name: string;
+      revenue: number;
+      cost: number;
+      discount: number;
+      profit: number;
+      margin: number;
+      quantity: number;
+    }>;
+  };
+};
+
+/**
+ * GET /stores/:storeId/reports/slow-moving
+ * Муу зарагддаг бараа
+ */
+export const slowMovingQuerySchema = z.object({
+  days: z.coerce.number().min(1).max(365).default(30),
+  maxSold: z.coerce.number().min(0).max(100).default(3),
+});
+
+export type SlowMovingQueryParams = z.infer<typeof slowMovingQuerySchema>;
+
+export type SlowMovingResponse = {
+  success: true;
+  products: Array<{
+    product_id: string;
+    name: string;
+    sku: string;
+    stock_quantity: number;
+    sold_quantity: number;
+    last_sold_at: string | null;
+    cost_value: number;
+  }>;
+};

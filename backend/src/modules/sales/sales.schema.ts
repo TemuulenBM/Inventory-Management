@@ -21,6 +21,9 @@ export const createSaleSchema = z.object({
         product_id: z.string().uuid(),
         quantity: z.number().int().min(1),
         unit_price: z.number().min(0),
+        // Хөнгөлөлтийн талбарууд (optional - backward compatible)
+        original_price: z.number().min(0).optional(),
+        discount_amount: z.number().min(0).default(0),
       })
     )
     .min(1),
@@ -38,6 +41,7 @@ export type CreateSaleResponse = {
     seller_id: string;
     shift_id: string | null;
     total_amount: number;
+    total_discount: number;
     payment_method: string;
     timestamp: string;
     items: Array<{
@@ -46,6 +50,8 @@ export type CreateSaleResponse = {
       product_name: string;
       quantity: number;
       unit_price: number;
+      original_price: number;
+      discount_amount: number;
       subtotal: number;
     }>;
   };

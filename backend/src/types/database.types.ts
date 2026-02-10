@@ -295,7 +295,10 @@ export type Database = {
       }
       sale_items: {
         Row: {
+          cost_price: number | null
+          discount_amount: number
           id: string
+          original_price: number
           product_id: string
           quantity: number
           sale_id: string
@@ -303,7 +306,10 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          cost_price?: number | null
+          discount_amount?: number
           id?: string
+          original_price?: number
           product_id: string
           quantity: number
           sale_id: string
@@ -311,7 +317,10 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          cost_price?: number | null
+          discount_amount?: number
           id?: string
+          original_price?: number
           product_id?: string
           quantity?: number
           sale_id?: string
@@ -352,6 +361,7 @@ export type Database = {
           synced_at: string | null
           timestamp: string | null
           total_amount: number
+          total_discount: number
         }
         Insert: {
           id?: string
@@ -362,6 +372,7 @@ export type Database = {
           synced_at?: string | null
           timestamp?: string | null
           total_amount: number
+          total_discount?: number
         }
         Update: {
           id?: string
@@ -372,6 +383,7 @@ export type Database = {
           synced_at?: string | null
           timestamp?: string | null
           total_amount?: number
+          total_discount?: number
         }
         Relationships: [
           {
@@ -489,6 +501,8 @@ export type Database = {
           created_at: string | null
           id: string
           location: string | null
+          max_manager_discount_pct: number
+          max_seller_discount_pct: number
           name: string
           owner_id: string
           timezone: string | null
@@ -498,6 +512,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           location?: string | null
+          max_manager_discount_pct?: number
+          max_seller_discount_pct?: number
           name: string
           owner_id: string
           timezone?: string | null
@@ -507,6 +523,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           location?: string | null
+          max_manager_discount_pct?: number
+          max_seller_discount_pct?: number
           name?: string
           owner_id?: string
           timezone?: string | null

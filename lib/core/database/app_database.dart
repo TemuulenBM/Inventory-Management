@@ -94,6 +94,8 @@ class Sales extends Table {
   TextColumn get sellerId => text().references(Users, #id)();
   TextColumn get shiftId => text().nullable().references(Shifts, #id)();
   IntColumn get totalAmount => integer()();
+  /// ШИНЭ v10: Нийт хөнгөлөлтийн дүн (бүх items-ийн discount нийлбэр)
+  IntColumn get totalDiscount => integer().withDefault(const Constant(0))();
   TextColumn get paymentMethod => text().withDefault(const Constant('cash'))(); // 'cash', 'card', 'qr'
   DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
   // ШИНЭ v7: Sync хийгдсэн огноо
@@ -109,8 +111,14 @@ class SaleItems extends Table {
   TextColumn get saleId => text().references(Sales, #id, onDelete: KeyAction.cascade)();
   TextColumn get productId => text().references(Products, #id)();
   IntColumn get quantity => integer()();
-  IntColumn get unitPrice => integer()(); // Тухайн үеийн үнэ
+  IntColumn get unitPrice => integer()(); // Бодит зарсан үнэ (хөнгөлөлтийн дараах)
   IntColumn get subtotal => integer()(); // quantity * unitPrice
+  /// ШИНЭ v10: Анхны үнэ (хөнгөлөлтийн өмнөх)
+  IntColumn get originalPrice => integer().withDefault(const Constant(0))();
+  /// ШИНЭ v10: Хөнгөлөлтийн дүн (₮)
+  IntColumn get discountAmount => integer().withDefault(const Constant(0))();
+  /// ШИНЭ v10: Бүтээгдэхүүний өртөг (ашиг тооцоход)
+  IntColumn get costPrice => integer().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -226,7 +234,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 9; // v9: Салбар хоорондын шилжүүлэг
+  int get schemaVersion => 10; // v10: Хөнгөлөлт + ашгийн тооцоо
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -327,6 +335,20 @@ class AppDatabase extends _$AppDatabase {
             // transfers + transfer_items хүснэгтүүд нэмэх
             await m.createTable(transfers);
             await m.createTable(transferItems);
+          }
+
+          if (from < 10) {
+            // Version 10: Хөнгөлөлт + ашгийн тооцоо
+            // sales.total_discount, sale_items.original_price/discount_amount/cost_price
+            await m.addColumn(sales, sales.totalDiscount);
+            await m.addColumn(saleItems, saleItems.originalPrice);
+            await m.addColumn(saleItems, saleItems.discountAmount);
+            await m.addColumn(saleItems, saleItems.costPrice);
+
+            // Хуучин бичлэгт original_price = unit_price гэж backfill хийх
+            await customStatement(
+              'UPDATE sale_items SET original_price = unit_price WHERE original_price = 0 AND unit_price > 0',
+            );
           }
         },
       );
@@ -498,6 +520,45 @@ class AppDatabase extends _$AppDatabase {
       default:
         return ''; // No date filter
     }
+  }
+
+  // ============================================================================
+  // PROFIT METHODS - Ашгийн тооцоо (Dashboard)
+  // ============================================================================
+
+  /// Өнөөдрийн ашгийн хураангуй (revenue, cost, discount, profit)
+  /// sale_items-аас cost_price, discount_amount ашиглан тооцоолно
+  Future<Map<String, int>> getTodayProfitSummary(String storeId) async {
+    final today = DateTime.now();
+    final startOfDay = DateTime(today.year, today.month, today.day);
+
+    final result = await customSelect(
+      '''
+      SELECT
+        COALESCE(SUM(si.subtotal), 0) AS revenue,
+        COALESCE(SUM(si.cost_price * si.quantity), 0) AS cost,
+        COALESCE(SUM(si.discount_amount * si.quantity), 0) AS discount
+      FROM sale_items si
+      INNER JOIN sales s ON si.sale_id = s.id
+      WHERE s.store_id = ?
+        AND s.timestamp >= ?
+      ''',
+      variables: [
+        Variable.withString(storeId),
+        Variable.withDateTime(startOfDay),
+      ],
+    ).getSingle();
+
+    final revenue = result.read<int>('revenue');
+    final cost = result.read<int>('cost');
+    final discount = result.read<int>('discount');
+
+    return {
+      'revenue': revenue,
+      'cost': cost,
+      'discount': discount,
+      'profit': revenue - cost,
+    };
   }
 
   // ============================================================================

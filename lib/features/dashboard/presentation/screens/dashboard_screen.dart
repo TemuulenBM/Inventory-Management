@@ -62,6 +62,10 @@ class DashboardScreen extends ConsumerWidget {
 
                 // Today's Sales Hero Card
                 _buildSalesHeroCard(ref),
+                AppSpacing.verticalMD,
+
+                // Ашиг + Хөнгөлөлт мэдээлэл
+                _buildProfitSummaryRow(ref),
                 AppSpacing.verticalLG,
 
                 // Low Stock Alerts
@@ -280,6 +284,7 @@ class DashboardScreen extends ConsumerWidget {
     // Providers шинэчлэх
     ref.invalidate(todaySalesTotalProvider);
     ref.invalidate(yesterdaySalesTotalProvider);
+    ref.invalidate(todayProfitSummaryProvider);
     ref.invalidate(topProductsProvider);
   }
 
@@ -797,6 +802,161 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Ашиг + Хөнгөлөлт хураангуй (2 card зэрэгцүүлэн)
+  Widget _buildProfitSummaryRow(WidgetRef ref) {
+    final profitAsync = ref.watch(todayProfitSummaryProvider);
+
+    return profitAsync.when(
+      data: (data) {
+        final profit = data['profit'] ?? 0;
+        final discount = data['discount'] ?? 0;
+        final revenue = data['revenue'] ?? 0;
+        final margin = revenue > 0 ? (profit / revenue * 100).round() : 0;
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              // Ашиг card
+              Expanded(
+                child: _buildMiniStatCard(
+                  label: 'Өнөөдрийн ашиг',
+                  value: '₮${NumberFormat('#,###', 'mn').format(profit)}',
+                  subtitle: '$margin% margin',
+                  icon: Icons.trending_up_rounded,
+                  iconColor: profit >= 0
+                      ? const Color(0xFF2E7D32)
+                      : const Color(0xFFC62828),
+                  iconBgColor: profit >= 0
+                      ? const Color(0xFFEBF5EC)
+                      : const Color(0xFFFFEBEE),
+                ),
+              ),
+              const SizedBox(width: 12),
+              // Хөнгөлөлт card
+              Expanded(
+                child: _buildMiniStatCard(
+                  label: 'Хөнгөлөлт',
+                  value: '₮${NumberFormat('#,###', 'mn').format(discount)}',
+                  subtitle: revenue > 0
+                      ? '${(discount / revenue * 100).toStringAsFixed(1)}%'
+                      : '0%',
+                  icon: Icons.discount_outlined,
+                  iconColor: const Color(0xFFE65100),
+                  iconBgColor: const Color(0xFFFFF4E6),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+      loading: () => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          children: [
+            Expanded(child: _buildMiniStatCardLoading()),
+            const SizedBox(width: 12),
+            Expanded(child: _buildMiniStatCardLoading()),
+          ],
+        ),
+      ),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  /// Жижиг stat card (ашиг/хөнгөлөлт)
+  Widget _buildMiniStatCard({
+    required String label,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBgColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: AppRadius.radiusLG,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: iconBgColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 18, color: iconColor),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.gray500,
+                    letterSpacing: 0.3,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textMainLight,
+              fontFamily: 'Epilogue',
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: AppColors.gray400,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Mini stat card loading state
+  Widget _buildMiniStatCardLoading() {
+    return Container(
+      height: 100,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: AppRadius.radiusLG,
+      ),
+      child: const Center(
+        child: CircularProgressIndicator(strokeWidth: 2),
       ),
     );
   }

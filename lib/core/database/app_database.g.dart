@@ -2570,6 +2570,14 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
   late final GeneratedColumn<int> totalAmount = GeneratedColumn<int>(
       'total_amount', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _totalDiscountMeta =
+      const VerificationMeta('totalDiscount');
+  @override
+  late final GeneratedColumn<int> totalDiscount = GeneratedColumn<int>(
+      'total_discount', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
   static const VerificationMeta _paymentMethodMeta =
       const VerificationMeta('paymentMethod');
   @override
@@ -2599,6 +2607,7 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
         sellerId,
         shiftId,
         totalAmount,
+        totalDiscount,
         paymentMethod,
         timestamp,
         syncedAt
@@ -2642,6 +2651,12 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
     } else if (isInserting) {
       context.missing(_totalAmountMeta);
     }
+    if (data.containsKey('total_discount')) {
+      context.handle(
+          _totalDiscountMeta,
+          totalDiscount.isAcceptableOrUnknown(
+              data['total_discount']!, _totalDiscountMeta));
+    }
     if (data.containsKey('payment_method')) {
       context.handle(
           _paymentMethodMeta,
@@ -2675,6 +2690,8 @@ class $SalesTable extends Sales with TableInfo<$SalesTable, Sale> {
           .read(DriftSqlType.string, data['${effectivePrefix}shift_id']),
       totalAmount: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}total_amount'])!,
+      totalDiscount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}total_discount'])!,
       paymentMethod: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}payment_method'])!,
       timestamp: attachedDatabase.typeMapping
@@ -2696,6 +2713,9 @@ class Sale extends DataClass implements Insertable<Sale> {
   final String sellerId;
   final String? shiftId;
   final int totalAmount;
+
+  /// ШИНЭ v10: Нийт хөнгөлөлтийн дүн (бүх items-ийн discount нийлбэр)
+  final int totalDiscount;
   final String paymentMethod;
   final DateTime timestamp;
   final DateTime? syncedAt;
@@ -2705,6 +2725,7 @@ class Sale extends DataClass implements Insertable<Sale> {
       required this.sellerId,
       this.shiftId,
       required this.totalAmount,
+      required this.totalDiscount,
       required this.paymentMethod,
       required this.timestamp,
       this.syncedAt});
@@ -2718,6 +2739,7 @@ class Sale extends DataClass implements Insertable<Sale> {
       map['shift_id'] = Variable<String>(shiftId);
     }
     map['total_amount'] = Variable<int>(totalAmount);
+    map['total_discount'] = Variable<int>(totalDiscount);
     map['payment_method'] = Variable<String>(paymentMethod);
     map['timestamp'] = Variable<DateTime>(timestamp);
     if (!nullToAbsent || syncedAt != null) {
@@ -2735,6 +2757,7 @@ class Sale extends DataClass implements Insertable<Sale> {
           ? const Value.absent()
           : Value(shiftId),
       totalAmount: Value(totalAmount),
+      totalDiscount: Value(totalDiscount),
       paymentMethod: Value(paymentMethod),
       timestamp: Value(timestamp),
       syncedAt: syncedAt == null && nullToAbsent
@@ -2752,6 +2775,7 @@ class Sale extends DataClass implements Insertable<Sale> {
       sellerId: serializer.fromJson<String>(json['sellerId']),
       shiftId: serializer.fromJson<String?>(json['shiftId']),
       totalAmount: serializer.fromJson<int>(json['totalAmount']),
+      totalDiscount: serializer.fromJson<int>(json['totalDiscount']),
       paymentMethod: serializer.fromJson<String>(json['paymentMethod']),
       timestamp: serializer.fromJson<DateTime>(json['timestamp']),
       syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
@@ -2766,6 +2790,7 @@ class Sale extends DataClass implements Insertable<Sale> {
       'sellerId': serializer.toJson<String>(sellerId),
       'shiftId': serializer.toJson<String?>(shiftId),
       'totalAmount': serializer.toJson<int>(totalAmount),
+      'totalDiscount': serializer.toJson<int>(totalDiscount),
       'paymentMethod': serializer.toJson<String>(paymentMethod),
       'timestamp': serializer.toJson<DateTime>(timestamp),
       'syncedAt': serializer.toJson<DateTime?>(syncedAt),
@@ -2778,6 +2803,7 @@ class Sale extends DataClass implements Insertable<Sale> {
           String? sellerId,
           Value<String?> shiftId = const Value.absent(),
           int? totalAmount,
+          int? totalDiscount,
           String? paymentMethod,
           DateTime? timestamp,
           Value<DateTime?> syncedAt = const Value.absent()}) =>
@@ -2787,6 +2813,7 @@ class Sale extends DataClass implements Insertable<Sale> {
         sellerId: sellerId ?? this.sellerId,
         shiftId: shiftId.present ? shiftId.value : this.shiftId,
         totalAmount: totalAmount ?? this.totalAmount,
+        totalDiscount: totalDiscount ?? this.totalDiscount,
         paymentMethod: paymentMethod ?? this.paymentMethod,
         timestamp: timestamp ?? this.timestamp,
         syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
@@ -2799,6 +2826,9 @@ class Sale extends DataClass implements Insertable<Sale> {
       shiftId: data.shiftId.present ? data.shiftId.value : this.shiftId,
       totalAmount:
           data.totalAmount.present ? data.totalAmount.value : this.totalAmount,
+      totalDiscount: data.totalDiscount.present
+          ? data.totalDiscount.value
+          : this.totalDiscount,
       paymentMethod: data.paymentMethod.present
           ? data.paymentMethod.value
           : this.paymentMethod,
@@ -2815,6 +2845,7 @@ class Sale extends DataClass implements Insertable<Sale> {
           ..write('sellerId: $sellerId, ')
           ..write('shiftId: $shiftId, ')
           ..write('totalAmount: $totalAmount, ')
+          ..write('totalDiscount: $totalDiscount, ')
           ..write('paymentMethod: $paymentMethod, ')
           ..write('timestamp: $timestamp, ')
           ..write('syncedAt: $syncedAt')
@@ -2824,7 +2855,7 @@ class Sale extends DataClass implements Insertable<Sale> {
 
   @override
   int get hashCode => Object.hash(id, storeId, sellerId, shiftId, totalAmount,
-      paymentMethod, timestamp, syncedAt);
+      totalDiscount, paymentMethod, timestamp, syncedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2834,6 +2865,7 @@ class Sale extends DataClass implements Insertable<Sale> {
           other.sellerId == this.sellerId &&
           other.shiftId == this.shiftId &&
           other.totalAmount == this.totalAmount &&
+          other.totalDiscount == this.totalDiscount &&
           other.paymentMethod == this.paymentMethod &&
           other.timestamp == this.timestamp &&
           other.syncedAt == this.syncedAt);
@@ -2845,6 +2877,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
   final Value<String> sellerId;
   final Value<String?> shiftId;
   final Value<int> totalAmount;
+  final Value<int> totalDiscount;
   final Value<String> paymentMethod;
   final Value<DateTime> timestamp;
   final Value<DateTime?> syncedAt;
@@ -2855,6 +2888,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     this.sellerId = const Value.absent(),
     this.shiftId = const Value.absent(),
     this.totalAmount = const Value.absent(),
+    this.totalDiscount = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.timestamp = const Value.absent(),
     this.syncedAt = const Value.absent(),
@@ -2866,6 +2900,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     required String sellerId,
     this.shiftId = const Value.absent(),
     required int totalAmount,
+    this.totalDiscount = const Value.absent(),
     this.paymentMethod = const Value.absent(),
     this.timestamp = const Value.absent(),
     this.syncedAt = const Value.absent(),
@@ -2880,6 +2915,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     Expression<String>? sellerId,
     Expression<String>? shiftId,
     Expression<int>? totalAmount,
+    Expression<int>? totalDiscount,
     Expression<String>? paymentMethod,
     Expression<DateTime>? timestamp,
     Expression<DateTime>? syncedAt,
@@ -2891,6 +2927,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
       if (sellerId != null) 'seller_id': sellerId,
       if (shiftId != null) 'shift_id': shiftId,
       if (totalAmount != null) 'total_amount': totalAmount,
+      if (totalDiscount != null) 'total_discount': totalDiscount,
       if (paymentMethod != null) 'payment_method': paymentMethod,
       if (timestamp != null) 'timestamp': timestamp,
       if (syncedAt != null) 'synced_at': syncedAt,
@@ -2904,6 +2941,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
       Value<String>? sellerId,
       Value<String?>? shiftId,
       Value<int>? totalAmount,
+      Value<int>? totalDiscount,
       Value<String>? paymentMethod,
       Value<DateTime>? timestamp,
       Value<DateTime?>? syncedAt,
@@ -2914,6 +2952,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
       sellerId: sellerId ?? this.sellerId,
       shiftId: shiftId ?? this.shiftId,
       totalAmount: totalAmount ?? this.totalAmount,
+      totalDiscount: totalDiscount ?? this.totalDiscount,
       paymentMethod: paymentMethod ?? this.paymentMethod,
       timestamp: timestamp ?? this.timestamp,
       syncedAt: syncedAt ?? this.syncedAt,
@@ -2939,6 +2978,9 @@ class SalesCompanion extends UpdateCompanion<Sale> {
     if (totalAmount.present) {
       map['total_amount'] = Variable<int>(totalAmount.value);
     }
+    if (totalDiscount.present) {
+      map['total_discount'] = Variable<int>(totalDiscount.value);
+    }
     if (paymentMethod.present) {
       map['payment_method'] = Variable<String>(paymentMethod.value);
     }
@@ -2962,6 +3004,7 @@ class SalesCompanion extends UpdateCompanion<Sale> {
           ..write('sellerId: $sellerId, ')
           ..write('shiftId: $shiftId, ')
           ..write('totalAmount: $totalAmount, ')
+          ..write('totalDiscount: $totalDiscount, ')
           ..write('paymentMethod: $paymentMethod, ')
           ..write('timestamp: $timestamp, ')
           ..write('syncedAt: $syncedAt, ')
@@ -3017,9 +3060,40 @@ class $SaleItemsTable extends SaleItems
   late final GeneratedColumn<int> subtotal = GeneratedColumn<int>(
       'subtotal', aliasedName, false,
       type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _originalPriceMeta =
+      const VerificationMeta('originalPrice');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, saleId, productId, quantity, unitPrice, subtotal];
+  late final GeneratedColumn<int> originalPrice = GeneratedColumn<int>(
+      'original_price', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _discountAmountMeta =
+      const VerificationMeta('discountAmount');
+  @override
+  late final GeneratedColumn<int> discountAmount = GeneratedColumn<int>(
+      'discount_amount', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _costPriceMeta =
+      const VerificationMeta('costPrice');
+  @override
+  late final GeneratedColumn<int> costPrice = GeneratedColumn<int>(
+      'cost_price', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        saleId,
+        productId,
+        quantity,
+        unitPrice,
+        subtotal,
+        originalPrice,
+        discountAmount,
+        costPrice
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -3065,6 +3139,22 @@ class $SaleItemsTable extends SaleItems
     } else if (isInserting) {
       context.missing(_subtotalMeta);
     }
+    if (data.containsKey('original_price')) {
+      context.handle(
+          _originalPriceMeta,
+          originalPrice.isAcceptableOrUnknown(
+              data['original_price']!, _originalPriceMeta));
+    }
+    if (data.containsKey('discount_amount')) {
+      context.handle(
+          _discountAmountMeta,
+          discountAmount.isAcceptableOrUnknown(
+              data['discount_amount']!, _discountAmountMeta));
+    }
+    if (data.containsKey('cost_price')) {
+      context.handle(_costPriceMeta,
+          costPrice.isAcceptableOrUnknown(data['cost_price']!, _costPriceMeta));
+    }
     return context;
   }
 
@@ -3086,6 +3176,12 @@ class $SaleItemsTable extends SaleItems
           .read(DriftSqlType.int, data['${effectivePrefix}unit_price'])!,
       subtotal: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}subtotal'])!,
+      originalPrice: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}original_price'])!,
+      discountAmount: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}discount_amount'])!,
+      costPrice: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}cost_price']),
     );
   }
 
@@ -3102,13 +3198,25 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
   final int quantity;
   final int unitPrice;
   final int subtotal;
+
+  /// ШИНЭ v10: Анхны үнэ (хөнгөлөлтийн өмнөх)
+  final int originalPrice;
+
+  /// ШИНЭ v10: Хөнгөлөлтийн дүн (₮)
+  final int discountAmount;
+
+  /// ШИНЭ v10: Бүтээгдэхүүний өртөг (ашиг тооцоход)
+  final int? costPrice;
   const SaleItem(
       {required this.id,
       required this.saleId,
       required this.productId,
       required this.quantity,
       required this.unitPrice,
-      required this.subtotal});
+      required this.subtotal,
+      required this.originalPrice,
+      required this.discountAmount,
+      this.costPrice});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -3118,6 +3226,11 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
     map['quantity'] = Variable<int>(quantity);
     map['unit_price'] = Variable<int>(unitPrice);
     map['subtotal'] = Variable<int>(subtotal);
+    map['original_price'] = Variable<int>(originalPrice);
+    map['discount_amount'] = Variable<int>(discountAmount);
+    if (!nullToAbsent || costPrice != null) {
+      map['cost_price'] = Variable<int>(costPrice);
+    }
     return map;
   }
 
@@ -3129,6 +3242,11 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
       quantity: Value(quantity),
       unitPrice: Value(unitPrice),
       subtotal: Value(subtotal),
+      originalPrice: Value(originalPrice),
+      discountAmount: Value(discountAmount),
+      costPrice: costPrice == null && nullToAbsent
+          ? const Value.absent()
+          : Value(costPrice),
     );
   }
 
@@ -3142,6 +3260,9 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
       quantity: serializer.fromJson<int>(json['quantity']),
       unitPrice: serializer.fromJson<int>(json['unitPrice']),
       subtotal: serializer.fromJson<int>(json['subtotal']),
+      originalPrice: serializer.fromJson<int>(json['originalPrice']),
+      discountAmount: serializer.fromJson<int>(json['discountAmount']),
+      costPrice: serializer.fromJson<int?>(json['costPrice']),
     );
   }
   @override
@@ -3154,6 +3275,9 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
       'quantity': serializer.toJson<int>(quantity),
       'unitPrice': serializer.toJson<int>(unitPrice),
       'subtotal': serializer.toJson<int>(subtotal),
+      'originalPrice': serializer.toJson<int>(originalPrice),
+      'discountAmount': serializer.toJson<int>(discountAmount),
+      'costPrice': serializer.toJson<int?>(costPrice),
     };
   }
 
@@ -3163,7 +3287,10 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
           String? productId,
           int? quantity,
           int? unitPrice,
-          int? subtotal}) =>
+          int? subtotal,
+          int? originalPrice,
+          int? discountAmount,
+          Value<int?> costPrice = const Value.absent()}) =>
       SaleItem(
         id: id ?? this.id,
         saleId: saleId ?? this.saleId,
@@ -3171,6 +3298,9 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
         quantity: quantity ?? this.quantity,
         unitPrice: unitPrice ?? this.unitPrice,
         subtotal: subtotal ?? this.subtotal,
+        originalPrice: originalPrice ?? this.originalPrice,
+        discountAmount: discountAmount ?? this.discountAmount,
+        costPrice: costPrice.present ? costPrice.value : this.costPrice,
       );
   SaleItem copyWithCompanion(SaleItemsCompanion data) {
     return SaleItem(
@@ -3180,6 +3310,13 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
       quantity: data.quantity.present ? data.quantity.value : this.quantity,
       unitPrice: data.unitPrice.present ? data.unitPrice.value : this.unitPrice,
       subtotal: data.subtotal.present ? data.subtotal.value : this.subtotal,
+      originalPrice: data.originalPrice.present
+          ? data.originalPrice.value
+          : this.originalPrice,
+      discountAmount: data.discountAmount.present
+          ? data.discountAmount.value
+          : this.discountAmount,
+      costPrice: data.costPrice.present ? data.costPrice.value : this.costPrice,
     );
   }
 
@@ -3191,14 +3328,17 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
           ..write('productId: $productId, ')
           ..write('quantity: $quantity, ')
           ..write('unitPrice: $unitPrice, ')
-          ..write('subtotal: $subtotal')
+          ..write('subtotal: $subtotal, ')
+          ..write('originalPrice: $originalPrice, ')
+          ..write('discountAmount: $discountAmount, ')
+          ..write('costPrice: $costPrice')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, saleId, productId, quantity, unitPrice, subtotal);
+  int get hashCode => Object.hash(id, saleId, productId, quantity, unitPrice,
+      subtotal, originalPrice, discountAmount, costPrice);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3208,7 +3348,10 @@ class SaleItem extends DataClass implements Insertable<SaleItem> {
           other.productId == this.productId &&
           other.quantity == this.quantity &&
           other.unitPrice == this.unitPrice &&
-          other.subtotal == this.subtotal);
+          other.subtotal == this.subtotal &&
+          other.originalPrice == this.originalPrice &&
+          other.discountAmount == this.discountAmount &&
+          other.costPrice == this.costPrice);
 }
 
 class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
@@ -3218,6 +3361,9 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
   final Value<int> quantity;
   final Value<int> unitPrice;
   final Value<int> subtotal;
+  final Value<int> originalPrice;
+  final Value<int> discountAmount;
+  final Value<int?> costPrice;
   final Value<int> rowid;
   const SaleItemsCompanion({
     this.id = const Value.absent(),
@@ -3226,6 +3372,9 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
     this.quantity = const Value.absent(),
     this.unitPrice = const Value.absent(),
     this.subtotal = const Value.absent(),
+    this.originalPrice = const Value.absent(),
+    this.discountAmount = const Value.absent(),
+    this.costPrice = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SaleItemsCompanion.insert({
@@ -3235,6 +3384,9 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
     required int quantity,
     required int unitPrice,
     required int subtotal,
+    this.originalPrice = const Value.absent(),
+    this.discountAmount = const Value.absent(),
+    this.costPrice = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
         saleId = Value(saleId),
@@ -3249,6 +3401,9 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
     Expression<int>? quantity,
     Expression<int>? unitPrice,
     Expression<int>? subtotal,
+    Expression<int>? originalPrice,
+    Expression<int>? discountAmount,
+    Expression<int>? costPrice,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3258,6 +3413,9 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
       if (quantity != null) 'quantity': quantity,
       if (unitPrice != null) 'unit_price': unitPrice,
       if (subtotal != null) 'subtotal': subtotal,
+      if (originalPrice != null) 'original_price': originalPrice,
+      if (discountAmount != null) 'discount_amount': discountAmount,
+      if (costPrice != null) 'cost_price': costPrice,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3269,6 +3427,9 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
       Value<int>? quantity,
       Value<int>? unitPrice,
       Value<int>? subtotal,
+      Value<int>? originalPrice,
+      Value<int>? discountAmount,
+      Value<int?>? costPrice,
       Value<int>? rowid}) {
     return SaleItemsCompanion(
       id: id ?? this.id,
@@ -3277,6 +3438,9 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
       quantity: quantity ?? this.quantity,
       unitPrice: unitPrice ?? this.unitPrice,
       subtotal: subtotal ?? this.subtotal,
+      originalPrice: originalPrice ?? this.originalPrice,
+      discountAmount: discountAmount ?? this.discountAmount,
+      costPrice: costPrice ?? this.costPrice,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3302,6 +3466,15 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
     if (subtotal.present) {
       map['subtotal'] = Variable<int>(subtotal.value);
     }
+    if (originalPrice.present) {
+      map['original_price'] = Variable<int>(originalPrice.value);
+    }
+    if (discountAmount.present) {
+      map['discount_amount'] = Variable<int>(discountAmount.value);
+    }
+    if (costPrice.present) {
+      map['cost_price'] = Variable<int>(costPrice.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3317,6 +3490,9 @@ class SaleItemsCompanion extends UpdateCompanion<SaleItem> {
           ..write('quantity: $quantity, ')
           ..write('unitPrice: $unitPrice, ')
           ..write('subtotal: $subtotal, ')
+          ..write('originalPrice: $originalPrice, ')
+          ..write('discountAmount: $discountAmount, ')
+          ..write('costPrice: $costPrice, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -8265,6 +8441,7 @@ typedef $$SalesTableCreateCompanionBuilder = SalesCompanion Function({
   required String sellerId,
   Value<String?> shiftId,
   required int totalAmount,
+  Value<int> totalDiscount,
   Value<String> paymentMethod,
   Value<DateTime> timestamp,
   Value<DateTime?> syncedAt,
@@ -8276,6 +8453,7 @@ typedef $$SalesTableUpdateCompanionBuilder = SalesCompanion Function({
   Value<String> sellerId,
   Value<String?> shiftId,
   Value<int> totalAmount,
+  Value<int> totalDiscount,
   Value<String> paymentMethod,
   Value<DateTime> timestamp,
   Value<DateTime?> syncedAt,
@@ -8353,6 +8531,9 @@ class $$SalesTableFilterComposer extends Composer<_$AppDatabase, $SalesTable> {
 
   ColumnFilters<int> get totalAmount => $composableBuilder(
       column: $table.totalAmount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get totalDiscount => $composableBuilder(
+      column: $table.totalDiscount, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get paymentMethod => $composableBuilder(
       column: $table.paymentMethod, builder: (column) => ColumnFilters(column));
@@ -8460,6 +8641,10 @@ class $$SalesTableOrderingComposer
   ColumnOrderings<int> get totalAmount => $composableBuilder(
       column: $table.totalAmount, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get totalDiscount => $composableBuilder(
+      column: $table.totalDiscount,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get paymentMethod => $composableBuilder(
       column: $table.paymentMethod,
       builder: (column) => ColumnOrderings(column));
@@ -8545,6 +8730,9 @@ class $$SalesTableAnnotationComposer
 
   GeneratedColumn<int> get totalAmount => $composableBuilder(
       column: $table.totalAmount, builder: (column) => column);
+
+  GeneratedColumn<int> get totalDiscount => $composableBuilder(
+      column: $table.totalDiscount, builder: (column) => column);
 
   GeneratedColumn<String> get paymentMethod => $composableBuilder(
       column: $table.paymentMethod, builder: (column) => column);
@@ -8666,6 +8854,7 @@ class $$SalesTableTableManager extends RootTableManager<
             Value<String> sellerId = const Value.absent(),
             Value<String?> shiftId = const Value.absent(),
             Value<int> totalAmount = const Value.absent(),
+            Value<int> totalDiscount = const Value.absent(),
             Value<String> paymentMethod = const Value.absent(),
             Value<DateTime> timestamp = const Value.absent(),
             Value<DateTime?> syncedAt = const Value.absent(),
@@ -8677,6 +8866,7 @@ class $$SalesTableTableManager extends RootTableManager<
             sellerId: sellerId,
             shiftId: shiftId,
             totalAmount: totalAmount,
+            totalDiscount: totalDiscount,
             paymentMethod: paymentMethod,
             timestamp: timestamp,
             syncedAt: syncedAt,
@@ -8688,6 +8878,7 @@ class $$SalesTableTableManager extends RootTableManager<
             required String sellerId,
             Value<String?> shiftId = const Value.absent(),
             required int totalAmount,
+            Value<int> totalDiscount = const Value.absent(),
             Value<String> paymentMethod = const Value.absent(),
             Value<DateTime> timestamp = const Value.absent(),
             Value<DateTime?> syncedAt = const Value.absent(),
@@ -8699,6 +8890,7 @@ class $$SalesTableTableManager extends RootTableManager<
             sellerId: sellerId,
             shiftId: shiftId,
             totalAmount: totalAmount,
+            totalDiscount: totalDiscount,
             paymentMethod: paymentMethod,
             timestamp: timestamp,
             syncedAt: syncedAt,
@@ -8799,6 +8991,9 @@ typedef $$SaleItemsTableCreateCompanionBuilder = SaleItemsCompanion Function({
   required int quantity,
   required int unitPrice,
   required int subtotal,
+  Value<int> originalPrice,
+  Value<int> discountAmount,
+  Value<int?> costPrice,
   Value<int> rowid,
 });
 typedef $$SaleItemsTableUpdateCompanionBuilder = SaleItemsCompanion Function({
@@ -8808,6 +9003,9 @@ typedef $$SaleItemsTableUpdateCompanionBuilder = SaleItemsCompanion Function({
   Value<int> quantity,
   Value<int> unitPrice,
   Value<int> subtotal,
+  Value<int> originalPrice,
+  Value<int> discountAmount,
+  Value<int?> costPrice,
   Value<int> rowid,
 });
 
@@ -8863,6 +9061,16 @@ class $$SaleItemsTableFilterComposer
 
   ColumnFilters<int> get subtotal => $composableBuilder(
       column: $table.subtotal, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get originalPrice => $composableBuilder(
+      column: $table.originalPrice, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get discountAmount => $composableBuilder(
+      column: $table.discountAmount,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get costPrice => $composableBuilder(
+      column: $table.costPrice, builder: (column) => ColumnFilters(column));
 
   $$SalesTableFilterComposer get saleId {
     final $$SalesTableFilterComposer composer = $composerBuilder(
@@ -8926,6 +9134,17 @@ class $$SaleItemsTableOrderingComposer
   ColumnOrderings<int> get subtotal => $composableBuilder(
       column: $table.subtotal, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<int> get originalPrice => $composableBuilder(
+      column: $table.originalPrice,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get discountAmount => $composableBuilder(
+      column: $table.discountAmount,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get costPrice => $composableBuilder(
+      column: $table.costPrice, builder: (column) => ColumnOrderings(column));
+
   $$SalesTableOrderingComposer get saleId {
     final $$SalesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -8987,6 +9206,15 @@ class $$SaleItemsTableAnnotationComposer
 
   GeneratedColumn<int> get subtotal =>
       $composableBuilder(column: $table.subtotal, builder: (column) => column);
+
+  GeneratedColumn<int> get originalPrice => $composableBuilder(
+      column: $table.originalPrice, builder: (column) => column);
+
+  GeneratedColumn<int> get discountAmount => $composableBuilder(
+      column: $table.discountAmount, builder: (column) => column);
+
+  GeneratedColumn<int> get costPrice =>
+      $composableBuilder(column: $table.costPrice, builder: (column) => column);
 
   $$SalesTableAnnotationComposer get saleId {
     final $$SalesTableAnnotationComposer composer = $composerBuilder(
@@ -9058,6 +9286,9 @@ class $$SaleItemsTableTableManager extends RootTableManager<
             Value<int> quantity = const Value.absent(),
             Value<int> unitPrice = const Value.absent(),
             Value<int> subtotal = const Value.absent(),
+            Value<int> originalPrice = const Value.absent(),
+            Value<int> discountAmount = const Value.absent(),
+            Value<int?> costPrice = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SaleItemsCompanion(
@@ -9067,6 +9298,9 @@ class $$SaleItemsTableTableManager extends RootTableManager<
             quantity: quantity,
             unitPrice: unitPrice,
             subtotal: subtotal,
+            originalPrice: originalPrice,
+            discountAmount: discountAmount,
+            costPrice: costPrice,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -9076,6 +9310,9 @@ class $$SaleItemsTableTableManager extends RootTableManager<
             required int quantity,
             required int unitPrice,
             required int subtotal,
+            Value<int> originalPrice = const Value.absent(),
+            Value<int> discountAmount = const Value.absent(),
+            Value<int?> costPrice = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               SaleItemsCompanion.insert(
@@ -9085,6 +9322,9 @@ class $$SaleItemsTableTableManager extends RootTableManager<
             quantity: quantity,
             unitPrice: unitPrice,
             subtotal: subtotal,
+            originalPrice: originalPrice,
+            discountAmount: discountAmount,
+            costPrice: costPrice,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

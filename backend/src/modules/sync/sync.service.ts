@@ -149,7 +149,7 @@ async function syncCreateSale(
     return { success: false, error: result.error };
   }
 
-  return { success: true, server_id: result.sale.id };
+  return { success: true, server_id: String(result.sale.id) };
 }
 
 /**

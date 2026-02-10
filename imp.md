@@ -16,7 +16,7 @@
 | Салбар болгоны бараа тоолого   | **90%**  | Multi-store нэгдсэн dashboard байхгүй                          |
 | Худалдагчийн хяналт            | **50%**  | Мөнгө тулгалт, seller report UI байхгүй                        |
 | Сайн/муу зарагддаг бараа       | **70%**  | Муу зарагддаг бараа, ашгийн шинжилгээ байхгүй                  |
-| **Салбар хоорондын шилжүүлэг** | **0%**   | **Бүрмөсөн байхгүй**                                           |
+| **Салбар хоорондын шилжүүлэг** | **100%** | ✅ Бүрэн хийгдсэн (Фаза 2)                                     |
 | Орлого/ашгийн тооцоо           | **5%**   | cost_price хадгалдаг, тооцоо хийдэггүй                         |
 | **Хөнгөлөлт/үнэ буулгалт**     | **0%**   | **Огт байхгүй** — худалдагч үнэ буулгаж чадахгүй, бүртгэдэггүй |
 
@@ -61,11 +61,12 @@
 
 ---
 
-## ФАЗА 2: Салбар Хоорондын Бараа Шилжүүлэг (3-4 өдөр)
+## ФАЗА 2: Салбар Хоорондын Бараа Шилжүүлэг ✅ ДУУССАН (2026-02-10)
 
 > Таны хамгийн том operational дутагдал. Sunday Plaza → Алтжин Бөмбөгөр бараа шилжүүлэх
+> Migration Supabase-д push хийгдсэн ✅ | Backend type-safe (no `as any`) ✅ | Тест бүгд passed ✅
 
-### 2.1 Database schema өөрчлөлт
+### 2.1 Database schema өөрчлөлт ✅
 
 - **Шинэ migration**: `supabase/migrations/20260211000001_add_transfers.sql`
 - `inventory_events.event_type`-д `TRANSFER_OUT`, `TRANSFER_IN` нэмэх
@@ -90,14 +91,14 @@
   ```
 - RLS: Owner өөрийн store-уудын transfer-уудыг л харах
 
-### 2.2 Drift (Flutter) database-д нэмэх
+### 2.2 Drift (Flutter) database-д нэмэх ✅
 
 - **Файл**: [lib/core/database/app_database.dart](lib/core/database/app_database.dart)
 - `Transfers`, `TransferItems` table class нэмэх
 - `schemaVersion` дараагийн version болгох + migration нэмэх
 - DAO method-ууд: `createTransfer()`, `getTransfers()`, `completeTransfer()`
 
-### 2.3 Backend API endpoint-ууд
+### 2.3 Backend API endpoint-ууд ✅
 
 - **Шинэ файлууд**:
   - `backend/src/modules/transfer/transfer.schema.ts`
@@ -114,7 +115,7 @@
   3. Destination store-д `TRANSFER_IN` inventory event (+5)
   4. Бүгд нэг transaction дотор (атомик)
 
-### 2.4 Flutter Transfer UI
+### 2.4 Flutter Transfer UI ✅
 
 - **Шинэ файлууд**:
   - `lib/features/transfer/domain/models/transfer.dart` (Freezed model)
@@ -127,7 +128,7 @@
   3. Бараа сонгох + тоо ширхэг оруулах
   4. Баталгаажуулах → 2 store-ийн inventory шинэчлэгдэнэ
 
-### 2.5 Sync дэмжлэг нэмэх
+### 2.5 Sync дэмжлэг нэмэх ✅
 
 - `sync.schema.ts`-д `create_transfer` operation type нэмэх
 - `sync_queue_manager.dart`-д transfer push/pull logic нэмэх

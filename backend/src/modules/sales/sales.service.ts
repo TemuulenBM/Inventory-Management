@@ -9,6 +9,7 @@
  */
 
 import { supabase } from '../../config/supabase.js';
+import type { SaleInsert, SaleItemInsert } from '../../config/supabase.js';
 import type { CreateSaleBody, SalesQueryParams } from './sales.schema.js';
 import { checkLowStock, checkNegativeStock } from '../alerts/alerts.service.js';
 
@@ -18,22 +19,22 @@ type ServiceResult<T> =
 
 /**
  * Борлуулалт бүртгэх
- * - Sale үүсгэх
- * - Sale items үүсгэх
+ * - Хөнгөлөлтийн validation (discount_amount <= original_price)
+ * - Sale + Sale items үүсгэх (cost_price хадгалах)
  * - Inventory events үүсгэх (SALE)
- * - Stock-ыг шалгах (negative stock warning)
+ * - Stock шалгах (negative stock warning)
  */
 export async function createSale(
   storeId: string,
   sellerId: string,
   data: CreateSaleBody
-): Promise<ServiceResult<{ sale: any }>> {
+): Promise<ServiceResult<{ sale: Record<string, unknown> }>> {
   try {
-    // 1. Бүх бараануудын үнийг шалгах (product_id-ууд олдох эсэх)
+    // 1. Бүх бараануудын мэдээллийг авах (cost_price-тай)
     const productIds = data.items.map((item) => item.product_id);
     const { data: products, error: productsError } = await supabase
       .from('products')
-      .select('id, name, sku, sell_price, is_deleted')
+      .select('id, name, sku, sell_price, cost_price, is_deleted')
       .eq('store_id', storeId)
       .in('id', productIds);
 
@@ -47,20 +48,40 @@ export async function createSale(
       return { success: false, error: `Бараа "${deletedProduct.name}" устгагдсан байна` };
     }
 
-    // 2. Total amount тооцоолох
-    const totalAmount = data.items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+    // 2. Хөнгөлөлт validation
+    for (const item of data.items) {
+      if (item.discount_amount > 0) {
+        const origPrice = item.original_price ?? item.unit_price + item.discount_amount;
+        if (item.discount_amount > origPrice) {
+          const product = products.find((p) => p.id === item.product_id);
+          return {
+            success: false,
+            error: `"${product?.name}" барааны хөнгөлөлт (${item.discount_amount}) анхны үнээс (${origPrice}) хэтэрч байна`,
+          };
+        }
+      }
+    }
 
-    // 3. Sale үүсгэх
+    // 3. Total amount + total discount тооцоолох
+    const totalAmount = data.items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+    const totalDiscount = data.items.reduce(
+      (sum, item) => sum + item.quantity * (item.discount_amount ?? 0), 0
+    );
+
+    // 4. Sale үүсгэх (type-safe)
+    const saleData: SaleInsert = {
+      store_id: storeId,
+      seller_id: sellerId,
+      shift_id: data.shift_id ?? null,
+      total_amount: totalAmount,
+      total_discount: totalDiscount,
+      payment_method: data.payment_method,
+      synced_at: new Date().toISOString(),
+    };
+
     const { data: sale, error: saleError } = await supabase
       .from('sales')
-      .insert({
-        store_id: storeId,
-        seller_id: sellerId,
-        shift_id: data.shift_id ?? null,
-        total_amount: totalAmount,
-        payment_method: data.payment_method,
-        synced_at: new Date().toISOString(), // Sync timestamp auto-set
-      })
+      .insert(saleData)
       .select()
       .single();
 
@@ -68,14 +89,22 @@ export async function createSale(
       return { success: false, error: 'Борлуулалт үүсгэхэд алдаа гарлаа' };
     }
 
-    // 4. Sale items үүсгэх
-    const saleItemsData = data.items.map((item) => ({
-      sale_id: sale.id,
-      product_id: item.product_id,
-      quantity: item.quantity,
-      unit_price: item.unit_price,
-      subtotal: item.quantity * item.unit_price,
-    }));
+    // 5. Sale items үүсгэх (хөнгөлөлт + cost_price-тай)
+    const saleItemsData: SaleItemInsert[] = data.items.map((item) => {
+      const product = products.find((p) => p.id === item.product_id);
+      const origPrice = item.original_price ?? item.unit_price + (item.discount_amount ?? 0);
+
+      return {
+        sale_id: sale.id,
+        product_id: item.product_id,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        subtotal: item.quantity * item.unit_price,
+        original_price: origPrice,
+        discount_amount: item.discount_amount ?? 0,
+        cost_price: product?.cost_price ?? 0,
+      };
+    });
 
     const { data: saleItems, error: saleItemsError } = await supabase
       .from('sale_items')
@@ -83,17 +112,16 @@ export async function createSale(
       .select();
 
     if (saleItemsError || !saleItems) {
-      // Rollback sale
       await supabase.from('sales').delete().eq('id', sale.id);
       return { success: false, error: 'Sale items үүсгэхэд алдаа гарлаа' };
     }
 
-    // 5. Inventory events үүсгэх (SALE)
+    // 6. Inventory events үүсгэх (SALE)
     const inventoryEventsData = data.items.map((item) => ({
       store_id: storeId,
       product_id: item.product_id,
       event_type: 'SALE',
-      qty_change: -item.quantity, // Борлуулалт нь хасах
+      qty_change: -item.quantity,
       actor_id: sellerId,
       shift_id: data.shift_id ?? null,
       reason: `Sale ${sale.id}`,
@@ -104,15 +132,14 @@ export async function createSale(
       .insert(inventoryEventsData);
 
     if (eventsError) {
-      // Rollback sale & items
       await supabase.from('sales').delete().eq('id', sale.id);
       return { success: false, error: 'Inventory events үүсгэхэд алдаа гарлаа' };
     }
 
-    // 6. Materialized view-г шинэчлэх
-    await supabase.rpc('refresh_product_stock_levels');
+    // 7. Materialized view шинэчлэх
+    try { await supabase.rpc('refresh_product_stock_levels'); } catch { /* skip */ }
 
-    // 7. Alert triggers - stock шалгах (background)
+    // 8. Alert triggers (background)
     for (const item of data.items) {
       checkLowStock(storeId, item.product_id).catch((err) =>
         console.error('Low stock check failed:', err)
@@ -122,16 +149,18 @@ export async function createSale(
       );
     }
 
-    // 8. Response format
-    const itemsWithNames = saleItems.map((item: any) => {
+    // 9. Response format
+    const itemsWithNames = saleItems.map((item) => {
       const product = products.find((p) => p.id === item.product_id);
       return {
         id: item.id,
         product_id: item.product_id,
         product_name: product?.name ?? 'Unknown',
         quantity: item.quantity,
-        unit_price: parseFloat(String(item.unit_price)),
-        subtotal: parseFloat(String(item.subtotal)),
+        unit_price: item.unit_price,
+        original_price: item.original_price,
+        discount_amount: item.discount_amount,
+        subtotal: item.subtotal,
       };
     });
 
@@ -142,7 +171,8 @@ export async function createSale(
         store_id: sale.store_id,
         seller_id: sale.seller_id,
         shift_id: sale.shift_id,
-        total_amount: parseFloat(String(sale.total_amount)),
+        total_amount: sale.total_amount,
+        total_discount: sale.total_discount,
         payment_method: sale.payment_method,
         timestamp: sale.timestamp,
         items: itemsWithNames,

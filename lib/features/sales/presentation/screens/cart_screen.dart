@@ -166,12 +166,70 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  '${item.product.sellPrice.toStringAsFixed(0)}₮',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFFC96F53),
+                // Үнэ (хөнгөлөлттэй бол зураастай анхны үнэ + шинэ үнэ)
+                if (item.hasDiscount) ...[
+                  Row(
+                    children: [
+                      Text(
+                        '${item.originalPrice}₮',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.gray400,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        '${item.effectivePrice}₮',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFFC96F53),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.danger.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          '-${item.discountPercent.toStringAsFixed(0)}%',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.danger,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Text(
+                    '${item.product.sellPrice}₮',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFFC96F53),
+                    ),
+                  ),
+                ],
+                // Хөнгөлөлт товч
+                const SizedBox(height: 4),
+                GestureDetector(
+                  onTap: () => _showDiscountDialog(item),
+                  child: Text(
+                    item.hasDiscount
+                        ? 'Хөнгөлөлт: -${item.discountAmount}₮'
+                        : 'Хөнгөлөлт +',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: item.hasDiscount
+                          ? AppColors.danger
+                          : AppColors.secondary,
+                    ),
                   ),
                 ),
               ],
@@ -274,6 +332,8 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     required int totalItems,
     required double total,
   }) {
+    final totalDiscount = ref.watch(cartTotalDiscountProvider);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -317,15 +377,40 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                 ),
               ],
             ),
+            // Хөнгөлөлт (байвал)
+            if (totalDiscount > 0) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Хөнгөлөлт',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.danger,
+                    ),
+                  ),
+                  Text(
+                    '-${totalDiscount}₮',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.danger,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 12),
 
-            // Нийт дүн
+            // Нийт дүн (хөнгөлөлтийн дараах)
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Нийт дүн',
+                  'Төлөх дүн',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -386,9 +471,90 @@ class _CartScreenState extends ConsumerState<CartScreen> {
     );
   }
 
+  /// Хөнгөлөлт оруулах dialog
+  void _showDiscountDialog(CartItem item) {
+    final controller = TextEditingController(
+      text: item.discountAmount > 0 ? '${item.discountAmount}' : '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Хөнгөлөлт: ${item.product.name}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Анхны үнэ: ${item.originalPrice}₮',
+              style: TextStyle(fontSize: 14, color: AppColors.gray600),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: 'Хөнгөлөлтийн дүн (₮)',
+                hintText: '0',
+                suffixText: '₮',
+                border: OutlineInputBorder(
+                  borderRadius: AppRadius.radiusMD,
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Хурдан сонголтууд (5%, 10%, 15%, 20%)
+            Wrap(
+              spacing: 8,
+              children: [5, 10, 15, 20].map((pct) {
+                final discAmount = (item.originalPrice * pct / 100).round();
+                return ActionChip(
+                  label: Text('$pct%'),
+                  onPressed: () {
+                    controller.text = '$discAmount';
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+        actions: [
+          // Хөнгөлөлт арилгах
+          if (item.hasDiscount)
+            TextButton(
+              onPressed: () {
+                ref.read(cartNotifierProvider.notifier)
+                    .setDiscount(item.product.id, 0);
+                Navigator.pop(ctx);
+              },
+              child: const Text(
+                'Арилгах',
+                style: TextStyle(color: AppColors.danger),
+              ),
+            ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Цуцлах'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final amount = int.tryParse(controller.text) ?? 0;
+              ref.read(cartNotifierProvider.notifier)
+                  .setDiscount(item.product.id, amount);
+              Navigator.pop(ctx);
+            },
+            child: const Text('Хадгалах'),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// Checkout bottom sheet харуулах (PaymentBottomSheet)
   void _showCheckoutSheet() {
     final total = ref.read(cartTotalProvider);
+    final totalDiscount = ref.read(cartTotalDiscountProvider);
 
     BottomActionSheet.show<void>(
       context: context,
@@ -396,6 +562,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
         builder: (context, setSheetState) {
           return PaymentBottomSheet(
             subtotal: total,
+            totalDiscount: totalDiscount,
             paymentMethod: _paymentMethod,
             onPaymentMethodChanged: (method) {
               setSheetState(() => _paymentMethod = method);

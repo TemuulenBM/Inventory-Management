@@ -90,6 +90,7 @@ class BottomActionSheet extends StatelessWidget {
 /// Payment bottom sheet (for cart checkout)
 class PaymentBottomSheet extends StatelessWidget {
   final double subtotal;
+  final int totalDiscount;
   final String paymentMethod;
   final ValueChanged<String> onPaymentMethodChanged;
   final VoidCallback onConfirm;
@@ -98,6 +99,7 @@ class PaymentBottomSheet extends StatelessWidget {
   const PaymentBottomSheet({
     super.key,
     required this.subtotal,
+    this.totalDiscount = 0,
     required this.paymentMethod,
     required this.onPaymentMethodChanged,
     required this.onConfirm,
@@ -120,12 +122,38 @@ class PaymentBottomSheet extends StatelessWidget {
         ),
         AppSpacing.verticalLG,
 
-        // Subtotal
+        // Хөнгөлөлт (байвал)
+        if (totalDiscount > 0) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Хөнгөлөлт',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.danger,
+                ),
+              ),
+              Text(
+                '-₮$totalDiscount',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.danger,
+                ),
+              ),
+            ],
+          ),
+          AppSpacing.verticalSM,
+        ],
+
+        // Төлөх дүн
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             const Text(
-              'Нийт дүн',
+              'Төлөх дүн',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w400,
