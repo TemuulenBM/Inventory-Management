@@ -11,7 +11,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ============================================================================
 CREATE TABLE stores (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    owner_id UUID NOT NULL,
+    owner_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     name VARCHAR(255) NOT NULL,
     location VARCHAR(500),
     timezone VARCHAR(100) DEFAULT 'Asia/Ulaanbaatar',

@@ -168,21 +168,38 @@ export async function markInvitationAsUsed(invitationId: string, userId: string)
  * @param adminId - Админ ID (authorization шалгах)
  */
 export async function revokeInvitation(invitationId: string, adminId: string) {
-  // TODO: Админ эсэхийг шалгах (invited_by === adminId эсвэл super-admin эсэх)
-
-  const { data: invitation, error } = await supabase
+  // 1. Урилга олох (update хийхээс өмнө authorization шалгах)
+  const { data: invitation, error: findError } = await supabase
     .from('invitations')
-    .update({ status: 'revoked' })
+    .select('id, invited_by, status')
     .eq('id', invitationId)
-    .eq('status', 'pending') // Зөвхөн pending урилгыг цуцлах боломжтой
-    .select()
+    .eq('status', 'pending')
     .single();
 
-  if (error || !invitation) {
+  if (findError || !invitation) {
     return { success: false as const, error: 'Урилга олдсонгүй эсвэл аль хэдийн ашигласан байна' };
   }
 
-  console.log(`🚫 Invitation ${invitationId} revoked by ${adminId}`);
+  // 2. Authorization шалгалт: зөвхөн урилга илгээсэн хүн эсвэл super-admin
+  const { data: admin } = await supabase
+    .from('users')
+    .select('role')
+    .eq('id', adminId)
+    .single();
+
+  if (invitation.invited_by !== adminId && admin?.role !== 'super_admin') {
+    return { success: false as const, error: 'Энэ урилгыг цуцлах эрх байхгүй' };
+  }
+
+  // 3. Урилга цуцлах
+  const { error } = await supabase
+    .from('invitations')
+    .update({ status: 'revoked' })
+    .eq('id', invitationId);
+
+  if (error) {
+    return { success: false as const, error: 'Урилга цуцлахад алдаа гарлаа' };
+  }
 
   return { success: true as const };
 }

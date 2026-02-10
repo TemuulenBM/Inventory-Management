@@ -45,26 +45,10 @@ class SyncQueueManager {
       return SyncResult.empty();
     }
 
-    // Alert operations-ыг filter хийх (backend дэмждэггүй)
-    final supportedOperations = pending.where((op) => op.entityType != 'alert').toList();
-    final skippedCount = pending.length - supportedOperations.length;
-
-    if (skippedCount > 0) {
-      _log('Skipping $skippedCount unsupported alert operations');
-      // Alert operations-ыг synced гэж тэмдэглэх (retry хийхгүй)
-      for (final op in pending.where((op) => op.entityType == 'alert')) {
-        await db.markSynced(op.id);
-      }
-    }
-
-    if (supportedOperations.isEmpty) {
-      return SyncResult.empty();
-    }
-
-    _log('Pushing ${supportedOperations.length} pending operations...');
+    _log('Pushing ${pending.length} pending operations...');
 
     // Group operations by type for batch processing
-    final operations = supportedOperations.map((op) {
+    final operations = pending.map((op) {
       final payload = jsonDecode(op.payload) as Map<String, dynamic>;
       final operationType = _mapOperationType(op.entityType, op.operation);
 
@@ -106,16 +90,16 @@ class SyncQueueManager {
             if (result['server_id'] != null) {
               _log('ID mapping: $syncId -> ${result['server_id']}');
             }
+          } else if (result['status'] == 'conflict') {
+            // Conflict → synced тэмдэглэх (backend дээр proceed хийсэн)
+            final errorMsg = result['error']?.toString() ?? 'Conflict';
+            _log('WARNING: Sync conflict detected for $syncId: $errorMsg');
+            await db.markSynced(syncId);
+            synced++;
           } else {
+            // Failed → retry count нэмэх, дараагийн sync-д дахин оролдоно (max 5 удаа)
             final errorMsg = result['error']?.toString() ?? 'Unknown error';
-
-            // Conflict detection - warning log хийх
-            if (result['status'] == 'conflict') {
-              _log('WARNING: Sync conflict detected for $syncId: $errorMsg');
-              // Conflict нь backend дээр warning л болж байгаа (proceed хийнэ)
-              // Гэхдээ mobile талд ч log хийх нь debugging-д туслана
-            }
-
+            _log('FAILED: Operation $syncId: $errorMsg');
             await db.incrementRetryCount(syncId, errorMsg);
             failed++;
             errors.add(errorMsg);

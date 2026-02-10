@@ -447,10 +447,12 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  /// Sync хийгдээгүй үйлдлүүдийг авах
+  /// Sync хийгдээгүй үйлдлүүдийг авах (max 5 retry хүртэл)
   Future<List<SyncQueueData>> getPendingSyncOperations({int limit = 50}) async {
     return await (select(syncQueue)
-          ..where((sq) => sq.synced.equals(false))
+          ..where((sq) =>
+              sq.synced.equals(false) &
+              sq.retryCount.isSmallerThanValue(5))
           ..orderBy([(sq) => OrderingTerm(expression: sq.createdAt)])
           ..limit(limit))
         .get();

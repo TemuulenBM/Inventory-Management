@@ -70,31 +70,15 @@ class AlertService extends BaseService {
         ),
       );
 
-      // 2. Online бол API руу илгээх
+      // 2. Online бол API руу шууд илгээх
+      // Alert operations SyncQueue-ээр дамждаггүй (server-side only)
+      // Offline үед local DB-д resolved=true хадгалагдана, дараа нь delta sync-ээр татагдана
       if (await isOnline) {
         try {
           await api.put(ApiEndpoints.resolveAlert(storeId, alertId));
         } catch (e) {
-          log('API resolveAlert error: $e');
-          // Queue for later
-          await enqueueOperation(
-            entityType: 'alert',
-            operation: 'resolve',
-            payload: {
-              'alert_id': alertId,
-              'store_id': storeId,
-            },
-          );
+          log('API resolveAlert error: $e (дараагийн sync-д server-ээс татагдана)');
         }
-      } else {
-        await enqueueOperation(
-          entityType: 'alert',
-          operation: 'resolve',
-          payload: {
-            'alert_id': alertId,
-            'store_id': storeId,
-          },
-        );
       }
 
       return const ApiResult.success(null);

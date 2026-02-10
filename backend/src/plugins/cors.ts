@@ -12,10 +12,10 @@ import { env } from '../config/env.js';
 
 async function corsPluginFn(server: FastifyInstance) {
   await server.register(cors, {
-    // Allowed origins
+    // Allowed origins (CORS_ORIGIN env var-аас авна, comma-separated)
     origin:
       env.NODE_ENV === 'production'
-        ? ['https://yourapp.com'] // Production domain
+        ? env.CORS_ORIGIN.split(',').map((s) => s.trim())
         : true, // Development - allow all origins
 
     // Allowed HTTP methods
