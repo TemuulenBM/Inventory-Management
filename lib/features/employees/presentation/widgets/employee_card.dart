@@ -154,6 +154,8 @@ class EmployeeCard extends StatelessWidget {
 
   Color _getRoleColor(String role) {
     switch (role) {
+      case 'owner':
+        return AppColors.primary;
       case 'manager':
         return AppColors.secondary;
       case 'seller':
@@ -165,6 +167,8 @@ class EmployeeCard extends StatelessWidget {
 
   String _getRoleName(String role) {
     switch (role) {
+      case 'owner':
+        return 'Эзэмшигч';
       case 'manager':
         return 'Менежер';
       case 'seller':
