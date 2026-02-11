@@ -6,6 +6,9 @@ import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/providers/admin_browse_provider.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
+import 'package:retail_control_platform/core/sync/sync_provider.dart';
+import 'package:retail_control_platform/core/sync/sync_state.dart';
+import 'package:retail_control_platform/features/inventory/domain/product_with_stock.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 
 /// Products List Screen (Inventory)
@@ -85,36 +88,8 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
             ),
           ),
 
-          // Sync badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFDCFCE7),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF10B981),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                const Text(
-                  'SYNCED',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF059669),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // Sync badge (динамик — бодит sync төлөв)
+          _buildSyncBadge(),
         ],
       ),
     );
@@ -290,10 +265,28 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
     return productsAsync.when(
       // ДАТА ИРСЭН
       data: (products) {
-        // "Бага үлдэгдэл" filter (client-side)
-        final filtered = _selectedFilter == 'Бага үлдэгдэл'
-            ? products.where((p) => p.isLowStock).toList()
-            : products;
+        // Шүүлт: Бага үлдэгдэл эсвэл категориар (client-side)
+        List<ProductWithStock> filtered;
+        if (_selectedFilter == 'Бага үлдэгдэл') {
+          filtered = products.where((p) => p.isLowStock).toList();
+        } else if (_selectedFilter != 'Бүгд') {
+          // Категори шүүлт
+          filtered = products
+              .where((p) => p.category == _selectedFilter)
+              .toList();
+        } else {
+          filtered = products;
+        }
+
+        // Хайлтын шүүлт (нэр, SKU-аар)
+        final searchText = _searchController.text.toLowerCase();
+        if (searchText.isNotEmpty) {
+          filtered = filtered
+              .where((p) =>
+                  p.name.toLowerCase().contains(searchText) ||
+                  p.sku.toLowerCase().contains(searchText))
+              .toList();
+        }
 
         // Empty state - бараа байхгүй
         if (filtered.isEmpty) {
@@ -338,6 +331,7 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
               stock: product.stockQuantity,
               isLowStock: product.isLowStock,
               imageUrl: product.imageUrl,
+              category: product.category,
               onTap: () {
                 context.push(RouteNames.productDetailPath(product.id));
               },
@@ -385,6 +379,7 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
     required bool isLowStock,
     required VoidCallback onTap,
     String? imageUrl,
+    String? category,
   }) {
     return Material(
       color: Colors.white,
@@ -523,6 +518,18 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
                           letterSpacing: 0.3,
                         ),
                       ),
+                      // Категори (байвал)
+                      if (category != null && category.isNotEmpty)
+                        Text(
+                          category,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondaryLight,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       const SizedBox(height: 3),
 
                       // Product name
@@ -593,5 +600,86 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
         color: AppColors.gray300,
       ),
     );
+  }
+
+  /// Динамик sync badge — бодит sync төлөв харуулна
+  Widget _buildSyncBadge() {
+    final syncState = ref.watch(syncNotifierProvider);
+    final status = syncState.status;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: _getSyncBgColor(status),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: _getSyncDotColor(status),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            _getSyncStatusText(status),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: _getSyncDotColor(status),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getSyncStatusText(SyncStatus status) {
+    switch (status) {
+      case SyncStatus.synced:
+        return 'SYNCED';
+      case SyncStatus.syncing:
+        return 'SYNCING...';
+      case SyncStatus.pendingChanges:
+        return 'PENDING';
+      case SyncStatus.offline:
+        return 'OFFLINE';
+      case SyncStatus.error:
+        return 'ERROR';
+    }
+  }
+
+  Color _getSyncDotColor(SyncStatus status) {
+    switch (status) {
+      case SyncStatus.synced:
+        return const Color(0xFF059669);
+      case SyncStatus.syncing:
+        return const Color(0xFF1976D2);
+      case SyncStatus.pendingChanges:
+        return const Color(0xFFE65100);
+      case SyncStatus.offline:
+        return const Color(0xFF757575);
+      case SyncStatus.error:
+        return const Color(0xFFC62828);
+    }
+  }
+
+  Color _getSyncBgColor(SyncStatus status) {
+    switch (status) {
+      case SyncStatus.synced:
+        return const Color(0xFFDCFCE7);
+      case SyncStatus.syncing:
+        return const Color(0xFFE3F2FD);
+      case SyncStatus.pendingChanges:
+        return const Color(0xFFFFF4E6);
+      case SyncStatus.offline:
+        return const Color(0xFFF5F5F5);
+      case SyncStatus.error:
+        return const Color(0xFFFFEBEE);
+    }
   }
 }
