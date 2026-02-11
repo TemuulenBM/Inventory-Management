@@ -290,6 +290,23 @@ final todayProfitSummaryProvider =
 );
 
 typedef TodayProfitSummaryRef = AutoDisposeFutureProviderRef<Map<String, int>>;
+String _$weeklySalesTrendHash() => r'899e021e44eda090e21e5ac41bf2b8f8c7850325';
+
+/// Сүүлийн 7 хоногийн өдөр тутмын борлуулалт (Dashboard sparkline)
+///
+/// Copied from [weeklySalesTrend].
+@ProviderFor(weeklySalesTrend)
+final weeklySalesTrendProvider = AutoDisposeFutureProvider<List<int>>.internal(
+  weeklySalesTrend,
+  name: r'weeklySalesTrendProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$weeklySalesTrendHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef WeeklySalesTrendRef = AutoDisposeFutureProviderRef<List<int>>;
 String _$topProductsHash() => r'21e95a59fb5a956859cec3b3d4182edb3e0cc57f';
 
 /// Өнөөдрийн шилдэг борлуулалттай бүтээгдэхүүнүүд (Top 5)

@@ -712,6 +712,7 @@ class DashboardScreen extends ConsumerWidget {
     ref.invalidate(yesterdaySalesTotalProvider);
     ref.invalidate(todayProfitSummaryProvider);
     ref.invalidate(topProductsProvider);
+    ref.invalidate(weeklySalesTrendProvider);
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
@@ -967,6 +968,9 @@ class DashboardScreen extends ConsumerWidget {
   Widget _buildSalesHeroCard(WidgetRef ref) {
     final todaySalesAsync = ref.watch(todaySalesTotalProvider);
     final yesterdaySalesAsync = ref.watch(yesterdaySalesTotalProvider);
+    // Сүүлийн 7 хоногийн борлуулалтын trend (sparkline-д ашиглана)
+    final weeklyTrendAsync = ref.watch(weeklySalesTrendProvider);
+    final weeklyTrend = weeklyTrendAsync.valueOrNull ?? [];
 
     return todaySalesAsync.when(
       data: (todaySales) {
@@ -983,6 +987,7 @@ class DashboardScreen extends ConsumerWidget {
               yesterdayAmount: yesterdaySales,
               growthPercent: growthPercent,
               isPositive: isPositive,
+              weeklyTrend: weeklyTrend,
             );
           },
           loading: () => _buildSalesCardContent(
@@ -991,12 +996,14 @@ class DashboardScreen extends ConsumerWidget {
             growthPercent: 0,
             isPositive: true,
             isLoading: true,
+            weeklyTrend: weeklyTrend,
           ),
           error: (_, __) => _buildSalesCardContent(
             todayAmount: todaySales,
             yesterdayAmount: 0,
             growthPercent: 0,
             isPositive: true,
+            weeklyTrend: weeklyTrend,
           ),
         );
       },
@@ -1011,6 +1018,7 @@ class DashboardScreen extends ConsumerWidget {
     required int growthPercent,
     required bool isPositive,
     bool isLoading = false,
+    List<int> weeklyTrend = const [],
   }) {
     final formattedToday = NumberFormat('#,###', 'mn').format(todayAmount.round());
     final formattedYesterday = NumberFormat('#,###', 'mn').format(yesterdayAmount.round());
@@ -1166,10 +1174,12 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
 
-                // Sparkline (placeholder - simple line)
+                // Sparkline — сүүлийн 7 хоногийн борлуулалтын trend
                 CustomPaint(
                   size: const Size(double.infinity, 60),
-                  painter: _SparklinePainter(),
+                  painter: _SparklinePainter(
+                    data: weeklyTrend.map((e) => e.toDouble()).toList(),
+                  ),
                 ),
               ],
             ),
@@ -1964,8 +1974,13 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-/// Simple sparkline painter (curved line)
+/// Sparkline painter — бодит борлуулалтын data-аар зурна
+/// [data] нь 7 хоногийн өдөр тутмын борлуулалтын дүн (List<double>)
 class _SparklinePainter extends CustomPainter {
+  final List<double> data;
+
+  _SparklinePainter({this.data = const []});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
@@ -1974,21 +1989,39 @@ class _SparklinePainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
+    // Data байхгүй эсвэл 1 цэгтэй бол хэвтээ шугам зурна
+    if (data.length < 2) {
+      canvas.drawLine(
+        Offset(0, size.height * 0.5),
+        Offset(size.width, size.height * 0.5),
+        paint,
+      );
+      return;
+    }
+
+    // Min/max олж нормализаци хийнэ (data → canvas coordinates)
+    final maxVal = data.reduce((a, b) => a > b ? a : b);
+    final minVal = data.reduce((a, b) => a < b ? a : b);
+    final range = maxVal - minVal;
+    final padding = size.height * 0.1;
+
+    // Data цэгүүдийг canvas координат руу хөрвүүлнэ
+    final points = <Offset>[];
+    for (int i = 0; i < data.length; i++) {
+      final x = i * size.width / (data.length - 1);
+      // range == 0 бол бүх цэг дунд шугам дээр
+      final normalized = range > 0
+          ? (data[i] - minVal) / range
+          : 0.5;
+      // y тэнхлэг доороос дээш (canvas-д дээрээс доош тул урвуу)
+      final y = size.height - padding - (normalized * (size.height - 2 * padding));
+      points.add(Offset(x, y));
+    }
+
     final path = Path();
-
-    // Sample data points for sparkline curve
-    final points = [
-      Offset(0, size.height * 0.7),
-      Offset(size.width * 0.15, size.height * 0.5),
-      Offset(size.width * 0.35, size.height * 0.6),
-      Offset(size.width * 0.55, size.height * 0.4),
-      Offset(size.width * 0.75, size.height * 0.5),
-      Offset(size.width, size.height * 0.2),
-    ];
-
     path.moveTo(points[0].dx, points[0].dy);
 
-    // Create smooth curve
+    // Smooth curve (quadratic bezier)
     for (int i = 0; i < points.length - 1; i++) {
       final current = points[i];
       final next = points[i + 1];
@@ -2010,7 +2043,7 @@ class _SparklinePainter extends CustomPainter {
 
     canvas.drawPath(path, paint);
 
-    // Draw end point
+    // Сүүлийн цэг дээр тойрог зурна
     canvas.drawCircle(
       points.last,
       4,
@@ -2021,5 +2054,7 @@ class _SparklinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _SparklinePainter oldDelegate) {
+    return oldDelegate.data != data;
+  }
 }

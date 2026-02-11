@@ -110,6 +110,9 @@ class ShiftManagementScreen extends ConsumerWidget {
                           totalSales: shift.totalSales,
                           transactionCount: shift.transactionCount,
                           isActive: shift.isActive,
+                          openBalance: shift.openBalance,
+                          closeBalance: shift.closeBalance,
+                          discrepancy: shift.discrepancy,
                         ),
                       );
                     }).toList(),
@@ -282,7 +285,7 @@ class ShiftManagementScreen extends ConsumerWidget {
     }
   }
 
-  /// Ээлж хаах
+  /// Ээлж хаах — мөнгөн тулгалтын дүнг хүлээн авч backend руу дамжуулна
   Future<void> _handleCloseShift(
     BuildContext context,
     WidgetRef ref,
@@ -293,12 +296,13 @@ class ShiftManagementScreen extends ConsumerWidget {
         await ref.read(currentShiftProvider(storeId).future);
     if (shift == null || !context.mounted) return;
 
-    final confirmed = await CloseShiftDialog.show(context, shift);
-    if (confirmed != true) return;
+    // CloseShiftDialog одоо int? (closeBalance) буцаана, null = цуцалсан
+    final closeBalance = await CloseShiftDialog.show(context, shift);
+    if (closeBalance == null) return;
 
     final success = await ref
         .read(shiftActionsProvider.notifier)
-        .closeShift(shiftId: shiftId);
+        .closeShift(shiftId: shiftId, closeBalance: closeBalance);
     if (context.mounted) {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(

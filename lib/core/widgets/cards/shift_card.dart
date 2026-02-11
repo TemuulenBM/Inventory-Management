@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 
 /// Shift card for shift history/management
-/// Дизайн: Seller name, date, time range, sales total
+/// Дизайн: Seller name, date, time range, sales total, мөнгөн тулгалт
 class ShiftCard extends StatelessWidget {
   final String sellerName;
   final DateTime startTime;
@@ -13,6 +14,11 @@ class ShiftCard extends StatelessWidget {
   final int transactionCount;
   final VoidCallback? onTap;
   final bool isActive;
+
+  /// Мөнгөн тулгалтын мэдээлэл (optional — хуучин shift-үүдэд null байж болно)
+  final int? openBalance;
+  final int? closeBalance;
+  final int? discrepancy;
 
   const ShiftCard({
     super.key,
@@ -23,6 +29,9 @@ class ShiftCard extends StatelessWidget {
     required this.transactionCount,
     this.onTap,
     this.isActive = false,
+    this.openBalance,
+    this.closeBalance,
+    this.discrepancy,
   });
 
   String get _timeRange {
@@ -46,11 +55,23 @@ class ShiftCard extends StatelessWidget {
     return '${hours}ц ${minutes}м';
   }
 
+  /// Мөнгөн зөрүү ₮5,000-с дээш бол анхааруулга
+  bool get _hasDiscrepancy => discrepancy != null && discrepancy!.abs() > 5000;
+
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: AppSpacing.cardPadding,
       color: isActive ? AppColors.successBackground : null,
+      shape: _hasDiscrepancy
+          ? RoundedRectangleBorder(
+              borderRadius: AppRadius.cardRadius,
+              side: BorderSide(
+                color: AppColors.danger.withValues(alpha: 0.4),
+                width: 1.5,
+              ),
+            )
+          : null,
       child: InkWell(
         onTap: onTap,
         borderRadius: AppRadius.cardRadius,
@@ -141,7 +162,7 @@ class ShiftCard extends StatelessWidget {
               // Stats row
               Row(
                 children: [
-                  // Total sales
+                  // Борлуулалт
                   Expanded(
                     child: _buildStatItem(
                       icon: Icons.payments_outlined,
@@ -151,7 +172,7 @@ class ShiftCard extends StatelessWidget {
                     ),
                   ),
                   AppSpacing.horizontalMD,
-                  // Transaction count
+                  // Гүйлгээ
                   Expanded(
                     child: _buildStatItem(
                       icon: Icons.receipt_outlined,
@@ -161,9 +182,73 @@ class ShiftCard extends StatelessWidget {
                   ),
                 ],
               ),
+
+              // Мөнгөн тулгалт (discrepancy байвал харуулна)
+              if (discrepancy != null && !isActive) ...[
+                AppSpacing.verticalSM,
+                _buildDiscrepancyRow(),
+              ],
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Мөнгөн тулгалтын мэдээлэл row
+  /// Зөрүүгийн хэмжээнээс хамаарч өнгө, icon солигдоно
+  Widget _buildDiscrepancyRow() {
+    final numberFormat = NumberFormat('#,###', 'mn');
+    final absDisc = discrepancy!.abs();
+
+    Color color;
+    IconData icon;
+    String label;
+
+    if (absDisc == 0) {
+      color = const Color(0xFF2E7D32);
+      icon = Icons.check_circle_outline;
+      label = 'Тохирсон';
+    } else if (absDisc <= 5000) {
+      color = const Color(0xFF1565C0);
+      icon = Icons.info_outline;
+      label = discrepancy! > 0
+          ? '₮${numberFormat.format(absDisc)} илүүдэл'
+          : '₮${numberFormat.format(absDisc)} дутуу';
+    } else {
+      color = AppColors.danger;
+      icon = Icons.warning_amber_rounded;
+      label = discrepancy! > 0
+          ? '₮${numberFormat.format(absDisc)} илүүдэл'
+          : '₮${numberFormat.format(absDisc)} дутуу';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: AppRadius.radiusSM,
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            'Мөнгөн тулгалт: ',
+            style: TextStyle(
+              fontSize: 12,
+              color: color.withValues(alpha: 0.7),
+            ),
+          ),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }

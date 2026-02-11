@@ -572,6 +572,51 @@ class AppDatabase extends _$AppDatabase {
     };
   }
 
+  /// Сүүлийн 7 хоногийн өдөр тутмын борлуулалтын нийлбэр (Dashboard sparkline)
+  /// 7 хоногийн өмнөөс өнөөдөр хүртэл, өдөр бүрийн нийт дүнг буцаана.
+  /// Борлуулалт байхгүй өдрүүдэд 0 утгатай.
+  Future<List<int>> getWeeklySalesTrend(String storeId) async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final weekAgo = today.subtract(const Duration(days: 6));
+
+    final result = await customSelect(
+      '''
+      SELECT
+        date(s.timestamp) as sale_date,
+        COALESCE(SUM(s.total_amount), 0) as daily_total
+      FROM sales s
+      WHERE s.store_id = ?
+        AND s.timestamp >= ?
+      GROUP BY date(s.timestamp)
+      ORDER BY sale_date ASC
+      ''',
+      variables: [
+        Variable.withString(storeId),
+        Variable.withDateTime(weekAgo),
+      ],
+    ).get();
+
+    // Өдөр бүрийн data-г map-д хадгална
+    final dailyMap = <String, int>{};
+    for (final row in result) {
+      final date = row.read<String>('sale_date');
+      final total = row.read<int>('daily_total');
+      dailyMap[date] = total;
+    }
+
+    // 7 хоногийн бүрэн жагсаалт (борлуулалтгүй өдрүүдэд 0)
+    final trend = <int>[];
+    for (int i = 6; i >= 0; i--) {
+      final date = today.subtract(Duration(days: i));
+      final dateStr =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      trend.add(dailyMap[dateStr] ?? 0);
+    }
+
+    return trend;
+  }
+
   // ============================================================================
   // TRANSFER METHODS - Салбар хоорондын шилжүүлэг
   // ============================================================================

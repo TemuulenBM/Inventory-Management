@@ -223,6 +223,16 @@ Future<Map<String, int>> todayProfitSummary(TodayProfitSummaryRef ref) async {
   return db.getTodayProfitSummary(storeId);
 }
 
+/// Сүүлийн 7 хоногийн өдөр тутмын борлуулалт (Dashboard sparkline)
+@riverpod
+Future<List<int>> weeklySalesTrend(WeeklySalesTrendRef ref) async {
+  final storeId = ref.watch(storeIdProvider);
+  if (storeId == null) return List.filled(7, 0);
+
+  final db = ref.watch(databaseProvider);
+  return db.getWeeklySalesTrend(storeId);
+}
+
 /// Шилдэг борлуулалттай бүтээгдэхүүн (Top products)
 class TopProductItem {
   final String id;
