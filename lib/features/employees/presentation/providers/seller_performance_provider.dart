@@ -74,6 +74,7 @@ Future<List<SellerPerformance>> sellerPerformanceList(
     }
     return [];
   } catch (e) {
-    return [];
+    // Error-г дамжуулж, UI дээр error state харуулах
+    rethrow;
   }
 }

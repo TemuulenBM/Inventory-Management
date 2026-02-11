@@ -296,7 +296,7 @@ class SellerPerformanceScreen extends ConsumerWidget {
           ),
           AppSpacing.verticalSM,
           const Text(
-            'Борлуулалт эхэлсний дараа гүйцэтгэл\nхаргадах болно',
+            'Борлуулалт эхэлсний дараа гүйцэтгэл\nхарагдах болно',
             style: TextStyle(
               fontSize: 13,
               color: AppColors.textTertiaryLight,

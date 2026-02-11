@@ -228,7 +228,7 @@ export async function getSellerPerformance(
     // 1. Query үүсгэх
     let queryBuilder = supabase
       .from('sales')
-      .select('seller_id, total_amount, users!inner(name)')
+      .select('id, seller_id, total_amount, users!inner(name)')
       .eq('store_id', storeId)
       .gte('timestamp', from)
       .lte('timestamp', to);
