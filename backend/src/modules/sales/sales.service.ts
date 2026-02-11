@@ -132,6 +132,8 @@ export async function createSale(
       .insert(inventoryEventsData);
 
     if (eventsError) {
+      // sale_items + sale хоёуланг нь cleanup хийх
+      await supabase.from('sale_items').delete().eq('sale_id', sale.id);
       await supabase.from('sales').delete().eq('id', sale.id);
       return { success: false, error: 'Inventory events үүсгэхэд алдаа гарлаа' };
     }

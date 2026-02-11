@@ -4,6 +4,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:retail_control_platform/core/api/api_result.dart';
 import 'package:retail_control_platform/core/database/app_database.dart';
 import 'package:retail_control_platform/core/providers/store_provider.dart';
+import 'package:retail_control_platform/core/providers/admin_browse_provider.dart';
 import 'package:retail_control_platform/core/services/product_service.dart';
 import 'package:retail_control_platform/features/inventory/domain/product_with_stock.dart';
 
@@ -30,7 +31,8 @@ Future<List<ProductWithStock>> productList(
   String? searchQuery,
   String? category,
 }) async {
-  final storeId = ref.watch(storeIdProvider);
+  // Super-admin browse mode-д effectiveStoreId ашиглана
+  final storeId = ref.watch(effectiveStoreIdProvider);
   if (storeId == null) {
     return [];
   }

@@ -84,9 +84,9 @@ class CartNotifier extends _$CartNotifier {
 
 /// Cart total (sum of all item subtotals) - хөнгөлөлтийн дараах
 @riverpod
-double cartTotal(CartTotalRef ref) {
+int cartTotal(CartTotalRef ref) {
   final cartItems = ref.watch(cartNotifierProvider);
-  return cartItems.fold(0.0, (sum, item) => sum + item.subtotal);
+  return cartItems.fold(0, (sum, item) => sum + item.subtotal);
 }
 
 /// Нийт хөнгөлөлтийн дүн

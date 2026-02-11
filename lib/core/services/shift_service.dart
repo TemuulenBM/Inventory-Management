@@ -192,37 +192,34 @@ class ShiftService extends BaseService {
         ),
       );
 
-      // 5. Online бол API руу илгээх
+      // 5. Online бол API руу илгээх (reconciliation мэдээлэлтэй)
+      final shiftPayload = {
+        'shift_id': shiftId,
+        'store_id': storeId,
+        'close_balance': closeBalance,
+        'expected_balance': expectedBal,
+        'discrepancy': disc,
+      };
+
       if (await isOnline) {
         try {
           await api.post(
             ApiEndpoints.closeShift(storeId),
-            data: {
-              'shift_id': shiftId,
-              'close_balance': closeBalance,
-            },
+            data: shiftPayload,
           );
         } catch (e) {
           log('API closeShift error: $e');
           await enqueueOperation(
             entityType: 'shift',
             operation: 'close_shift',
-            payload: {
-              'shift_id': shiftId,
-              'store_id': storeId,
-              'close_balance': closeBalance,
-            },
+            payload: shiftPayload,
           );
         }
       } else {
         await enqueueOperation(
           entityType: 'shift',
           operation: 'close_shift',
-          payload: {
-            'shift_id': shiftId,
-            'store_id': storeId,
-            'close_balance': closeBalance,
-          },
+          payload: shiftPayload,
         );
       }
 
@@ -368,31 +365,50 @@ class ShiftService extends BaseService {
     }
 
     final shifts = await query.get();
-    final shiftModels = <ShiftModel>[];
+    if (shifts.isEmpty) return [];
 
-    for (final shift in shifts) {
-      final user = await (db.select(db.users)..where((u) => u.id.equals(shift.sellerId)))
-          .getSingleOrNull();
-      final salesData = await _calculateShiftSales(shift.id);
+    // Batch query: бүх seller-үүдийг нэг query-ээр авах (N+1 засвар)
+    final sellerIds = shifts.map((s) => s.sellerId).toSet().toList();
+    final sellers = await (db.select(db.users)
+          ..where((u) => u.id.isIn(sellerIds)))
+        .get();
+    final sellerMap = {for (final s in sellers) s.id: s.name};
 
-      shiftModels.add(ShiftModel(
+    // Batch query: бүх shift-ийн sales-ийг нэг GROUP BY query-ээр авах (N+1 засвар)
+    final shiftIds = shifts.map((s) => s.id).toList();
+    final allShiftSales = await (db.select(db.sales)
+          ..where((s) => s.shiftId.isIn(shiftIds)))
+        .get();
+
+    // Shift ID-аар group хийж sales тооцоолох
+    final salesByShiftId = <String, List<Sale>>{};
+    for (final sale in allShiftSales) {
+      if (sale.shiftId != null) {
+        salesByShiftId.putIfAbsent(sale.shiftId!, () => []).add(sale);
+      }
+    }
+
+    return shifts.map((shift) {
+      final shiftSales = salesByShiftId[shift.id] ?? [];
+      final totalSales = shiftSales.fold<double>(0, (sum, s) => sum + s.totalAmount);
+      final transactionCount = shiftSales.length;
+
+      return ShiftModel(
         id: shift.id,
         sellerId: shift.sellerId,
-        sellerName: user?.name ?? 'Unknown',
+        sellerName: sellerMap[shift.sellerId] ?? 'Unknown',
         storeId: shift.storeId,
         startTime: shift.openedAt,
         endTime: shift.closedAt,
-        totalSales: salesData['totalSales']!,
-        transactionCount: salesData['transactionCount']!.toInt(),
+        totalSales: totalSales,
+        transactionCount: transactionCount,
         createdAt: shift.openedAt,
         openBalance: shift.openBalance,
         closeBalance: shift.closeBalance,
         expectedBalance: shift.expectedBalance,
         discrepancy: shift.discrepancy,
-      ));
-    }
-
-    return shiftModels;
+      );
+    }).toList();
   }
 
   /// Ээлжийн борлуулалт тооцоолох

@@ -1,30 +1,31 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'multi_store_dashboard_provider.dart';
+part of 'admin_dashboard_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
-String _$multiStoreDashboardHash() =>
-    r'dcd24e99a91059e5e5306ba1713daf97cc09b681';
+String _$adminAllStoresDashboardHash() =>
+    r'f1ddc7633a99f640b9d967ba78a250b98a21b99f';
 
-/// Multi-store нэгдсэн dashboard мэдээлэл (API-аас)
+/// Super-admin бүх дэлгүүрийн dashboard (API-аас)
+/// StoreDashboardSummary model-ийг дахин ашиглана (шинэ model хэрэггүй)
 ///
-/// Copied from [multiStoreDashboard].
-@ProviderFor(multiStoreDashboard)
-final multiStoreDashboardProvider =
+/// Copied from [adminAllStoresDashboard].
+@ProviderFor(adminAllStoresDashboard)
+final adminAllStoresDashboardProvider =
     AutoDisposeFutureProvider<List<StoreDashboardSummary>>.internal(
-  multiStoreDashboard,
-  name: r'multiStoreDashboardProvider',
+  adminAllStoresDashboard,
+  name: r'adminAllStoresDashboardProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$multiStoreDashboardHash,
+      : _$adminAllStoresDashboardHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef MultiStoreDashboardRef
+typedef AdminAllStoresDashboardRef
     = AutoDisposeFutureProviderRef<List<StoreDashboardSummary>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

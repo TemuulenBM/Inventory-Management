@@ -89,7 +89,7 @@ class BottomActionSheet extends StatelessWidget {
 
 /// Payment bottom sheet (for cart checkout)
 class PaymentBottomSheet extends StatelessWidget {
-  final double subtotal;
+  final int subtotal;
   final int totalDiscount;
   final String paymentMethod;
   final ValueChanged<String> onPaymentMethodChanged;
@@ -160,7 +160,7 @@ class PaymentBottomSheet extends StatelessWidget {
               ),
             ),
             Text(
-              '₮${subtotal.toStringAsFixed(0)}',
+              '₮$subtotal',
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,

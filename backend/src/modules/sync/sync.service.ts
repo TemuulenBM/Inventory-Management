@@ -345,19 +345,21 @@ async function syncCloseShift(
   storeId: string,
   operation: SyncOperation
 ): Promise<{ success: true } | { success: false; error: string }> {
-  const { shift_id, close_balance } = operation.data;
+  const { shift_id, close_balance, expected_balance, discrepancy } = operation.data;
 
   if (!shift_id) {
     return { success: false, error: 'Shift ID required' };
   }
 
-  // Update shift
+  // Update shift (reconciliation мэдээлэлтэй)
   const { error } = await supabase
     .from('shifts')
     .update({
       closed_at: new Date().toISOString(),
       close_balance,
-      synced_at: new Date().toISOString(), // Sync timestamp update
+      expected_balance: expected_balance ?? null,
+      discrepancy: discrepancy ?? null,
+      synced_at: new Date().toISOString(),
     })
     .eq('id', shift_id)
     .eq('store_id', storeId);

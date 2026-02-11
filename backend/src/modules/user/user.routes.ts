@@ -506,5 +506,128 @@ export async function userRoutes(server: FastifyInstance) {
     }
   );
 
-  server.log.info('✓ User routes registered (including multi-store endpoints)');
+  /**
+   * GET /admin/stores/dashboard
+   * Super-admin: системийн БҮХ дэлгүүрүүдийн dashboard
+   * Зөвхөн super_admin role-тэй хэрэглэгчдэд
+   *
+   * Одоо байгаа /users/:userId/stores/dashboard логикийг ашиглана,
+   * гэхдээ store_members биш шууд stores table-аас БҮХ store авна.
+   */
+  server.get(
+    '/admin/stores/dashboard',
+    {
+      onRequest: [server.authenticate, authorize(['super_admin'])],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      // 1. Бүх дэлгүүрүүд (store_members-гүй, шууд stores table)
+      const { data: allStores, error: storeError } = await supabase
+        .from('stores')
+        .select('id, name, location')
+        .order('created_at', { ascending: false });
+
+      if (storeError || !allStores || allStores.length === 0) {
+        return reply.status(200).send({
+          success: true,
+          stores: [],
+        });
+      }
+
+      // 2. Өнөөдрийн огноо
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayIso = todayStart.toISOString();
+
+      // 3. Store ID-нуудыг цуглуулах
+      const storeIds = allStores.map((s) => s.id as string);
+
+      // 3a. Бүх store-ийн өнөөдрийн борлуулалтууд
+      const { data: allSales } = await supabase
+        .from('sales')
+        .select('id, store_id, total_amount, total_discount')
+        .in('store_id', storeIds)
+        .gte('timestamp', todayIso);
+
+      // 3b. Sale items (cost_price → ашгийн тооцоонд)
+      const saleIds = (allSales ?? []).map((s) => s.id);
+      let allSaleItems: Array<{ sale_id: string; cost_price: number; quantity: number }> = [];
+      if (saleIds.length > 0) {
+        const { data: items } = await supabase
+          .from('sale_items')
+          .select('sale_id, cost_price, quantity')
+          .in('sale_id', saleIds);
+        allSaleItems = (items ?? []) as typeof allSaleItems;
+      }
+
+      // 3c. Low stock тоо (materialized view)
+      const { data: lowStockData } = await supabase
+        .from('product_stock_levels')
+        .select('product_id, store_id, current_stock')
+        .in('store_id', storeIds)
+        .lt('current_stock', 5)
+        .gt('current_stock', -1);
+
+      // 3d. Идэвхтэй ээлжүүд (closed_at IS NULL)
+      const { data: activeShifts } = await supabase
+        .from('shifts')
+        .select('id, store_id, seller_id, users!inner(name)')
+        .in('store_id', storeIds)
+        .is('closed_at', null);
+
+      // 4. Store бүрийн dashboard нэгтгэл
+      const storeDashboards = allStores.map((store) => {
+        const sid = store.id as string;
+
+        // Борлуулалт
+        const storeSales = (allSales ?? []).filter((s) => s.store_id === sid);
+        const todayRevenue = storeSales.reduce(
+          (sum, s) => sum + parseFloat(String(s.total_amount)), 0
+        );
+        const todayDiscount = storeSales.reduce(
+          (sum, s) => sum + parseFloat(String(s.total_discount ?? 0)), 0
+        );
+        const salesCount = storeSales.length;
+
+        // Ашиг тооцоолох
+        const storeSaleIds = storeSales.map((s) => s.id);
+        const storeItems = allSaleItems.filter((item) => storeSaleIds.includes(item.sale_id));
+        const todayCost = storeItems.reduce(
+          (sum, item) => sum + (item.cost_price ?? 0) * item.quantity, 0
+        );
+        const todayProfit = todayRevenue - todayCost;
+
+        // Low stock
+        const lowStockCount = (lowStockData ?? []).filter((ls) => ls.store_id === sid).length;
+
+        // Идэвхтэй ажилтнууд
+        const activeSellers = (activeShifts ?? [])
+          .filter((s: Record<string, unknown>) => s.store_id === sid)
+          .map((s: Record<string, unknown>) => ({
+            id: s.seller_id as string,
+            name: ((s.users as Record<string, unknown>)?.name ?? '?') as string,
+          }));
+
+        return {
+          store_id: sid,
+          store_name: (store.name ?? '') as string,
+          store_location: (store.location as string) ?? null,
+          role: 'super_admin',
+          today_revenue: todayRevenue,
+          today_cost: todayCost,
+          today_profit: todayProfit,
+          today_discount: todayDiscount,
+          today_sales_count: salesCount,
+          low_stock_count: lowStockCount,
+          active_sellers: activeSellers,
+        };
+      });
+
+      return reply.status(200).send({
+        success: true,
+        stores: storeDashboards,
+      });
+    }
+  );
+
+  server.log.info('✓ User routes registered (including multi-store + admin endpoints)');
 }

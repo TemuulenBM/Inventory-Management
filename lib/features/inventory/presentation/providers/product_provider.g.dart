@@ -39,7 +39,7 @@ final productServiceProvider = AutoDisposeProvider<ProductService>.internal(
 );
 
 typedef ProductServiceRef = AutoDisposeProviderRef<ProductService>;
-String _$productListHash() => r'2069ce29de6124a5f9cd82c7cacf99a34aff098e';
+String _$productListHash() => r'076b036dabdcd2160b4f7bb2e9d63493f34d475e';
 
 /// Copied from Dart SDK
 class _SystemHash {

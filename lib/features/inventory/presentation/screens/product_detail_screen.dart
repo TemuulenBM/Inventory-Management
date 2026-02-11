@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
+import 'package:retail_control_platform/core/providers/admin_browse_provider.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/features/inventory/domain/inventory_event_model.dart';
 import 'package:retail_control_platform/features/inventory/domain/product_with_stock.dart';
@@ -138,7 +139,9 @@ class ProductDetailScreen extends ConsumerWidget {
         children: [
           // Main content
           SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+            // Read-only mode-д доод товчнууд нуугдах тул padding багасна
+            padding: EdgeInsets.fromLTRB(20, 0, 20,
+                ref.watch(isReadOnlyModeProvider) ? 20 : 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -343,105 +346,106 @@ class ProductDetailScreen extends ConsumerWidget {
             ),
           ),
 
-          // Bottom action buttons
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 20,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: SafeArea(
-                top: false,
-                child: Row(
-                  children: [
-                    // Edit button
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          // Navigate to edit screen
-                          context.push(RouteNames.editProductPath(productId));
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: BorderSide(
-                            color: AppColors.primary.withValues(alpha: 0.3),
-                            width: 2,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.radiusLG,
-                          ),
-                        ),
-                        child: const Text(
-                          'Засах',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    // Adjust stock button
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          // AdjustmentBottomSheet нээх
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.white,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(20),
-                              ),
-                            ),
-                            builder: (_) => AdjustmentBottomSheet(
-                              productId: productId,
-                              productName: product.name,
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF00878F),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.radiusLG,
-                          ),
-                        ),
-                        icon: const Icon(
-                          Icons.edit,
-                          size: 20,
-                          color: Colors.white,
-                        ),
-                        label: const Text(
-                          'Үлдэгдэл засах',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
+          // Bottom action buttons — super-admin browse mode-д нуугдана (read-only)
+          if (!ref.watch(isReadOnlyModeProvider))
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, -4),
                     ),
                   ],
                 ),
+                child: SafeArea(
+                  top: false,
+                  child: Row(
+                    children: [
+                      // Edit button
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            // Navigate to edit screen
+                            context.push(RouteNames.editProductPath(productId));
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            side: BorderSide(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                              width: 2,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: AppRadius.radiusLG,
+                            ),
+                          ),
+                          child: const Text(
+                            'Засах',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+
+                      // Adjust stock button
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            // AdjustmentBottomSheet нээх
+                            showModalBottomSheet(
+                              context: context,
+                              isScrollControlled: true,
+                              backgroundColor: Colors.white,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(20),
+                                ),
+                              ),
+                              builder: (_) => AdjustmentBottomSheet(
+                                productId: productId,
+                                productName: product.name,
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF00878F),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: AppRadius.radiusLG,
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.edit,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            'Үлдэгдэл засах',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );

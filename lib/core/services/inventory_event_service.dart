@@ -111,17 +111,18 @@ class InventoryEventService extends BaseService {
           'shiftId': shiftId,
         });
       } else {
+        // Backend syncCreateInventoryEvent() camelCase keys хүлээдэг
         await enqueueOperation(
           entityType: 'inventory_event',
           operation: 'create',
           payload: {
             'temp_id': eventId,
             'store_id': storeId,
-            'product_id': productId,
-            'event_type': 'ADJUST',
-            'qty_change': qtyChange,
+            'productId': productId,
+            'eventType': 'ADJUST',
+            'qtyChange': qtyChange,
             'reason': reason,
-            'shift_id': shiftId,
+            'shiftId': shiftId,
           },
         );
       }

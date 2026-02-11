@@ -296,31 +296,40 @@ class SalesService extends BaseService {
     }
 
     final sales = await query.get();
-    final salesWithItems = <SaleWithItems>[];
+    if (sales.isEmpty) return [];
 
-    for (final sale in sales) {
-      final items = await (db.select(db.saleItems)
-            ..where((si) => si.saleId.equals(sale.id)))
-          .get();
+    // Batch query: бүх sale_items-ийг нэг query-ээр авах (N+1 засвар)
+    final saleIds = sales.map((s) => s.id).toList();
+    final allItems = await (db.select(db.saleItems)
+          ..where((si) => si.saleId.isIn(saleIds)))
+        .get();
 
-      // Seller name авах
-      final seller = await (db.select(db.users)..where((u) => u.id.equals(sale.sellerId)))
-          .getSingleOrNull();
+    // Sale ID-аар group хийх
+    final itemsBySaleId = <String, List<SaleItem>>{};
+    for (final item in allItems) {
+      itemsBySaleId.putIfAbsent(item.saleId, () => []).add(item);
+    }
 
-      salesWithItems.add(SaleWithItems(
+    // Batch query: бүх seller-үүдийг нэг query-ээр авах (N+1 засвар)
+    final sellerIds = sales.map((s) => s.sellerId).toSet().toList();
+    final sellers = await (db.select(db.users)
+          ..where((u) => u.id.isIn(sellerIds)))
+        .get();
+    final sellerMap = {for (final s in sellers) s.id: s.name};
+
+    return sales.map((sale) {
+      return SaleWithItems(
         id: sale.id,
         storeId: sale.storeId,
         sellerId: sale.sellerId,
-        sellerName: seller?.name ?? 'Unknown',
+        sellerName: sellerMap[sale.sellerId] ?? 'Unknown',
         shiftId: sale.shiftId,
         totalAmount: sale.totalAmount,
         paymentMethod: sale.paymentMethod,
         timestamp: sale.timestamp,
-        items: items,
-      ));
-    }
-
-    return salesWithItems;
+        items: itemsBySaleId[sale.id] ?? [],
+      );
+    }).toList();
   }
 
   /// Local DB-аас нэг борлуулалт унших
@@ -400,7 +409,7 @@ class SalesService extends BaseService {
     }
   }
 
-  /// API-аас борлуулалт refresh
+  /// API-аас борлуулалт refresh хийж local DB-д хадгалах
   Future<void> _refreshSalesFromApi(
     String storeId,
     String? sellerId,
@@ -418,6 +427,59 @@ class SalesService extends BaseService {
 
       if (response.data['success'] == true) {
         final salesData = response.data['sales'] as List? ?? [];
+
+        // API-аас ирсэн борлуулалт бүрийг local DB-д upsert хийх
+        for (final saleJson in salesData) {
+          try {
+            final data = saleJson as Map<String, dynamic>;
+            await db.into(db.sales).insertOnConflictUpdate(
+                  SalesCompanion.insert(
+                    id: data['id'] as String,
+                    storeId: data['store_id'] as String? ?? storeId,
+                    sellerId: data['seller_id'] as String,
+                    shiftId: Value(data['shift_id'] as String?),
+                    totalAmount: (data['total_amount'] as num?)?.toInt() ?? 0,
+                    totalDiscount:
+                        Value((data['total_discount'] as num?)?.toInt() ?? 0),
+                    paymentMethod:
+                        Value(data['payment_method'] as String? ?? 'cash'),
+                    timestamp: Value(
+                      DateTime.tryParse(data['timestamp'] ?? '') ??
+                          DateTime.now(),
+                    ),
+                    syncedAt:
+                        Value(DateTime.tryParse(data['synced_at'] ?? '')),
+                  ),
+                );
+
+            // Sale items upsert (embedded list)
+            final items = data['items'] as List? ?? [];
+            for (final item in items) {
+              final itemData = item as Map<String, dynamic>;
+              await db.into(db.saleItems).insertOnConflictUpdate(
+                    SaleItemsCompanion.insert(
+                      id: itemData['id'] as String,
+                      saleId: data['id'] as String,
+                      productId: itemData['product_id'] as String,
+                      quantity: (itemData['quantity'] as num?)?.toInt() ?? 0,
+                      unitPrice:
+                          (itemData['unit_price'] as num?)?.toInt() ?? 0,
+                      subtotal:
+                          (itemData['subtotal'] as num?)?.toInt() ?? 0,
+                      originalPrice: Value(
+                          (itemData['original_price'] as num?)?.toInt() ?? 0),
+                      discountAmount: Value(
+                          (itemData['discount_amount'] as num?)?.toInt() ?? 0),
+                      costPrice:
+                          Value((itemData['cost_price'] as num?)?.toInt()),
+                    ),
+                  );
+            }
+          } catch (e) {
+            log('_refreshSalesFromApi upsert error: $e');
+          }
+        }
+
         log('Refreshed ${salesData.length} sales from API');
       }
     } catch (e) {

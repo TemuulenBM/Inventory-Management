@@ -94,6 +94,7 @@ Future<List<StoreDashboardSummary>> multiStoreDashboard(
     }
     return [];
   } catch (e) {
-    return [];
+    // Алдааг rethrow хийж AsyncValue.error() харагдахаар болгох
+    throw Exception('Dashboard мэдээлэл авахад алдаа гарлаа: $e');
   }
 }

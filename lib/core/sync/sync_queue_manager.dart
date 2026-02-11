@@ -16,7 +16,7 @@ class SyncQueueManager {
   final ApiClient api = apiClient;
 
   static const int maxBatchSize = 50;
-  static const int maxRetries = 3;
+  // maxRetries DB query дотор шалгагддаг (retryCount < 5, app_database.dart:642)
   static const String _lastSyncTimeKey = 'last_sync_time';
 
   SyncQueueManager({required this.db});
@@ -422,7 +422,7 @@ class SyncQueueManager {
   /// энэ функц sale бүртгэл болон бүх sale_items-ийг local DB-д хадгална
   Future<void> _upsertSale(Map<String, dynamic> data) async {
     try {
-      // 1. Sale бүртгэл upsert
+      // 1. Sale бүртгэл upsert (totalDiscount нэмсэн)
       await db.into(db.sales).insertOnConflictUpdate(
             SalesCompanion.insert(
               id: data['id'],
@@ -430,6 +430,7 @@ class SyncQueueManager {
               sellerId: data['seller_id'],
               shiftId: Value(data['shift_id']),
               totalAmount: (data['total_amount'] as num?)?.toInt() ?? 0,
+              totalDiscount: Value((data['total_discount'] as num?)?.toInt() ?? 0),
               paymentMethod: Value(data['payment_method'] ?? 'cash'),
               timestamp:
                   Value(DateTime.tryParse(data['timestamp'] ?? '') ?? DateTime.now()),
@@ -447,7 +448,7 @@ class SyncQueueManager {
     }
   }
 
-  /// SaleItem upsert
+  /// SaleItem upsert (discount/cost талбаруудтай)
   Future<void> _upsertSaleItem(Map<String, dynamic> data) async {
     try {
       await db.into(db.saleItems).insertOnConflictUpdate(
@@ -458,6 +459,9 @@ class SyncQueueManager {
               quantity: data['quantity'] ?? 0,
               unitPrice: (data['unit_price'] as num?)?.toInt() ?? 0,
               subtotal: (data['subtotal'] as num?)?.toInt() ?? 0,
+              originalPrice: Value((data['original_price'] as num?)?.toInt() ?? 0),
+              discountAmount: Value((data['discount_amount'] as num?)?.toInt() ?? 0),
+              costPrice: Value((data['cost_price'] as num?)?.toInt()),
             ),
           );
     } catch (e) {

@@ -22,13 +22,13 @@ final salesServiceProvider = AutoDisposeProvider<SalesService>.internal(
 );
 
 typedef SalesServiceRef = AutoDisposeProviderRef<SalesService>;
-String _$cartTotalHash() => r'269e669015ac6baa8b61eccc7e172684b2d6d118';
+String _$cartTotalHash() => r'7c0ecc9d5372c476aa2ef95c82fa03b86310f5ca';
 
 /// Cart total (sum of all item subtotals) - хөнгөлөлтийн дараах
 ///
 /// Copied from [cartTotal].
 @ProviderFor(cartTotal)
-final cartTotalProvider = AutoDisposeProvider<double>.internal(
+final cartTotalProvider = AutoDisposeProvider<int>.internal(
   cartTotal,
   name: r'cartTotalProvider',
   debugGetCreateSourceHash:
@@ -37,7 +37,7 @@ final cartTotalProvider = AutoDisposeProvider<double>.internal(
   allTransitiveDependencies: null,
 );
 
-typedef CartTotalRef = AutoDisposeProviderRef<double>;
+typedef CartTotalRef = AutoDisposeProviderRef<int>;
 String _$cartTotalDiscountHash() => r'c68bf57c045420f2f6ef60078eff6061dab2845c';
 
 /// Нийт хөнгөлөлтийн дүн

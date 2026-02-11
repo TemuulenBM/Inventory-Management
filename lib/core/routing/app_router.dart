@@ -335,31 +335,29 @@ String? _authGuard(BuildContext context, GoRouterState state) {
   final isSuperAdmin = user?.role == 'super_admin';
 
   if (isSuperAdmin) {
-    // Super-admin-д хориглогдсон route-ууд
-    final restrictedRoutes = [
-      '/inventory',
-      '/product',
-      '/history',
-      '/cart',
-      '/quick-sale',
-      '/shifts',
-      '/alerts',
-      '/employees',
-      '/store-edit',
-      '/store-selection',
-      '/profile-edit',
+    // Super-admin-д ҮРГЭЛЖ хориглогдсон route-ууд (бичих үйлдлүүд)
+    final writeRestrictedRoutes = [
+      '/sales',              // Борлуулалт хийх
+      '/inventory/add',      // Бараа нэмэх
+      '/inventory/edit',     // Бараа засах
+      '/shifts',             // Ээлж удирдах
+      '/transfers',          // Салбар шилжүүлэг
+      '/sync',               // Sync удирдах
+      '/settings/employees', // Ажилтан удирдах
+      '/settings/store/edit', // Дэлгүүр засах
+      '/settings/store/selection', // Дэлгүүр сонгох
+      '/settings/profile',  // Профайл засах
     ];
 
-    // Хэрэв хориглогдсон route руу орохыг оролдвол → redirect to dashboard
-    for (final restrictedRoute in restrictedRoutes) {
-      if (location.startsWith(restrictedRoute)) {
-        // SnackBar харуулах боломжгүй (redirect function дотор)
-        // Энэ нь зөвхөн redirect хийнэ, мессеж нь dashboard screen дээр харуулагдана
+    for (final route in writeRestrictedRoutes) {
+      if (location.startsWith(route)) {
         return RouteNames.dashboard;
       }
     }
 
-    // Зөвшөөрөгдсөн routes: /dashboard, /settings, /invitations, /create-invitation
+    // Browse mode (read-only) routes нээлттэй:
+    // /inventory, /product/:id, /history, /alerts, /dashboard/multi
+    // Зөвшөөрөгдсөн routes: /dashboard, /settings, /invitations + дээрх read-only routes
     return null;
   }
 

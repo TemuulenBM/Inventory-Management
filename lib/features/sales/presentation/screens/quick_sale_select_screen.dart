@@ -612,7 +612,7 @@ class _QuickSaleSelectScreenState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${product.sellPrice.toStringAsFixed(0)}₮',
+                        '${product.sellPrice}₮',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w800,
@@ -752,7 +752,7 @@ class _QuickSaleSelectScreenState
     );
   }
 
-  Widget _buildCartSummary(int cartCount, double cartTotal) {
+  Widget _buildCartSummary(int cartCount, int cartTotal) {
     return Material(
       color: const Color(0xFF00878F),
       borderRadius: AppRadius.radiusXL,
@@ -814,7 +814,7 @@ class _QuickSaleSelectScreenState
 
               // Total amount
               Text(
-                '${cartTotal.toStringAsFixed(0)}₮',
+                '$cartTotal₮',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,

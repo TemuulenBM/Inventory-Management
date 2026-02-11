@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
+import 'package:retail_control_platform/core/providers/admin_browse_provider.dart';
 import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 
@@ -53,7 +54,10 @@ class _ProductsListScreenState extends ConsumerState<ProductsListScreen> {
           ],
         ),
       ),
-      floatingActionButton: _buildAddProductFAB(),
+      // Super-admin browse mode-д бараа нэмэх товч нуугдана (read-only)
+      floatingActionButton: ref.watch(isReadOnlyModeProvider)
+          ? null
+          : _buildAddProductFAB(),
     );
   }
 

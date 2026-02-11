@@ -74,6 +74,10 @@ class ApiEndpoints {
   /// Multi-store нэгдсэн dashboard
   static String multiStoreDashboard(String userId) => '/users/$userId/stores/dashboard';
 
+  // Admin (super-admin only)
+  /// Super-admin: бүх дэлгүүрүүдийн нэгдсэн dashboard
+  static const String adminDashboard = '/admin/stores/dashboard';
+
   // Health
   static const String health = '/health';
 }

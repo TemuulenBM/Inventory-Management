@@ -330,7 +330,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
   /// Доод хэсгийн хураангуй
   Widget _buildBottomSummary({
     required int totalItems,
-    required double total,
+    required int total,
   }) {
     final totalDiscount = ref.watch(cartTotalDiscountProvider);
 
@@ -418,7 +418,7 @@ class _CartScreenState extends ConsumerState<CartScreen> {
                   ),
                 ),
                 Text(
-                  '${total.toStringAsFixed(0)}₮',
+                  '$total₮',
                   style: const TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,

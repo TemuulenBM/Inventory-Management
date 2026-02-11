@@ -17,6 +17,9 @@ import 'package:retail_control_platform/features/inventory/presentation/provider
 import 'package:retail_control_platform/features/store/presentation/providers/current_store_provider.dart';
 import 'package:retail_control_platform/features/store/presentation/providers/user_stores_provider.dart';
 import 'package:retail_control_platform/core/widgets/cards/alert_card.dart';
+import 'package:retail_control_platform/core/providers/admin_browse_provider.dart';
+import 'package:retail_control_platform/features/dashboard/presentation/providers/admin_dashboard_provider.dart';
+import 'package:retail_control_platform/features/dashboard/presentation/providers/multi_store_dashboard_provider.dart';
 
 /// Owner Dashboard Screen
 /// Дизайн: design/owner_dashboard/screen.png
@@ -30,9 +33,20 @@ class DashboardScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
-        child: isSuperAdmin
-            ? _buildSuperAdminView(context, ref)
-            : _buildOwnerView(context, ref),
+        child: () {
+          if (!isSuperAdmin) {
+            return _buildOwnerView(context, ref);
+          }
+
+          // Super-admin: browse mode эсвэл бүх дэлгүүрийн dashboard
+          final browsingStoreId = ref.watch(adminBrowseStoreProvider);
+          if (browsingStoreId != null) {
+            // Browse mode: owner dashboard + read-only banner
+            return _buildBrowseModeView(context, ref);
+          }
+          // Бүх дэлгүүрийн нэгдсэн dashboard
+          return _buildAdminDashboardView(context, ref);
+        }(),
       ),
     );
   }
@@ -94,154 +108,127 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  /// Super-admin UI (graceful empty state)
-  Widget _buildSuperAdminView(BuildContext context, WidgetRef ref) {
+  /// Super-admin бүх дэлгүүрийн нэгдсэн dashboard
+  /// MultiStoreDashboardScreen-ийн UI pattern-ийг дахин ашиглана
+  Widget _buildAdminDashboardView(BuildContext context, WidgetRef ref) {
+    final dashboardAsync = ref.watch(adminAllStoresDashboardProvider);
     final user = ref.watch(currentUserProvider);
 
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(adminAllStoresDashboardProvider);
+      },
+      color: AppColors.primary,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header (өөрөө top padding агуулдаг - нэмэлт зай хэрэггүй)
-            _buildHeader(context, ref),
-            const SizedBox(height: 24),
+            // Header
+            _buildAdminHeader(context, user?.name ?? 'Admin'),
+            AppSpacing.verticalMD,
 
-            // Icon
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.admin_panel_settings_outlined,
-                size: 60,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 24),
+            // Dashboard content
+            dashboardAsync.when(
+              data: (stores) {
+                if (stores.isEmpty) {
+                  return _buildAdminEmptyState(context);
+                }
+                return Column(
+                  children: [
+                    // Нийт хураангуй
+                    _buildAdminTotalSummary(stores),
+                    AppSpacing.verticalLG,
 
-            // Title
-            const Text(
-              'Системийн админ',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textMainLight,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Description
-            Text(
-              'Та super-admin хэрэглэгч байна.\nStore-ийн мэдээлэл харуулах боломжгүй.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 15,
-                color: AppColors.textSecondaryLight,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // User info card
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.gray200),
-              ),
-              child: Column(
-                children: [
-                  _buildInfoRow(Icons.person_outline, 'Утас', user?.phone ?? ''),
-                  const Divider(height: 24),
-                  _buildInfoRow(Icons.badge_outlined, 'Эрх', 'Super Admin'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // Primary CTA
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                onPressed: () => context.push(RouteNames.settings),
-                icon: const Icon(Icons.mail_outline, size: 20),
-                label: const Text(
-                  'Урилга илгээх',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Secondary action
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: OutlinedButton.icon(
-                onPressed: () => context.push(RouteNames.settings),
-                icon: const Icon(Icons.settings_outlined, size: 20),
-                label: const Text(
-                  'Тохиргоо',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textSecondaryLight,
-                  side: const BorderSide(color: AppColors.gray300),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // Info box
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.successGreen.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: AppColors.successGreen,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Шинэ дэлгүүрийн эзэмшигч бүртгүүлэхийн тулд урилга илгээнэ үү',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: AppColors.textSecondaryLight,
-                        height: 1.4,
+                    // Салбарууд гарчиг
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Row(
+                        children: [
+                          const Text(
+                            'Дэлгүүрүүд',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textMainLight,
+                            ),
+                          ),
+                          const Spacer(),
+                          Text(
+                            '${stores.length} дэлгүүр',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.textSecondaryLight,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    AppSpacing.verticalMD,
+
+                    // Store card-ууд
+                    ...stores.map((store) => _buildAdminStoreCard(
+                      context,
+                      ref,
+                      store,
+                    )),
+
+                    AppSpacing.verticalLG,
+
+                    // Урилга илгээх товч
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          onPressed: () => context.push(RouteNames.invitations),
+                          icon: const Icon(Icons.mail_outline, size: 20),
+                          label: const Text(
+                            'Урилга илгээх',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 80),
+                  ],
+                );
+              },
+              loading: () => const Padding(
+                padding: EdgeInsets.only(top: 100),
+                child: Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                ),
+              ),
+              error: (error, _) => Padding(
+                padding: const EdgeInsets.only(top: 80),
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 48, color: AppColors.danger),
+                      AppSpacing.verticalMD,
+                      const Text('Мэдээлэл ачаалахад алдаа гарлаа'),
+                      AppSpacing.verticalSM,
+                      TextButton(
+                        onPressed: () => ref.invalidate(adminAllStoresDashboardProvider),
+                        child: const Text('Дахин оролдох'),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ],
@@ -250,7 +237,445 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  /// Info row helper (super-admin UI)
+  /// Admin header
+  Widget _buildAdminHeader(BuildContext context, String adminName) {
+    final now = DateTime.now();
+    final dateFormat = DateFormat('yyyy.MM.dd, EEEE', 'mn');
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 32, 24, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                dateFormat.format(now),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondaryLight,
+                ),
+              ),
+              const Spacer(),
+              // Admin badge
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.admin_panel_settings, size: 14, color: AppColors.primary),
+                    const SizedBox(width: 4),
+                    Text(
+                      'ADMIN',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Сайн байна уу, $adminName',
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textMainLight,
+              fontFamily: 'Epilogue',
+            ),
+          ),
+          const SizedBox(height: 2),
+          const Text(
+            'Системийн хяналтын самбар',
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondaryLight,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Нийт хураангуй (бүх дэлгүүрийн нийлбэр)
+  Widget _buildAdminTotalSummary(List<StoreDashboardSummary> stores) {
+    final totalRevenue = stores.fold(0.0, (sum, s) => sum + s.todayRevenue);
+    final totalProfit = stores.fold(0.0, (sum, s) => sum + s.todayProfit);
+    final totalDiscount = stores.fold(0.0, (sum, s) => sum + s.todayDiscount);
+    final totalSales = stores.fold(0, (sum, s) => sum + s.todaySalesCount);
+    final totalLowStock = stores.fold(0, (sum, s) => sum + s.lowStockCount);
+    final margin = totalRevenue > 0
+        ? (totalProfit / totalRevenue * 100).round()
+        : 0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF00878F), Color(0xFF006B72)],
+          ),
+          borderRadius: AppRadius.radiusXL,
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF00878F).withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'ӨНӨӨДРИЙН НИЙТ',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.white70,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '₮${_formatAdminNumber(totalRevenue)}',
+              style: const TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                fontFamily: 'Epilogue',
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '$totalSales гүйлгээ • ${stores.length} дэлгүүр',
+              style: const TextStyle(fontSize: 13, color: Colors.white60),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildAdminMiniStat('Ашиг', '₮${_formatAdminNumber(totalProfit)}', '$margin%', totalProfit >= 0),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildAdminMiniStat('Хөнгөлөлт', '₮${_formatAdminNumber(totalDiscount)}', null, true),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildAdminMiniStat('Бага үлдэгдэл', '$totalLowStock', 'бараа', totalLowStock == 0),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Mini stat widget
+  Widget _buildAdminMiniStat(String label, String value, String? subtitle, bool isPositive) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: AppRadius.radiusMD,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white60)),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white), maxLines: 1, overflow: TextOverflow.ellipsis),
+          if (subtitle != null) ...[
+            const SizedBox(height: 2),
+            Text(subtitle, style: TextStyle(fontSize: 10, color: isPositive ? Colors.white54 : const Color(0xFFFFAB91))),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Admin store card — дэлгүүр дээр дарахад browse mode-д орно
+  Widget _buildAdminStoreCard(BuildContext context, WidgetRef ref, StoreDashboardSummary store) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      child: InkWell(
+        onTap: () {
+          // Browse mode: дэлгүүрийн бараа харах
+          ref.read(adminBrowseStoreProvider.notifier).browseStore(store.storeId);
+          context.go(RouteNames.inventory);
+        },
+        borderRadius: AppRadius.radiusLG,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: AppRadius.radiusLG,
+            border: Border.all(color: AppColors.gray200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Store header
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.store_outlined, size: 22, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          store.storeName,
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textMainLight),
+                        ),
+                        if (store.storeLocation != null)
+                          Text(
+                            store.storeLocation!,
+                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondaryLight),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        '₮${_formatAdminNumber(store.todayRevenue)}',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primary, fontFamily: 'Epilogue'),
+                      ),
+                      Text(
+                        '${store.todaySalesCount} гүйлгээ',
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondaryLight),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              AppSpacing.verticalMD,
+              // Stats row
+              Row(
+                children: [
+                  _buildAdminStoreStatItem(Icons.trending_up_rounded, 'Ашиг', '₮${_formatAdminNumber(store.todayProfit)}', store.todayProfit >= 0 ? const Color(0xFF2E7D32) : AppColors.danger),
+                  const SizedBox(width: 16),
+                  _buildAdminStoreStatItem(Icons.discount_outlined, 'Хөнгөлөлт', '₮${_formatAdminNumber(store.todayDiscount)}', const Color(0xFFE65100)),
+                  const SizedBox(width: 16),
+                  _buildAdminStoreStatItem(Icons.warning_amber_rounded, 'Бага үлд.', '${store.lowStockCount}', store.lowStockCount > 0 ? const Color(0xFFE65100) : AppColors.textSecondaryLight),
+                ],
+              ),
+              // Идэвхтэй ажилтнууд
+              if (store.activeSellers.isNotEmpty) ...[
+                AppSpacing.verticalMD,
+                Row(
+                  children: [
+                    Icon(Icons.person_outline, size: 16, color: AppColors.successGreen),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        store.activeSellers.map((s) => s.name).join(', '),
+                        style: TextStyle(fontSize: 12, color: AppColors.successGreen, fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              // Бараа харах товч
+              AppSpacing.verticalMD,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text('Бараа харах', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary)),
+                  const SizedBox(width: 4),
+                  Icon(Icons.arrow_forward_ios, size: 12, color: AppColors.primary),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Store stat item (admin card дотор)
+  Widget _buildAdminStoreStatItem(IconData icon, String label, String value, Color color) {
+    return Expanded(
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 10, color: AppColors.textSecondaryLight)),
+                Text(value, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: color), maxLines: 1, overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Admin хоосон дэлгэц (дэлгүүр байхгүй)
+  Widget _buildAdminEmptyState(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 60),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.store_outlined, size: 64, color: AppColors.gray300),
+            AppSpacing.verticalMD,
+            const Text(
+              'Дэлгүүр бүртгүүлээгүй байна',
+              style: TextStyle(fontSize: 16, color: AppColors.textSecondaryLight),
+            ),
+            AppSpacing.verticalMD,
+            ElevatedButton.icon(
+              onPressed: () => context.push(RouteNames.invitations),
+              icon: const Icon(Icons.mail_outline, size: 18),
+              label: const Text('Урилга илгээх'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Browse mode: owner dashboard + read-only banner
+  /// Super-admin тодорхой дэлгүүрийг browse хийж байгаа үед
+  Widget _buildBrowseModeView(BuildContext context, WidgetRef ref) {
+    return Column(
+      children: [
+        // Read-only banner
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          color: const Color(0xFFFFF3E0),
+          child: Row(
+            children: [
+              const Icon(Icons.visibility, size: 18, color: Color(0xFFE65100)),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Зөвхөн харах горим',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFE65100),
+                  ),
+                ),
+              ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    ref.read(adminBrowseStoreProvider.notifier).clearBrowse();
+                    context.go(RouteNames.dashboard);
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE65100).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Буцах',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFFE65100),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Owner dashboard (FAB-гүй)
+        Expanded(child: _buildOwnerViewWithoutFAB(context, ref)),
+      ],
+    );
+  }
+
+  /// Owner view FAB-гүй (browse mode-д ашиглана)
+  Widget _buildOwnerViewWithoutFAB(BuildContext context, WidgetRef ref) {
+    return RefreshIndicator(
+      onRefresh: () => _handleRefresh(ref),
+      color: const Color(0xFF00878F),
+      backgroundColor: Colors.white,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(context, ref),
+            AppSpacing.verticalMD,
+            _buildSalesHeroCard(ref),
+            AppSpacing.verticalMD,
+            _buildProfitSummaryRow(ref),
+            AppSpacing.verticalLG,
+            _buildLowStockSection(context, ref),
+            AppSpacing.verticalLG,
+            _buildTopProductsSection(ref),
+            const SizedBox(height: 80),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Тоо форматлах (admin dashboard)
+  String _formatAdminNumber(double value) {
+    if (value.abs() >= 1000000) {
+      return '${(value / 1000000).toStringAsFixed(1)}сая';
+    }
+    if (value.abs() >= 1000) {
+      return NumberFormat('#,###', 'mn').format(value.round());
+    }
+    return value.toStringAsFixed(0);
+  }
+
+  /// Info row helper (admin UI)
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [
