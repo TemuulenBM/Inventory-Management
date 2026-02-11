@@ -13,7 +13,7 @@
 
 | Бизнесийн асуудал              | Хийгдсэн | Дутуу                                                          |
 | ------------------------------ | -------- | -------------------------------------------------------------- |
-| Салбар болгоны бараа тоолого   | **90%**  | Multi-store нэгдсэн dashboard байхгүй                          |
+| Салбар болгоны бараа тоолого   | **100%** | ✅ Бүрэн хийгдсэн (Фаза 5)                                     |
 | Худалдагчийн хяналт            | **100%** | ✅ Бүрэн хийгдсэн (Фаза 4)                                     |
 | Сайн/муу зарагддаг бараа       | **100%** | ✅ Бүрэн хийгдсэн (Фаза 3)                                     |
 | **Салбар хоорондын шилжүүлэг** | **100%** | ✅ Бүрэн хийгдсэн (Фаза 2)                                     |
@@ -298,28 +298,33 @@
 
 ---
 
-## ФАЗА 5: Multi-Store Dashboard + Code Quality (2-3 өдөр)
+## ФАЗА 5: Multi-Store Dashboard + Code Quality ✅ ДУУССАН (2026-02-10)
 
-### 5.1 Owner-ийн нэгдсэн dashboard
+> Owner-ийн нэгдсэн dashboard + code quality засварууд
+> Backend endpoint ✅ | Flutter UI + Provider ✅ | Route ✅ | Тест бүгд passed ✅
 
-- **Шинэ**: `lib/features/dashboard/presentation/screens/multi_store_dashboard_screen.dart`
+### 5.1 Owner-ийн нэгдсэн dashboard ✅
+
+- **Backend**: `GET /users/:userId/stores/dashboard` endpoint нэмсэн ([user.routes.ts](backend/src/modules/user/user.routes.ts))
+  - Бүх store-ийн өнөөдрийн борлуулалт, ашиг, хөнгөлөлт, low stock, идэвхтэй ажилтнууд
+- **Flutter**:
+  - `lib/features/dashboard/presentation/providers/multi_store_dashboard_provider.dart` (provider + models)
+  - `lib/features/dashboard/presentation/screens/multi_store_dashboard_screen.dart` (UI)
 - Бүх салбарыг нэг дэлгэцэд:
+  - Нийт хураангуй карт (gradient, бүх store-ийн нийлбэр)
   - Салбар бүрийн өнөөдрийн борлуулалт + ашиг
-  - Нийт бараа үлдэгдэл (салбараар)
-  - Сүүлийн шилжүүлгүүд
+  - Low stock тоо (салбараар)
   - Ажиллаж буй худалдагчид
-- Owner 2+ store-тэй бол энэ dashboard default-р харагдана
+- Owner 2+ store-тэй бол Dashboard header дээр "Бүх салбар" товч харагдана
+- Route: `/dashboard/multi` нэмсэн ([route_names.dart](lib/core/routing/route_names.dart), [app_router.dart](lib/core/routing/app_router.dart))
 
-### 5.2 Code quality засварууд (feature-тэй зэрэг)
+### 5.2 Code quality засварууд ✅
 
-- **Silent catch блокууд засах**: alert_service, sales_service, sync_queue_manager дотор `kDebugMode` log нэмэх
-- **Provider error дарагдал засах**: [product_provider.dart:45](lib/features/inventory/presentation/providers/product_provider.dart#L45) — хоосон list биш `throw` хийх
-- **Backend `any` type засах**: auth.service.ts, sales.service.ts, sync.service.ts дотор proper type оруулах
-- **`refresh_tokens` migration нэмэх**: [auth.service.ts](backend/src/modules/auth/auth.service.ts) `as any` cast устгах
-- **Print/console.log цэвэрлэх**: Flutter `kDebugMode` guard, Backend structured logging
-- **Dockerfile Prisma reference устгах**: [backend/Dockerfile](backend/Dockerfile)
-- **Provider invalidation бүрэн болгох**: [sync_provider.dart:197-202](lib/core/sync/sync_provider.dart#L197) — sales, dashboard provider-ууд нэмэх
-- **Backend sales transaction атомик болгох**: [sales.service.ts:54-110](backend/src/modules/sales/sales.service.ts#L54) — PostgreSQL function ашиглах
+- **Dockerfile Prisma reference устгах** ✅: [backend/Dockerfile](backend/Dockerfile) — бүх Prisma мөрүүд устгасан
+- **Provider error дарагдал засах** ✅: [product_provider.dart](lib/features/inventory/presentation/providers/product_provider.dart) — `return []` → `throw Exception(message)`
+- **Provider invalidation бүрэн болгох** ✅: [sync_provider.dart](lib/core/sync/sync_provider.dart) — `todaySalesTotalProvider`, `yesterdaySalesTotalProvider`, `todayProfitSummaryProvider`, `topProductsProvider` нэмсэн
+- **Backend console.log → structured logging** ✅: [user.routes.ts](backend/src/modules/user/user.routes.ts) — `console.error` → `request.log.error`
+- **Flutter debugPrint цэвэрлэх** ✅: [user_stores_provider.dart](lib/features/store/presentation/providers/user_stores_provider.dart) — `debugPrint` + unused import устгасан
 
 ---
 

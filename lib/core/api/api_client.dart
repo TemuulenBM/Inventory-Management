@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 /// API Client - Backend API-тай холбогдох
 /// Dio ашиглан HTTP requests илгээнэ
@@ -63,6 +64,14 @@ class ApiClient {
             print('❌ ${error.response?.statusCode} ${error.requestOptions.uri}');
             print('   ${error.message}');
           }
+
+          // Sentry breadcrumb — алдааны context бүрдүүлэх
+          Sentry.addBreadcrumb(Breadcrumb.http(
+            url: error.requestOptions.uri,
+            method: error.requestOptions.method,
+            statusCode: error.response?.statusCode,
+            reason: error.message,
+          ));
 
           // 401 Unauthorized - try to refresh token
           // IMPORTANT: /auth/refresh хүсэлтийг давтахгүй (infinite loop үүсгэхгүй)

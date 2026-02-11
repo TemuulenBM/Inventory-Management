@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:retail_control_platform/core/api/api_client.dart';
 import 'package:retail_control_platform/core/api/api_result.dart';
 import 'package:retail_control_platform/core/database/app_database.dart';
@@ -61,7 +62,9 @@ abstract class BaseService {
           statusCode: response.statusCode,
         );
       }
-    } on DioException catch (e) {
+    } on DioException catch (e, stackTrace) {
+      // Сүлжээний алдааг Sentry-д илгээх (timeout, connection error гэх мэт)
+      Sentry.captureException(e, stackTrace: stackTrace);
       if (kDebugMode) {
         print('DioException: ${e.message}');
       }
@@ -88,7 +91,9 @@ abstract class BaseService {
         statusCode: e.response?.statusCode,
         originalError: e,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // Тодорхойгүй алдааг Sentry-д илгээх
+      Sentry.captureException(e, stackTrace: stackTrace);
       if (kDebugMode) {
         print('Unexpected error: $e');
       }
