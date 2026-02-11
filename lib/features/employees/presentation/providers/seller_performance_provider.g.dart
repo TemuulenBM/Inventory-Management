@@ -7,7 +7,7 @@ part of 'seller_performance_provider.dart';
 // **************************************************************************
 
 String _$sellerPerformanceListHash() =>
-    r'1e7be0f6c193f35f43e166f15aa9de24ab864a71';
+    r'd8e7d3b0e17ccf1261b214eda07444f68a841348';
 
 /// Худалдагчдын гүйцэтгэлийн жагсаалт (API-аас)
 ///

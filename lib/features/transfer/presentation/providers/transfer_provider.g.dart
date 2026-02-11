@@ -6,7 +6,7 @@ part of 'transfer_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$transferListHash() => r'fda659139cb4963a9868b6c125d4b98187613d3c';
+String _$transferListHash() => r'b20195d772fdec494f2269a771b28fe8e832756e';
 
 /// Шилжүүлгийн жагсаалт авах (backend API-аас)
 ///
@@ -24,10 +24,10 @@ final transferListProvider =
 
 typedef TransferListRef = AutoDisposeFutureProviderRef<List<TransferModel>>;
 String _$availableDestinationStoresHash() =>
-    r'e590b6d67fdc560d01dd823849ca5bbe24601b37';
+    r'd1fe078caafb9b0a483bf003d9d7e8ed2572565a';
 
 /// Очих боломжтой салбаруудын жагсаалт (шилжүүлэг хийхэд)
-/// Owner-ийн бүх салбаруудаас одоогийн салбарыг хасна
+/// userStoresProvider-аас одоогийн салбарыг хасна
 ///
 /// Copied from [availableDestinationStores].
 @ProviderFor(availableDestinationStores)

@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:retail_control_platform/core/api/api_client.dart';
 import 'package:retail_control_platform/core/providers/store_provider.dart';
+import 'package:retail_control_platform/features/store/presentation/providers/user_stores_provider.dart';
 import 'package:retail_control_platform/features/transfer/domain/models/transfer_model.dart';
 
 part 'transfer_provider.g.dart';
@@ -25,12 +26,13 @@ Future<List<TransferModel>> transferList(TransferListRef ref) async {
         .map((json) => TransferModel.fromJson(json as Map<String, dynamic>))
         .toList();
   } catch (e) {
-    return [];
+    // Error-г дамжуулж, UI дээр error state харуулах
+    rethrow;
   }
 }
 
 /// Очих боломжтой салбаруудын жагсаалт (шилжүүлэг хийхэд)
-/// Owner-ийн бүх салбаруудаас одоогийн салбарыг хасна
+/// userStoresProvider-аас одоогийн салбарыг хасна
 @riverpod
 Future<List<Map<String, String>>> availableDestinationStores(
   AvailableDestinationStoresRef ref,
@@ -38,29 +40,14 @@ Future<List<Map<String, String>>> availableDestinationStores(
   final currentStoreId = ref.watch(storeIdProvider);
   if (currentStoreId == null) return [];
 
-  try {
-    // Owner-ийн бүх салбаруудыг /auth/me endpoint-аас авах
-    final response = await apiClient.get('/auth/me');
-    final data = response.data as Map<String, dynamic>;
+  // userStoresProvider ашиглан салбаруудыг авах
+  // (Дэлгүүр сонгох дэлгэцтэй ижил endpoint: /users/:userId/stores)
+  final stores = await ref.watch(userStoresProvider.future);
 
-    if (data['success'] != true) return [];
-
-    final userData = data['user'] as Map<String, dynamic>;
-    final stores = userData['stores'] as List<dynamic>? ?? [];
-
-    return stores
-        .map((s) {
-          final store = s as Map<String, dynamic>;
-          return {
-            'id': store['id'] as String,
-            'name': store['name'] as String,
-          };
-        })
-        .where((s) => s['id'] != currentStoreId)
-        .toList();
-  } catch (e) {
-    return [];
-  }
+  return stores
+      .where((s) => s.id != currentStoreId)
+      .map((s) => {'id': s.id, 'name': s.name})
+      .toList();
 }
 
 /// Шилжүүлэг үүсгэх action
