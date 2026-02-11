@@ -49,6 +49,9 @@ class RouteNames {
   static const String storeEdit = '/settings/store/edit';
   static const String storeSelection = '/settings/store/selection'; // Multi-store support
 
+  // Reports
+  static const String reports = '/reports';
+
   // Employees
   static const String employees = '/settings/employees';
   static const String employeeAdd = '/settings/employees/add';

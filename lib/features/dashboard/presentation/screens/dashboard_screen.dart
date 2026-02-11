@@ -89,6 +89,10 @@ class DashboardScreen extends ConsumerWidget {
 
                 // Top Products (динамик)
                 _buildTopProductsSection(ref),
+                AppSpacing.verticalLG,
+
+                // Тайлан руу шилжих товч
+                _buildReportsButton(context),
 
                 // Bottom spacing for FAB
                 const SizedBox(height: 120),
@@ -1555,6 +1559,66 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
+
+  /// Тайлан руу шилжих товч
+  Widget _buildReportsButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: InkWell(
+        onTap: () => context.push(RouteNames.reports),
+        borderRadius: AppRadius.cardRadius,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: AppRadius.cardRadius,
+            border: Border.all(color: AppColors.gray200),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.bar_chart_rounded,
+                  color: AppColors.secondary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Тайлан',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textMainLight,
+                      ),
+                    ),
+                    Text(
+                      'Борлуулалт, ашиг, барааны задаргаа',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textSecondaryLight,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppColors.gray400),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildTopProductsSection(WidgetRef ref) {
     final topProductsAsync = ref.watch(topProductsProvider);

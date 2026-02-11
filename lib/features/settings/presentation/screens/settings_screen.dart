@@ -141,6 +141,13 @@ class SettingsScreen extends ConsumerWidget {
                         subtitle: 'Худалдагчийн борлуулалт, зөрүү',
                         onTap: () => context.push(RouteNames.sellerPerformance),
                       ),
+                      SettingsTile(
+                        icon: Icons.bar_chart_rounded,
+                        iconColor: AppColors.secondary,
+                        title: 'Тайлан',
+                        subtitle: 'Борлуулалт, ашиг, барааны тайлан',
+                        onTap: () => context.push(RouteNames.reports),
+                      ),
                     ],
                   );
                 },
