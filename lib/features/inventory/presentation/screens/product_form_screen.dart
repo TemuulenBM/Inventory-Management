@@ -8,10 +8,23 @@ import 'package:image_picker/image_picker.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
-import 'package:retail_control_platform/core/constants/product_categories.dart';
 import 'package:retail_control_platform/core/services/image_service.dart';
 import 'package:retail_control_platform/core/widgets/modals/custom_category_dialog.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
+
+/// Backend-ийн дэмждэг нэгжүүд (product.schema.ts)
+/// Key = backend enum value, Value = Монгол нэр
+const Map<String, String> unitOptions = {
+  'piece': 'Ширхэг',
+  'kg': 'Кг',
+  'g': 'Грамм',
+  'liter': 'Литр',
+  'ml': 'Мл',
+  'pack': 'Багц',
+  'box': 'Хайрцаг',
+  'bottle': 'Шил',
+  'other': 'Бусад',
+};
 
 /// Product Form Screen (Add/Edit)
 /// Pattern-based design (consistency with Product Detail + Cart)
@@ -31,13 +44,13 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _skuController = TextEditingController();
-  final _colorController = TextEditingController();
   final _sellPriceController = TextEditingController();
   final _costPriceController = TextEditingController();
   final _thresholdController = TextEditingController();
-  final _locationController = TextEditingController();
+  final _initialStockController = TextEditingController();
 
   String _selectedCategory = ''; // Empty - database-аас ачаалсны дараа сонгогдоно
+  String _selectedUnit = 'piece'; // Backend-ийн дэмждэг нэгж (default: ширхэг)
   bool _isSaving = false;
 
   // Зургийн state
@@ -75,6 +88,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           _thresholdController.text =
               (product.lowStockThreshold ?? 10).toString();
           _existingImageUrl = product.imageUrl;
+
+          // Нэгж ачаалах
+          if (product.unit != null && product.unit!.isNotEmpty) {
+            _selectedUnit = product.unit!;
+          }
 
           // Category ачаалах
           if (product.category != null && product.category!.isNotEmpty) {
@@ -123,19 +141,21 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   void dispose() {
     _nameController.dispose();
     _skuController.dispose();
-    _colorController.dispose();
     _sellPriceController.dispose();
     _costPriceController.dispose();
     _thresholdController.dispose();
-    _locationController.dispose();
+    _initialStockController.dispose();
     super.dispose();
   }
 
   void _generateSku() {
-    // Auto-generate SKU based on category + random
-    final categoryPrefix = _selectedCategory.substring(0, 3).toUpperCase();
+    // Auto-generate SKU: категорийн эхний 3 үсэг + санамсаргүй тоо
+    // Категори хоосон эсвэл 3 тэмдэгтээс бага бол 'PRD' fallback ашиглана
+    final prefix = _selectedCategory.length >= 3
+        ? _selectedCategory.substring(0, 3).toUpperCase()
+        : 'PRD';
     final random = DateTime.now().millisecondsSinceEpoch % 1000;
-    _skuController.text = '$categoryPrefix-${random.toString().padLeft(3, '0')}';
+    _skuController.text = '$prefix-${random.toString().padLeft(3, '0')}';
   }
 
   Future<void> _saveProduct() async {
@@ -152,18 +172,22 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       final isNew = widget.productId == 'new';
       bool success;
 
+      // Хоосон категори → null дамжуулах (хоосон string хадгалахгүй)
+      final category = _selectedCategory.isNotEmpty ? _selectedCategory : null;
+
       if (isNew) {
         // Шинэ бараа нэмэх
         final productId = await actions.createProduct(
           name: _nameController.text.trim(),
           sku: _skuController.text.trim(),
-          unit: 'piece',
+          unit: _selectedUnit,
           sellPrice: int.tryParse(_sellPriceController.text) ?? 0,
           costPrice: _costPriceController.text.isNotEmpty
               ? int.tryParse(_costPriceController.text)
               : null,
           lowStockThreshold: int.tryParse(_thresholdController.text),
-          category: _selectedCategory,
+          initialStock: int.tryParse(_initialStockController.text),
+          category: category,
           imageFile: _selectedImage,
         );
         success = productId != null;
@@ -173,12 +197,13 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           widget.productId,
           name: _nameController.text.trim(),
           sku: _skuController.text.trim(),
+          unit: _selectedUnit,
           sellPrice: int.tryParse(_sellPriceController.text),
           costPrice: _costPriceController.text.isNotEmpty
               ? int.tryParse(_costPriceController.text)
               : null,
           lowStockThreshold: int.tryParse(_thresholdController.text),
-          category: _selectedCategory,
+          category: category,
           imageFile: _selectedImage,
         );
       }
@@ -301,6 +326,19 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                     _buildCategorySelector(),
                     AppSpacing.verticalLG,
 
+                    // Unit selector (нэгж сонгох)
+                    const Text(
+                      'Хэмжих нэгж',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.gray600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildUnitSelector(),
+                    AppSpacing.verticalLG,
+
                     // Product name
                     _buildTextField(
                       label: 'Барааны нэр',
@@ -308,15 +346,6 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                       hint: 'жнь: Cashmere Scarf',
                       required: true,
                       icon: Icons.inventory_2_outlined,
-                    ),
-                    AppSpacing.verticalMD,
-
-                    // Color/Variant
-                    _buildTextField(
-                      label: 'Өнгө / Variant',
-                      controller: _colorController,
-                      hint: 'жнь: Шаргал, M size',
-                      icon: Icons.palette_outlined,
                     ),
                     AppSpacing.verticalMD,
 
@@ -379,15 +408,20 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                       helperText:
                           'Үлдэгдэл энэ тооноос бага болбол сануулга харагдана',
                     ),
-                    AppSpacing.verticalMD,
 
-                    // Location
-                    _buildTextField(
-                      label: 'Агуулах / Байршил',
-                      controller: _locationController,
-                      hint: 'жнь: Төв дэлгүүр',
-                      icon: Icons.store_outlined,
-                    ),
+                    // Анхны нөөц (зөвхөн шинэ бараа нэмэх үед)
+                    if (isNewProduct) ...[
+                      AppSpacing.verticalMD,
+                      _buildTextField(
+                        label: 'Анхны үлдэгдэл',
+                        controller: _initialStockController,
+                        hint: '0',
+                        icon: Icons.inventory_outlined,
+                        keyboardType: TextInputType.number,
+                        helperText:
+                            'Одоо байгаа барааны тоо (хоосон бол 0)',
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -779,6 +813,51 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  /// Нэгж сонгох pill selector (category selector-тай адил дизайн)
+  Widget _buildUnitSelector() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: unitOptions.entries.map((entry) {
+        final isSelected = _selectedUnit == entry.key;
+        return Material(
+          color: isSelected ? AppColors.primary : Colors.white,
+          borderRadius: AppRadius.radiusLG,
+          elevation: 0,
+          child: InkWell(
+            onTap: () {
+              setState(() {
+                _selectedUnit = entry.key;
+              });
+            },
+            borderRadius: AppRadius.radiusLG,
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: isSelected ? Colors.transparent : AppColors.gray200,
+                  width: 1.5,
+                ),
+                borderRadius: AppRadius.radiusLG,
+              ),
+              child: Text(
+                entry.value,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected ? Colors.white : AppColors.gray600,
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
