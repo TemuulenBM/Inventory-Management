@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
+import 'package:retail_control_platform/core/sync/sync_provider.dart';
+import 'package:retail_control_platform/core/sync/sync_state.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/inventory_event_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/providers/product_provider.dart';
 import 'package:retail_control_platform/features/inventory/presentation/widgets/adjustment_bottom_sheet.dart';
@@ -64,20 +66,8 @@ class InventoryEventsScreen extends ConsumerWidget {
         ),
         centerTitle: true,
         actions: [
-          // Sync status
-          Container(
-            margin: const EdgeInsets.only(right: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Icon(
-              Icons.cloud_done,
-              size: 20,
-              color: AppColors.secondary,
-            ),
-          ),
+          // Sync status (динамик)
+          _buildSyncBadge(ref),
         ],
       ),
       body: Column(
@@ -305,6 +295,53 @@ class InventoryEventsScreen extends ConsumerWidget {
       builder: (context) => AdjustmentBottomSheet(
         productId: productId!,
         productName: product?.name,
+      ),
+    );
+  }
+
+  /// Динамик sync badge — бодит sync төлөв
+  Widget _buildSyncBadge(WidgetRef ref) {
+    final syncState = ref.watch(syncNotifierProvider);
+    final status = syncState.status;
+
+    Color dotColor;
+    Color bgColor;
+    IconData icon;
+
+    switch (status) {
+      case SyncStatus.synced:
+        dotColor = const Color(0xFF059669);
+        bgColor = const Color(0xFFDCFCE7);
+        icon = Icons.cloud_done;
+      case SyncStatus.syncing:
+        dotColor = const Color(0xFF1976D2);
+        bgColor = const Color(0xFFE3F2FD);
+        icon = Icons.sync;
+      case SyncStatus.pendingChanges:
+        dotColor = const Color(0xFFE65100);
+        bgColor = const Color(0xFFFFF4E6);
+        icon = Icons.cloud_upload;
+      case SyncStatus.offline:
+        dotColor = const Color(0xFF757575);
+        bgColor = const Color(0xFFF5F5F5);
+        icon = Icons.cloud_off;
+      case SyncStatus.error:
+        dotColor = const Color(0xFFC62828);
+        bgColor = const Color(0xFFFFEBEE);
+        icon = Icons.error_outline;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Icon(
+        icon,
+        size: 20,
+        color: dotColor,
       ),
     );
   }

@@ -54,7 +54,7 @@ class EventFilterChips extends ConsumerWidget {
 
             // Тохируулга
             _FilterChip(
-              label: 'Тоол',
+              label: 'Тохируулга',
               icon: Icons.edit_outlined,
               isSelected: filter.eventType == InventoryEventType.adjust,
               onTap: () => notifier.setEventType(InventoryEventType.adjust),

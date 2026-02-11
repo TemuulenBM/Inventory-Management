@@ -106,7 +106,7 @@ class StoreSelectionScreen extends ConsumerWidget {
                           height: 48,
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.primary.withOpacity(0.1)
+                                ? AppColors.primary.withValues(alpha: 0.1)
                                 : AppColors.surfaceLight,
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -170,7 +170,7 @@ class StoreSelectionScreen extends ConsumerWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: _getRoleColor(store.role)
-                                      .withOpacity(0.1),
+                                      .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(

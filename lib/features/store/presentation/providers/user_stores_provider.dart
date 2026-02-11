@@ -43,8 +43,9 @@ class UserStores extends _$UserStores {
 
       return [];
     } catch (e) {
-      // Алдаа гарвал хоосон жагсаалт буцаана
-      return [];
+      // Error-г дамжуулж, UI дээр error state харуулах
+      // (storesAsync.when(error:) → "Алдаа гарлаа" + retry товч)
+      rethrow;
     }
   }
 

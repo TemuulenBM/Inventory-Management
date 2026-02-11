@@ -175,7 +175,7 @@ class InventoryEventCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              event.reason!,
+                              _formatReason(event.reason!),
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontStyle: FontStyle.italic,
@@ -207,6 +207,21 @@ class InventoryEventCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Raw reason текстийг user-friendly формат руу хөрвүүлэх
+  /// "Sale 704cd990-490a-..." → "Борлуулалт #704cd990"
+  /// "Void sale 704cd990-..." → "Цуцалсан #704cd990"
+  String _formatReason(String reason) {
+    if (reason.startsWith('Sale ') && reason.length > 12) {
+      final id = reason.substring(5, 13);
+      return 'Борлуулалт #$id';
+    }
+    if (reason.startsWith('Void sale ') && reason.length > 17) {
+      final id = reason.substring(10, 18);
+      return 'Цуцалсан #$id';
+    }
+    return reason;
   }
 
   /// Avatar widget
