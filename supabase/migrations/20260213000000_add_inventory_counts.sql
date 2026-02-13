@@ -6,7 +6,7 @@
 
 -- Ээлж бүрт тоолсон барааны тулгалтын мэдээлэл
 CREATE TABLE shift_inventory_counts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     shift_id UUID NOT NULL REFERENCES shifts(id) ON DELETE CASCADE,
     store_id UUID NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
     product_id UUID NOT NULL REFERENCES products(id) ON DELETE RESTRICT,
