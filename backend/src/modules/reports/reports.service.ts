@@ -14,6 +14,8 @@ import type {
   SellerPerformanceQueryParams,
   ProfitReportQueryParams,
   SlowMovingQueryParams,
+  CategoryReportQueryParams,
+  MonthlyReportQueryParams,
 } from './reports.schema.js';
 
 type ServiceResult<T> =
@@ -581,6 +583,327 @@ export async function getSlowMovingProducts(
       .sort((a, b) => a.sold_quantity - b.sold_quantity);
 
     return { success: true, products: slowMoving };
+  } catch (error) {
+    return { success: false, error: 'Серверийн алдаа' };
+  }
+}
+
+/**
+ * Категори аналитик
+ * - Категори тус бүрийн борлуулалт, ашиг, тоо хэмжээ
+ * - getProfitReport-ын byProduct логиктой адилхан — category-аар GROUP хийнэ
+ */
+export async function getCategoryReport(
+  storeId: string,
+  query: CategoryReportQueryParams
+): Promise<ServiceResult<{ categories: Record<string, unknown>[]; total_revenue: number }>> {
+  try {
+    // Default: сүүлийн 30 хоног
+    const to = query.to ?? new Date().toISOString();
+    const from =
+      query.from ??
+      new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    // 1. Хугацааны борлуулалтуудын ID авах
+    const { data: sales, error: salesError } = await supabase
+      .from('sales')
+      .select('id')
+      .eq('store_id', storeId)
+      .gte('timestamp', from)
+      .lte('timestamp', to);
+
+    if (salesError) {
+      return { success: false, error: 'Борлуулалтын мэдээлэл авахад алдаа гарлаа' };
+    }
+
+    const saleIds = (sales ?? []).map((s) => s.id);
+    if (saleIds.length === 0) {
+      return { success: true, categories: [], total_revenue: 0 };
+    }
+
+    // 2. Sale items + products (category, cost_price)
+    const { data: saleItems, error: itemsError } = await supabase
+      .from('sale_items')
+      .select('product_id, quantity, subtotal, cost_price, sale_id, products!inner(category)')
+      .in('sale_id', saleIds);
+
+    if (itemsError) {
+      return { success: false, error: 'Sale items авахад алдаа гарлаа' };
+    }
+
+    // 3. Категориор нэгтгэх
+    const categoryMap = new Map<string, {
+      revenue: number;
+      quantity: number;
+      cost: number;
+      saleIds: Set<string>;
+      productIds: Set<string>;
+    }>();
+
+    for (const item of saleItems ?? []) {
+      const category = (item as Record<string, unknown> & { products: { category: string } }).products?.category ?? 'Бусад';
+      const existing = categoryMap.get(category) ?? {
+        revenue: 0,
+        quantity: 0,
+        cost: 0,
+        saleIds: new Set<string>(),
+        productIds: new Set<string>(),
+      };
+
+      existing.revenue += item.subtotal ?? 0;
+      existing.quantity += item.quantity;
+      existing.cost += (item.cost_price ?? 0) * item.quantity;
+      existing.saleIds.add(item.sale_id);
+      existing.productIds.add(item.product_id);
+
+      categoryMap.set(category, existing);
+    }
+
+    // 4. Нийт орлого
+    let totalRevenue = 0;
+    for (const data of categoryMap.values()) {
+      totalRevenue += data.revenue;
+    }
+
+    // 5. Response format (орлого буурах дарааллаар)
+    const categories = Array.from(categoryMap.entries())
+      .map(([category, data]) => {
+        const profit = data.revenue - data.cost;
+        const margin = data.revenue > 0 ? Math.round((profit / data.revenue) * 100) : 0;
+        return {
+          category,
+          total_revenue: data.revenue,
+          total_quantity: data.quantity,
+          total_cost: data.cost,
+          total_profit: profit,
+          profit_margin: margin,
+          transaction_count: data.saleIds.size,
+          product_count: data.productIds.size,
+        };
+      })
+      .sort((a, b) => b.total_revenue - a.total_revenue);
+
+    return { success: true, categories, total_revenue: totalRevenue };
+  } catch (error) {
+    return { success: false, error: 'Серверийн алдаа' };
+  }
+}
+
+/**
+ * Сарын нэгдсэн тайлан
+ * Тухайн сарын бүх KPI-г нэгтгэж, өмнөх сартай харьцуулна
+ */
+export async function getMonthlyReport(
+  storeId: string,
+  query: MonthlyReportQueryParams
+): Promise<ServiceResult<{ report: Record<string, unknown> }>> {
+  try {
+    // Тухайн сарын хугацаа тодорхойлох
+    const now = new Date();
+    const monthStr = query.month ?? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const [yearStr, monStr] = monthStr.split('-');
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monStr, 10);
+    const startOfMonth = new Date(Date.UTC(year, month - 1, 1)).toISOString();
+    const endOfMonth = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999)).toISOString();
+
+    // Өмнөх сарын хугацаа
+    const prevStart = new Date(Date.UTC(year, month - 2, 1)).toISOString();
+    const prevEnd = new Date(Date.UTC(year, month - 1, 0, 23, 59, 59, 999)).toISOString();
+
+    // ========== 1. Тухайн сарын борлуулалт ==========
+    const { data: sales, error: salesError } = await supabase
+      .from('sales')
+      .select('id, total_amount, payment_method, seller_id, users!inner(name)')
+      .eq('store_id', storeId)
+      .gte('timestamp', startOfMonth)
+      .lte('timestamp', endOfMonth);
+
+    if (salesError) {
+      return { success: false, error: 'Борлуулалтын мэдээлэл авахад алдаа гарлаа' };
+    }
+
+    const salesData = sales ?? [];
+    const totalRevenue = salesData.reduce((sum, s) => sum + parseFloat(String(s.total_amount)), 0);
+    const totalTransactions = salesData.length;
+
+    // ========== 2. Төлбөрийн хэлбэр ==========
+    const paymentMethodsMap = new Map<string, { amount: number; count: number }>();
+    salesData.forEach((sale) => {
+      const existing = paymentMethodsMap.get(String(sale.payment_method)) ?? { amount: 0, count: 0 };
+      paymentMethodsMap.set(String(sale.payment_method), {
+        amount: existing.amount + parseFloat(String(sale.total_amount)),
+        count: existing.count + 1,
+      });
+    });
+    const paymentMethods = Array.from(paymentMethodsMap.entries()).map(([method, data]) => ({
+      method,
+      amount: data.amount,
+      count: data.count,
+    }));
+
+    // ========== 3. Худалдагчийн хураангуй ==========
+    const sellerMap = new Map<string, { name: string; totalSales: number; count: number }>();
+    salesData.forEach((sale: any) => {
+      const existing = sellerMap.get(sale.seller_id) ?? {
+        name: sale.users?.name ?? 'Unknown',
+        totalSales: 0,
+        count: 0,
+      };
+      sellerMap.set(sale.seller_id, {
+        name: existing.name,
+        totalSales: existing.totalSales + parseFloat(String(sale.total_amount)),
+        count: existing.count + 1,
+      });
+    });
+    const sellerSummary = Array.from(sellerMap.entries())
+      .map(([sellerId, data]) => ({
+        seller_id: sellerId,
+        seller_name: data.name,
+        total_sales: data.totalSales,
+        total_transactions: data.count,
+      }))
+      .sort((a, b) => b.total_sales - a.total_sales);
+
+    // ========== 4. Sale items (ашиг, тоо, шилдэг бараа) ==========
+    const saleIds = salesData.map((s) => s.id);
+    let totalCost = 0;
+    let totalDiscount = 0;
+    let totalItemsSold = 0;
+
+    const productsMap = new Map<string, {
+      name: string;
+      quantity: number;
+      revenue: number;
+    }>();
+
+    if (saleIds.length > 0) {
+      const { data: saleItems } = await supabase
+        .from('sale_items')
+        .select('product_id, quantity, subtotal, cost_price, discount_amount, products!inner(name)')
+        .in('sale_id', saleIds);
+
+      for (const item of saleItems ?? []) {
+        totalCost += (item.cost_price ?? 0) * item.quantity;
+        totalDiscount += (item.discount_amount ?? 0) * item.quantity;
+        totalItemsSold += item.quantity;
+
+        const productName = (item as Record<string, unknown> & { products: { name: string } }).products?.name ?? 'Unknown';
+        const existing = productsMap.get(item.product_id) ?? { name: productName, quantity: 0, revenue: 0 };
+        productsMap.set(item.product_id, {
+          name: existing.name,
+          quantity: existing.quantity + item.quantity,
+          revenue: existing.revenue + (item.subtotal ?? 0),
+        });
+      }
+    }
+
+    const totalProfit = totalRevenue - totalCost;
+    const profitMargin = totalRevenue > 0 ? Math.round((totalProfit / totalRevenue) * 100) : 0;
+
+    // Шилдэг 5 бараа
+    const topProducts = Array.from(productsMap.entries())
+      .map(([productId, data]) => ({
+        product_id: productId,
+        product_name: data.name,
+        total_quantity: data.quantity,
+        total_revenue: data.revenue,
+      }))
+      .sort((a, b) => b.total_revenue - a.total_revenue)
+      .slice(0, 5);
+
+    // ========== 5. Өмнөх сарын мэдээлэл ==========
+    const { data: prevSales } = await supabase
+      .from('sales')
+      .select('id, total_amount')
+      .eq('store_id', storeId)
+      .gte('timestamp', prevStart)
+      .lte('timestamp', prevEnd);
+
+    const prevData = prevSales ?? [];
+    const prevRevenue = prevData.reduce((sum, s) => sum + parseFloat(String(s.total_amount)), 0);
+    const prevTransactions = prevData.length;
+
+    // Өмнөх сарын ашиг
+    let prevProfit = 0;
+    const prevSaleIds = prevData.map((s) => s.id);
+    if (prevSaleIds.length > 0) {
+      const { data: prevItems } = await supabase
+        .from('sale_items')
+        .select('quantity, subtotal, cost_price')
+        .in('sale_id', prevSaleIds);
+
+      const prevCost = (prevItems ?? []).reduce((sum, item) =>
+        sum + (item.cost_price ?? 0) * item.quantity, 0);
+      const prevRev = (prevItems ?? []).reduce((sum, item) =>
+        sum + (item.subtotal ?? 0), 0);
+      prevProfit = prevRev - prevCost;
+    }
+
+    // Өсөлтийн хувь
+    const revenueChangePercent = prevRevenue > 0
+      ? Math.round(((totalRevenue - prevRevenue) / prevRevenue) * 1000) / 10
+      : 0;
+    const profitChangePercent = prevProfit !== 0
+      ? Math.round(((totalProfit - prevProfit) / Math.abs(prevProfit)) * 1000) / 10
+      : 0;
+
+    // ========== 6. Шилжүүлэг ==========
+    // Гарсан шилжүүлэг
+    const { data: outTransfers } = await supabase
+      .from('transfers')
+      .select('id, transfer_items(quantity)')
+      .eq('source_store_id', storeId)
+      .eq('status', 'completed')
+      .gte('created_at', startOfMonth)
+      .lte('created_at', endOfMonth);
+
+    const outgoingCount = (outTransfers ?? []).length;
+    const outgoingItems = (outTransfers ?? []).reduce((sum, t: any) =>
+      sum + (t.transfer_items ?? []).reduce((s: number, i: any) => s + (i.quantity ?? 0), 0), 0);
+
+    // Орсон шилжүүлэг
+    const { data: inTransfers } = await supabase
+      .from('transfers')
+      .select('id, transfer_items(quantity)')
+      .eq('destination_store_id', storeId)
+      .eq('status', 'completed')
+      .gte('created_at', startOfMonth)
+      .lte('created_at', endOfMonth);
+
+    const incomingCount = (inTransfers ?? []).length;
+    const incomingItems = (inTransfers ?? []).reduce((sum, t: any) =>
+      sum + (t.transfer_items ?? []).reduce((s: number, i: any) => s + (i.quantity ?? 0), 0), 0);
+
+    return {
+      success: true,
+      report: {
+        month: monthStr,
+        total_revenue: totalRevenue,
+        total_cost: totalCost,
+        total_profit: totalProfit,
+        profit_margin: profitMargin,
+        total_transactions: totalTransactions,
+        total_items_sold: totalItemsSold,
+        total_discount: totalDiscount,
+        previous_month: {
+          total_revenue: prevRevenue,
+          total_profit: prevProfit,
+          total_transactions: prevTransactions,
+        },
+        revenue_change_percent: revenueChangePercent,
+        profit_change_percent: profitChangePercent,
+        payment_methods: paymentMethods,
+        top_products: topProducts,
+        transfers: {
+          outgoing_count: outgoingCount,
+          incoming_count: incomingCount,
+          outgoing_items: outgoingItems,
+          incoming_items: incomingItems,
+        },
+        seller_summary: sellerSummary,
+      },
+    };
   } catch (error) {
     return { success: false, error: 'Серверийн алдаа' };
   }

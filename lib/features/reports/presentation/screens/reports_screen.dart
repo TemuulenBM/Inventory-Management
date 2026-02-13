@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
+import 'package:retail_control_platform/core/routing/route_names.dart';
 import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
 import 'package:retail_control_platform/features/reports/domain/report_models.dart';
 import 'package:retail_control_platform/features/reports/presentation/providers/report_provider.dart';
 
-/// Тайлангийн дэлгэц — 3 tab (Борлуулалт, Бараа, Ашиг)
+/// Тайлангийн дэлгэц — 4 tab (Борлуулалт, Бараа, Ашиг, Категори)
 /// Backend-ын reports endpoint-уудаас бодит data татаж харуулна.
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -24,7 +26,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -49,6 +51,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
           ),
         ),
         centerTitle: false,
+        actions: [
+          // Сарын нэгдсэн тайлан руу очих товч
+          IconButton(
+            onPressed: () => context.push(RouteNames.monthlyReport),
+            icon: const Icon(Icons.calendar_month, color: AppColors.primary),
+            tooltip: 'Сарын тайлан',
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.primary,
@@ -63,6 +73,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
             Tab(text: 'Борлуулалт'),
             Tab(text: 'Бараа'),
             Tab(text: 'Ашиг'),
+            Tab(text: 'Категори'),
           ],
         ),
       ),
@@ -79,6 +90,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen>
                 _SalesTab(),
                 _ProductsTab(),
                 _ProfitTab(),
+                _CategoryTab(),
               ],
             ),
           ),
@@ -1067,6 +1079,250 @@ class _ProfitTab extends ConsumerWidget {
       return '${(value / 1000).toStringAsFixed(0)}мян';
     }
     return value.toStringAsFixed(0);
+  }
+}
+
+// ============================================================
+// Tab 4: Категори аналитик
+// ============================================================
+class _CategoryTab extends ConsumerWidget {
+  const _CategoryTab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final categoryAsync = ref.watch(categoryReportProvider);
+    final numberFormat = NumberFormat('#,###', 'mn');
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(categoryReportProvider);
+      },
+      color: AppColors.primary,
+      child: categoryAsync.when(
+        data: (categories) {
+          if (categories.isEmpty) {
+            return _buildEmptyState('Категори мэдээлэл байхгүй');
+          }
+
+          // Нийт орлого тооцоолох (хувь тооцоход ашиглана)
+          final totalRevenue =
+              categories.fold<double>(0, (sum, c) => sum + c.totalRevenue);
+
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: AppSpacing.paddingMD,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Нийт дүн
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    borderRadius: AppRadius.cardRadius,
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Нийт орлого',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textSecondaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '₮${numberFormat.format(totalRevenue)}',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textMainLight,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${categories.length} категори',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textTertiaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                AppSpacing.verticalLG,
+
+                // Категори бүрийн card
+                ...categories.map((category) {
+                  final revenuePercent = totalRevenue > 0
+                      ? category.totalRevenue / totalRevenue
+                      : 0.0;
+                  final isProfit = category.totalProfit >= 0;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: AppRadius.cardRadius,
+                        border: Border.all(color: AppColors.gray200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Категорийн нэр + эзлэх хувь
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  category.category,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textMainLight,
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color:
+                                      AppColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${(revenuePercent * 100).toStringAsFixed(1)}%',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                          // Progress bar
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: revenuePercent,
+                              backgroundColor: AppColors.gray100,
+                              color: AppColors.primary,
+                              minHeight: 6,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // KPI мөр
+                          Row(
+                            children: [
+                              // Орлого
+                              Expanded(
+                                child: _buildCategoryKpi(
+                                  'Орлого',
+                                  '₮${numberFormat.format(category.totalRevenue)}',
+                                  AppColors.textMainLight,
+                                ),
+                              ),
+                              // Ашиг
+                              Expanded(
+                                child: _buildCategoryKpi(
+                                  'Ашиг',
+                                  '₮${numberFormat.format(category.totalProfit)}',
+                                  isProfit
+                                      ? AppColors.success
+                                      : AppColors.danger,
+                                ),
+                              ),
+                              // Margin
+                              Expanded(
+                                child: _buildCategoryKpi(
+                                  'Маржин',
+                                  '${category.profitMargin.toStringAsFixed(0)}%',
+                                  isProfit
+                                      ? AppColors.success
+                                      : AppColors.danger,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                          // 2-р мөр: тоо хэмжээ
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildCategoryKpi(
+                                  'Зарагдсан',
+                                  '${category.totalQuantity} ш',
+                                  AppColors.textSecondaryLight,
+                                ),
+                              ),
+                              Expanded(
+                                child: _buildCategoryKpi(
+                                  'Гүйлгээ',
+                                  '${category.transactionCount}',
+                                  AppColors.textSecondaryLight,
+                                ),
+                              ),
+                              Expanded(
+                                child: _buildCategoryKpi(
+                                  'Бараа',
+                                  '${category.productCount} төрөл',
+                                  AppColors.textSecondaryLight,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          );
+        },
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+        error: (error, _) => _buildErrorState(
+          'Категори мэдээлэл ачаалахад алдаа гарлаа',
+          () => ref.invalidate(categoryReportProvider),
+        ),
+      ),
+    );
+  }
+
+  /// Категори card доторх нэг KPI
+  Widget _buildCategoryKpi(String label, String value, Color valueColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 11,
+            color: AppColors.textTertiaryLight,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: valueColor,
+          ),
+        ),
+      ],
+    );
   }
 }
 

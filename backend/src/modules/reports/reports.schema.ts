@@ -143,3 +143,86 @@ export type SlowMovingResponse = {
     cost_value: number;
   }>;
 };
+
+/**
+ * GET /stores/:storeId/reports/category
+ * Категори аналитик — категори тус бүрийн борлуулалт, ашгийн задаргаа
+ */
+export const categoryReportQuerySchema = z.object({
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+});
+
+export type CategoryReportQueryParams = z.infer<typeof categoryReportQuerySchema>;
+
+export type CategoryReportResponse = {
+  success: true;
+  categories: Array<{
+    category: string;
+    total_revenue: number;
+    total_quantity: number;
+    total_cost: number;
+    total_profit: number;
+    profit_margin: number;
+    transaction_count: number;
+    product_count: number;
+  }>;
+  total_revenue: number;
+};
+
+/**
+ * GET /stores/:storeId/reports/monthly
+ * Сарын нэгдсэн тайлан — бүх KPI-г нэг дэлгэцэд нэгтгэнэ
+ */
+export const monthlyReportQuerySchema = z.object({
+  month: z.string().regex(/^\d{4}-\d{2}$/).optional(), // YYYY-MM format
+});
+
+export type MonthlyReportQueryParams = z.infer<typeof monthlyReportQuerySchema>;
+
+export type MonthlyReportResponse = {
+  success: true;
+  report: {
+    month: string;
+    // Үндсэн KPI
+    total_revenue: number;
+    total_cost: number;
+    total_profit: number;
+    profit_margin: number;
+    total_transactions: number;
+    total_items_sold: number;
+    total_discount: number;
+    // Өмнөх сартай харьцуулалт
+    previous_month: {
+      total_revenue: number;
+      total_profit: number;
+      total_transactions: number;
+    };
+    revenue_change_percent: number;
+    profit_change_percent: number;
+    // Задаргаа
+    payment_methods: Array<{
+      method: string;
+      amount: number;
+      count: number;
+    }>;
+    top_products: Array<{
+      product_id: string;
+      product_name: string;
+      total_quantity: number;
+      total_revenue: number;
+    }>;
+    transfers: {
+      outgoing_count: number;
+      incoming_count: number;
+      outgoing_items: number;
+      incoming_items: number;
+    };
+    seller_summary: Array<{
+      seller_id: string;
+      seller_name: string;
+      total_sales: number;
+      total_transactions: number;
+    }>;
+  };
+};

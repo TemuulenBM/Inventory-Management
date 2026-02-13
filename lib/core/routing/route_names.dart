@@ -51,6 +51,7 @@ class RouteNames {
 
   // Reports
   static const String reports = '/reports';
+  static const String monthlyReport = '/reports/monthly';
 
   // Employees
   static const String employees = '/settings/employees';

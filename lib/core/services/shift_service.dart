@@ -159,11 +159,12 @@ class ShiftService extends BaseService {
     }
   }
 
-  /// Ээлж хаах
+  /// Ээлж хаах (мөнгөн тулгалт + бараа тулгалт)
   Future<ApiResult<ShiftModel>> closeShift(
     String storeId,
     String shiftId, {
     int? closeBalance,
+    List<Map<String, dynamic>>? inventoryCounts,
   }) async {
     final now = DateTime.now();
 
@@ -192,13 +193,15 @@ class ShiftService extends BaseService {
         ),
       );
 
-      // 5. Online бол API руу илгээх (reconciliation мэдээлэлтэй)
+      // 5. Online бол API руу илгээх (мөнгөн + бараа тулгалт мэдээлэлтэй)
       final shiftPayload = {
         'shift_id': shiftId,
         'store_id': storeId,
         'close_balance': closeBalance,
         'expected_balance': expectedBal,
         'discrepancy': disc,
+        if (inventoryCounts != null && inventoryCounts.isNotEmpty)
+          'inventory_counts': inventoryCounts,
       };
 
       if (await isOnline) {

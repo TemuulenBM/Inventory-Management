@@ -230,3 +230,207 @@ class SlowMovingProduct {
     );
   }
 }
+
+/// Категори аналитик тайлан — категори бүрийн борлуулалт, ашгийн задаргаа
+class CategoryReport {
+  final String category;
+  final double totalRevenue;
+  final int totalQuantity;
+  final double totalCost;
+  final double totalProfit;
+  final double profitMargin;
+  final int transactionCount;
+  final int productCount;
+
+  const CategoryReport({
+    required this.category,
+    required this.totalRevenue,
+    required this.totalQuantity,
+    required this.totalCost,
+    required this.totalProfit,
+    required this.profitMargin,
+    required this.transactionCount,
+    required this.productCount,
+  });
+
+  factory CategoryReport.fromJson(Map<String, dynamic> json) {
+    return CategoryReport(
+      category: json['category'] as String? ?? 'Бусад',
+      totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0,
+      totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
+      totalCost: (json['total_cost'] as num?)?.toDouble() ?? 0,
+      totalProfit: (json['total_profit'] as num?)?.toDouble() ?? 0,
+      profitMargin: (json['profit_margin'] as num?)?.toDouble() ?? 0,
+      transactionCount: (json['transaction_count'] as num?)?.toInt() ?? 0,
+      productCount: (json['product_count'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// Сарын нэгдсэн тайлан — бүх KPI нэг дэлгэцэд
+class MonthlyReport {
+  final String month;
+  final double totalRevenue;
+  final double totalCost;
+  final double totalProfit;
+  final double profitMargin;
+  final int totalTransactions;
+  final int totalItemsSold;
+  final double totalDiscount;
+  // Өмнөх сартай харьцуулалт
+  final MonthlyComparison previousMonth;
+  final double revenueChangePercent;
+  final double profitChangePercent;
+  // Задаргаа
+  final List<PaymentMethodBreakdown> paymentMethods;
+  final List<MonthlyTopProduct> topProducts;
+  final TransferSummary transfers;
+  final List<SellerSummary> sellerSummary;
+
+  const MonthlyReport({
+    required this.month,
+    required this.totalRevenue,
+    required this.totalCost,
+    required this.totalProfit,
+    required this.profitMargin,
+    required this.totalTransactions,
+    required this.totalItemsSold,
+    required this.totalDiscount,
+    required this.previousMonth,
+    required this.revenueChangePercent,
+    required this.profitChangePercent,
+    required this.paymentMethods,
+    required this.topProducts,
+    required this.transfers,
+    required this.sellerSummary,
+  });
+
+  factory MonthlyReport.fromJson(Map<String, dynamic> json) {
+    return MonthlyReport(
+      month: json['month'] as String? ?? '',
+      totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0,
+      totalCost: (json['total_cost'] as num?)?.toDouble() ?? 0,
+      totalProfit: (json['total_profit'] as num?)?.toDouble() ?? 0,
+      profitMargin: (json['profit_margin'] as num?)?.toDouble() ?? 0,
+      totalTransactions: (json['total_transactions'] as num?)?.toInt() ?? 0,
+      totalItemsSold: (json['total_items_sold'] as num?)?.toInt() ?? 0,
+      totalDiscount: (json['total_discount'] as num?)?.toDouble() ?? 0,
+      previousMonth: MonthlyComparison.fromJson(
+          json['previous_month'] as Map<String, dynamic>? ?? {}),
+      revenueChangePercent:
+          (json['revenue_change_percent'] as num?)?.toDouble() ?? 0,
+      profitChangePercent:
+          (json['profit_change_percent'] as num?)?.toDouble() ?? 0,
+      paymentMethods: (json['payment_methods'] as List?)
+              ?.map((e) =>
+                  PaymentMethodBreakdown.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      topProducts: (json['top_products'] as List?)
+              ?.map((e) =>
+                  MonthlyTopProduct.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      transfers: TransferSummary.fromJson(
+          json['transfers'] as Map<String, dynamic>? ?? {}),
+      sellerSummary: (json['seller_summary'] as List?)
+              ?.map(
+                  (e) => SellerSummary.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+/// Өмнөх сарын харьцуулалтын мэдээлэл
+class MonthlyComparison {
+  final double totalRevenue;
+  final double totalProfit;
+  final int totalTransactions;
+
+  const MonthlyComparison({
+    required this.totalRevenue,
+    required this.totalProfit,
+    required this.totalTransactions,
+  });
+
+  factory MonthlyComparison.fromJson(Map<String, dynamic> json) {
+    return MonthlyComparison(
+      totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0,
+      totalProfit: (json['total_profit'] as num?)?.toDouble() ?? 0,
+      totalTransactions: (json['total_transactions'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// Сарын шилдэг бараа
+class MonthlyTopProduct {
+  final String productId;
+  final String productName;
+  final int totalQuantity;
+  final double totalRevenue;
+
+  const MonthlyTopProduct({
+    required this.productId,
+    required this.productName,
+    required this.totalQuantity,
+    required this.totalRevenue,
+  });
+
+  factory MonthlyTopProduct.fromJson(Map<String, dynamic> json) {
+    return MonthlyTopProduct(
+      productId: json['product_id'] as String? ?? '',
+      productName: json['product_name'] as String? ?? '',
+      totalQuantity: (json['total_quantity'] as num?)?.toInt() ?? 0,
+      totalRevenue: (json['total_revenue'] as num?)?.toDouble() ?? 0,
+    );
+  }
+}
+
+/// Шилжүүлгийн хураангуй
+class TransferSummary {
+  final int outgoingCount;
+  final int incomingCount;
+  final int outgoingItems;
+  final int incomingItems;
+
+  const TransferSummary({
+    required this.outgoingCount,
+    required this.incomingCount,
+    required this.outgoingItems,
+    required this.incomingItems,
+  });
+
+  factory TransferSummary.fromJson(Map<String, dynamic> json) {
+    return TransferSummary(
+      outgoingCount: (json['outgoing_count'] as num?)?.toInt() ?? 0,
+      incomingCount: (json['incoming_count'] as num?)?.toInt() ?? 0,
+      outgoingItems: (json['outgoing_items'] as num?)?.toInt() ?? 0,
+      incomingItems: (json['incoming_items'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// Худалдагчийн хураангуй (сарын тайланд)
+class SellerSummary {
+  final String sellerId;
+  final String sellerName;
+  final double totalSales;
+  final int totalTransactions;
+
+  const SellerSummary({
+    required this.sellerId,
+    required this.sellerName,
+    required this.totalSales,
+    required this.totalTransactions,
+  });
+
+  factory SellerSummary.fromJson(Map<String, dynamic> json) {
+    return SellerSummary(
+      sellerId: json['seller_id'] as String? ?? '',
+      sellerName: json['seller_name'] as String? ?? '',
+      totalSales: (json['total_sales'] as num?)?.toDouble() ?? 0,
+      totalTransactions: (json['total_transactions'] as num?)?.toInt() ?? 0,
+    );
+  }
+}

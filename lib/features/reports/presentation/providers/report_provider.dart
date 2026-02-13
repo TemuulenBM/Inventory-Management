@@ -145,6 +145,102 @@ Future<ProfitReport?> profitReport(ProfitReportRef ref) async {
   }
 }
 
+/// Сарын тайлангийн сонгогдсон сар (YYYY-MM format)
+@riverpod
+class SelectedMonth extends _$SelectedMonth {
+  @override
+  String build() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}';
+  }
+
+  void setMonth(String month) => state = month;
+
+  /// Өмнөх сар руу шилжих
+  void previousMonth() {
+    final parts = state.split('-');
+    var year = int.parse(parts[0]);
+    var month = int.parse(parts[1]);
+    month--;
+    if (month < 1) {
+      month = 12;
+      year--;
+    }
+    state = '$year-${month.toString().padLeft(2, '0')}';
+  }
+
+  /// Дараагийн сар руу шилжих
+  void nextMonth() {
+    final now = DateTime.now();
+    final parts = state.split('-');
+    var year = int.parse(parts[0]);
+    var month = int.parse(parts[1]);
+    month++;
+    if (month > 12) {
+      month = 1;
+      year++;
+    }
+    // Ирээдүйн сар руу шилжихгүй
+    if (year > now.year || (year == now.year && month > now.month)) return;
+    state = '$year-${month.toString().padLeft(2, '0')}';
+  }
+}
+
+/// Сарын нэгдсэн тайлан — бүх KPI нэг дэлгэцэд
+@riverpod
+Future<MonthlyReport?> monthlyReport(MonthlyReportRef ref) async {
+  final storeId = ref.watch(storeIdProvider);
+  if (storeId == null) return null;
+
+  final month = ref.watch(selectedMonthProvider);
+
+  try {
+    final response = await apiClient.get(
+      ApiEndpoints.monthlyReport(storeId),
+      queryParameters: {'month': month},
+    );
+
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      return MonthlyReport.fromJson(
+          response.data['report'] as Map<String, dynamic>);
+    }
+    return null;
+  } catch (e) {
+    rethrow;
+  }
+}
+
+/// Категори аналитик (Tab 4: Категори)
+/// Категори тус бүрийн борлуулалт, ашиг, тоо хэмжээний задаргаа
+@riverpod
+Future<List<CategoryReport>> categoryReport(CategoryReportRef ref) async {
+  final storeId = ref.watch(storeIdProvider);
+  if (storeId == null) return [];
+
+  final dateRange = ref.watch(selectedDateRangeProvider);
+
+  try {
+    final response = await apiClient.get(
+      ApiEndpoints.categoryReport(storeId),
+      queryParameters: {
+        'from': dateRange.from.toIso8601String(),
+        'to': dateRange.to.toIso8601String(),
+      },
+    );
+
+    if (response.statusCode == 200 && response.data['success'] == true) {
+      final categoriesData = response.data['categories'] as List;
+      return categoriesData
+          .map((data) =>
+              CategoryReport.fromJson(data as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
+  } catch (e) {
+    rethrow;
+  }
+}
+
 /// Муу зарагддаг бараа (Tab 2: Бараа)
 @riverpod
 Future<List<SlowMovingProduct>> slowMovingProducts(

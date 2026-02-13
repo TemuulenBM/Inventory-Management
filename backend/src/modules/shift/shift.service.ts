@@ -175,6 +175,70 @@ export async function closeShift(
       });
     }
 
+    // 6. Бараа тоолж тулгах (сонголттой)
+    if (data.inventory_counts && data.inventory_counts.length > 0) {
+      // a) Тоолсон бараануудын системийн нөөцийн тоо авах
+      const productIds = data.inventory_counts.map(c => c.product_id);
+      const { data: stockLevels } = await supabase
+        .from('product_stock_levels')
+        .select('product_id, current_stock')
+        .in('product_id', productIds);
+
+      const stockMap = new Map<string, number>(
+        (stockLevels ?? []).map(s => [s.product_id, s.current_stock ?? 0])
+      );
+
+      // b) shift_inventory_counts хүснэгтэд хадгалах
+      const counts = data.inventory_counts.map(c => ({
+        shift_id: shift.id,
+        store_id: storeId,
+        product_id: c.product_id,
+        physical_count: c.physical_count,
+        system_count: stockMap.get(c.product_id) ?? 0,
+        counted_by: sellerId,
+      }));
+
+      const { error: insertError } = await supabase
+        .from('shift_inventory_counts')
+        .insert(counts);
+
+      if (insertError) {
+        // Тоолгын мэдээлэл хадгалж чадаагүй ч ээлж хаагдсан
+        // Log хийгээд үргэлжлүүлнэ (ээлж хаах амжилттай болсон)
+        console.error('Бараа тоолгын мэдээлэл хадгалахад алдаа:', insertError.message);
+      } else {
+        // c) 3-с дээш зөрүүтэй бараа байвал alert үүсгэх
+        const criticalItems = counts.filter(c =>
+          Math.abs(c.physical_count - c.system_count) >= 3
+        );
+
+        if (criticalItems.length > 0) {
+          // Бараануудын нэр авах
+          const { data: products } = await supabase
+            .from('products')
+            .select('id, name')
+            .in('id', criticalItems.map(c => c.product_id));
+
+          const productNames = new Map<string, string>(
+            (products ?? []).map(p => [p.id, p.name])
+          );
+
+          const itemsList = criticalItems.map(c => {
+            const disc = c.physical_count - c.system_count;
+            const name = productNames.get(c.product_id) ?? 'Тодорхойгүй';
+            return `${name}: ${disc > 0 ? '+' : ''}${disc}`;
+          }).join(', ');
+
+          const alertLevel = criticalItems.length >= 5 ? 'critical' as const : 'warning' as const;
+          await createAlert(storeId, {
+            alert_type: 'inventory_discrepancy',
+            message: `Ээлжийн бараа тулгалт зөрүүтэй (${criticalItems.length} бараа): ${itemsList}`,
+            level: alertLevel,
+          });
+        }
+      }
+    }
+
     return {
       success: true,
       shift: {
@@ -189,6 +253,63 @@ export async function closeShift(
         discrepancy: discrepancy,
         total_sales: totalSales,
         total_sales_count: totalSalesCount,
+      },
+    };
+  } catch (error) {
+    return { success: false, error: 'Серверийн алдаа' };
+  }
+}
+
+/**
+ * Тухайн ээлжийн бараа тоолгын зөрүүг авах
+ */
+export async function getShiftInventoryCounts(
+  shiftId: string,
+  storeId: string
+): Promise<ServiceResult<{ counts: any[]; summary: any }>> {
+  try {
+    const { data: counts, error } = await supabase
+      .from('shift_inventory_counts')
+      .select('*, products!inner(name, sku)')
+      .eq('shift_id', shiftId)
+      .eq('store_id', storeId)
+      .order('counted_at', { ascending: true });
+
+    if (error) {
+      return { success: false, error: 'Тоолгын мэдээлэл авахад алдаа гарлаа' };
+    }
+
+    const countsData = (counts ?? []).map((c: any) => ({
+      id: c.id,
+      product_id: c.product_id,
+      product_name: c.products?.name ?? '',
+      product_sku: c.products?.sku ?? '',
+      physical_count: c.physical_count,
+      system_count: c.system_count,
+      discrepancy: c.discrepancy,
+      counted_at: c.counted_at,
+      notes: c.notes,
+    }));
+
+    // Хураангуй тооцоолох
+    let totalMissing = 0;
+    let totalExcess = 0;
+    let totalDiscrepancies = 0;
+
+    for (const c of countsData) {
+      if (c.discrepancy < 0) totalMissing += Math.abs(c.discrepancy);
+      if (c.discrepancy > 0) totalExcess += c.discrepancy;
+      if (c.discrepancy !== 0) totalDiscrepancies++;
+    }
+
+    return {
+      success: true,
+      counts: countsData,
+      summary: {
+        total_counted: countsData.length,
+        total_discrepancies: totalDiscrepancies,
+        total_missing: totalMissing,
+        total_excess: totalExcess,
       },
     };
   } catch (error) {

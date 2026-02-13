@@ -39,6 +39,11 @@ export type OpenShiftResponse = {
  */
 export const closeShiftSchema = z.object({
   close_balance: z.number().min(0).optional(),
+  // Бараа тоолж тулгах мэдээлэл (сонголттой — заавал биш)
+  inventory_counts: z.array(z.object({
+    product_id: z.string().uuid(),
+    physical_count: z.number().int().min(0),
+  })).optional(),
 });
 
 export type CloseShiftBody = z.infer<typeof closeShiftSchema>;

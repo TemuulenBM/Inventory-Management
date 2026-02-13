@@ -33,6 +33,7 @@ import 'package:retail_control_platform/features/transfer/presentation/screens/t
 import 'package:retail_control_platform/features/transfer/presentation/screens/create_transfer_screen.dart';
 import 'package:retail_control_platform/features/employees/presentation/screens/seller_performance_screen.dart';
 import 'package:retail_control_platform/features/reports/presentation/screens/reports_screen.dart';
+import 'package:retail_control_platform/features/reports/presentation/screens/monthly_report_screen.dart';
 import 'package:retail_control_platform/features/dashboard/presentation/screens/multi_store_dashboard_screen.dart';
 
 /// GoRouter configuration for app navigation
@@ -256,6 +257,12 @@ final GoRouter appRouter = GoRouter(
           path: RouteNames.reports,
           name: 'reports',
           builder: (context, state) => const ReportsScreen(),
+        ),
+        // Сарын нэгдсэн тайлан
+        GoRoute(
+          path: RouteNames.monthlyReport,
+          name: 'monthly-report',
+          builder: (context, state) => const MonthlyReportScreen(),
         ),
         // Employee Edit
         GoRoute(

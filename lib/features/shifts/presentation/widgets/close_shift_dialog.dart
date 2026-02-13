@@ -5,10 +5,20 @@ import 'package:retail_control_platform/core/constants/app_colors.dart';
 import 'package:retail_control_platform/core/constants/app_spacing.dart';
 import 'package:retail_control_platform/core/constants/app_radius.dart';
 import 'package:retail_control_platform/features/shifts/domain/shift_model.dart';
+import 'package:retail_control_platform/features/shifts/presentation/widgets/inventory_count_sheet.dart';
 
-/// Ээлж хаах dialog — мөнгөн тулгалттай
+/// Ээлж хаах dialog-ын буцаах утга
+/// closeBalance: кассын бодит мөнгө
+/// inventoryCounts: тоолсон бараанууд (сонголттой)
+typedef CloseShiftResult = ({
+  int closeBalance,
+  List<Map<String, dynamic>>? inventoryCounts,
+});
+
+/// Ээлж хаах dialog — мөнгөн тулгалт + бараа тоолж тулгах
 /// Кассанд байгаа бодит мөнгийг оруулж, хүлээгдэж буй дүнтэй харьцуулна.
 /// Зөрүү ихтэй бол warning харуулна.
+/// Сонголтоор бараа тоолох боломжтой.
 ///
 /// **Best Practice**: Мөнгөн тулгалт (cash reconciliation) бол жижиглэн
 /// худалдааны хяналтын хамгийн чухал хэрэгсэл. Худалдагчийн ээлж бүрийн
@@ -19,9 +29,10 @@ class CloseShiftDialog extends StatefulWidget {
 
   const CloseShiftDialog({super.key, required this.shift});
 
-  /// Dialog харуулж, closeBalance (int) буцаана. null = цуцалсан
-  static Future<int?> show(BuildContext context, ShiftModel shift) {
-    return showDialog<int?>(
+  /// Dialog харуулж, CloseShiftResult буцаана. null = цуцалсан
+  static Future<CloseShiftResult?> show(
+      BuildContext context, ShiftModel shift) {
+    return showDialog<CloseShiftResult?>(
       context: context,
       builder: (context) => CloseShiftDialog(shift: shift),
     );
@@ -34,6 +45,8 @@ class CloseShiftDialog extends StatefulWidget {
 class _CloseShiftDialogState extends State<CloseShiftDialog> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
+  /// Бараа тоолгын мэдээлэл (null = тоолоогүй)
+  List<Map<String, dynamic>>? _inventoryCounts;
 
   /// Хүлээгдэж буй мөнгө = нээлтийн үлдэгдэл + бэлэн мөнгөн борлуулалт
   int get _expectedBalance =>
@@ -217,6 +230,10 @@ class _CloseShiftDialogState extends State<CloseShiftDialog> {
                 ),
                 textAlign: TextAlign.center,
               ),
+              AppSpacing.verticalMD,
+
+              // Бараа тоолох товч (сонголттой)
+              _buildInventoryCountButton(),
               AppSpacing.verticalXL,
 
               // Товчнууд
@@ -241,8 +258,10 @@ class _CloseShiftDialogState extends State<CloseShiftDialog> {
                     child: ElevatedButton(
                       // closeBalance оруулаагүй бол товч идэвхгүй
                       onPressed: _closeBalance != null
-                          ? () =>
-                              Navigator.of(context).pop(_closeBalance)
+                          ? () => Navigator.of(context).pop((
+                                closeBalance: _closeBalance!,
+                                inventoryCounts: _inventoryCounts,
+                              ))
                           : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.danger,
@@ -371,6 +390,71 @@ class _CloseShiftDialogState extends State<CloseShiftDialog> {
         ],
       ),
     );
+  }
+
+  /// Бараа тоолох товч + тоологдсон мэдээлэл
+  Widget _buildInventoryCountButton() {
+    if (_inventoryCounts != null && _inventoryCounts!.isNotEmpty) {
+      // Аль хэдийн тоолсон — мэдээлэл харуулна
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFEBF5EC),
+          borderRadius: AppRadius.radiusMD,
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.inventory_2, size: 20, color: Color(0xFF2E7D32)),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '${_inventoryCounts!.length} бараа тоологдсон',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF2E7D32),
+                ),
+              ),
+            ),
+            // Дахин тоолох
+            TextButton(
+              onPressed: _openInventoryCountSheet,
+              child: const Text(
+                'Засах',
+                style: TextStyle(fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Тоолоогүй — товч харуулна
+    return TextButton.icon(
+      onPressed: _openInventoryCountSheet,
+      icon: const Icon(Icons.inventory_2_outlined, size: 18),
+      label: const Text('Бараа тоолж тулгах (сонголттой)'),
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.textSecondaryLight,
+      ),
+    );
+  }
+
+  /// Бараа тоолох sheet нээх
+  Future<void> _openInventoryCountSheet() async {
+    final result = await showModalBottomSheet<List<Map<String, dynamic>>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => InventoryCountSheet(
+        storeId: widget.shift.storeId,
+      ),
+    );
+
+    if (result != null) {
+      setState(() => _inventoryCounts = result);
+    }
   }
 
   Widget _buildSummaryRow(String label, String value) {

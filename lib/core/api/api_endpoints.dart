@@ -58,6 +58,12 @@ class ApiEndpoints {
   static String topProductsReport(String storeId) => '/stores/$storeId/reports/top-products';
   static String profitReport(String storeId) => '/stores/$storeId/reports/profit';
   static String slowMovingReport(String storeId) => '/stores/$storeId/reports/slow-moving';
+  static String categoryReport(String storeId) => '/stores/$storeId/reports/category';
+  static String monthlyReport(String storeId) => '/stores/$storeId/reports/monthly';
+
+  // Shift Inventory Counts
+  static String shiftInventoryCounts(String storeId, String shiftId) =>
+      '/stores/$storeId/shifts/$shiftId/inventory-counts';
 
   // Sync
   static String sync(String storeId) => '/stores/$storeId/sync';

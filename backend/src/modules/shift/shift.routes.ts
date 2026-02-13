@@ -29,6 +29,7 @@ import {
   getShifts,
   getShift,
   getActiveShift,
+  getShiftInventoryCounts,
 } from './shift.service.js';
 import { requireStore, type AuthRequest } from '../auth/auth.middleware.js';
 
@@ -283,6 +284,38 @@ export async function shiftRoutes(server: FastifyInstance) {
       return reply.status(200).send({
         success: true,
         shift: result.shift,
+      });
+    }
+  );
+
+  /**
+   * GET /stores/:storeId/shifts/:shiftId/inventory-counts
+   * Тухайн ээлжийн бараа тоолгын зөрүү (owner, manager only)
+   */
+  server.get<{
+    Params: { storeId: string; shiftId: string };
+  }>(
+    '/stores/:storeId/shifts/:shiftId/inventory-counts',
+    {
+      onRequest: [server.authenticate, requireStore()],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const params = request.params as { storeId: string; shiftId: string };
+
+      const result = await getShiftInventoryCounts(params.shiftId, params.storeId);
+
+      if (!result.success) {
+        return reply.status(500).send({
+          statusCode: 500,
+          error: 'Internal Server Error',
+          message: result.error,
+        });
+      }
+
+      return reply.status(200).send({
+        success: true,
+        counts: result.counts,
+        summary: result.summary,
       });
     }
   );

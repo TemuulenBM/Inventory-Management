@@ -107,10 +107,11 @@ class ShiftActions extends _$ShiftActions {
     );
   }
 
-  /// Ээлж хаах
+  /// Ээлж хаах (мөнгөн тулгалт + бараа тулгалт)
   Future<bool> closeShift({
     required String shiftId,
     int? closeBalance,
+    List<Map<String, dynamic>>? inventoryCounts,
   }) async {
     state = const AsyncValue.loading();
 
@@ -125,6 +126,7 @@ class ShiftActions extends _$ShiftActions {
       storeId,
       shiftId,
       closeBalance: closeBalance,
+      inventoryCounts: inventoryCounts,
     );
 
     return result.when(

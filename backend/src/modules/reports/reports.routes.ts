@@ -16,16 +16,22 @@ import {
   sellerPerformanceQuerySchema,
   profitReportQuerySchema,
   slowMovingQuerySchema,
+  categoryReportQuerySchema,
+  monthlyReportQuerySchema,
   type DailyReportQueryParams,
   type TopProductsQueryParams,
   type SellerPerformanceQueryParams,
   type ProfitReportQueryParams,
   type SlowMovingQueryParams,
+  type CategoryReportQueryParams,
+  type MonthlyReportQueryParams,
   type DailyReportResponse,
   type TopProductsResponse,
   type SellerPerformanceResponse,
   type ProfitReportResponse,
   type SlowMovingResponse,
+  type CategoryReportResponse,
+  type MonthlyReportResponse,
 } from './reports.schema.js';
 import {
   getDailyReport,
@@ -33,6 +39,8 @@ import {
   getSellerPerformance,
   getProfitReport,
   getSlowMovingProducts,
+  getCategoryReport,
+  getMonthlyReport,
 } from './reports.service.js';
 import { authorize, requireStore } from '../auth/auth.middleware.js';
 
@@ -261,6 +269,97 @@ export async function reportsRoutes(server: FastifyInstance) {
       return reply.status(200).send({
         success: true,
         products: result.products,
+      });
+    }
+  );
+
+  /**
+   * GET /stores/:storeId/reports/category
+   * Категори аналитик (owner, manager only)
+   */
+  server.get<{
+    Params: { storeId: string };
+    Querystring: CategoryReportQueryParams;
+    Reply: CategoryReportResponse | { statusCode: number; error: string; message: string };
+  }>(
+    '/stores/:storeId/reports/category',
+    {
+      onRequest: [server.authenticate, authorize(['owner', 'manager']), requireStore()],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const params = request.params as { storeId: string };
+      const query = request.query as Record<string, unknown>;
+
+      // Query validation
+      const parseResult = categoryReportQuerySchema.safeParse(query);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: parseResult.error.errors[0].message,
+        });
+      }
+
+      // Категори аналитик авах
+      const result = await getCategoryReport(params.storeId, parseResult.data);
+
+      if (!result.success) {
+        return reply.status(500).send({
+          statusCode: 500,
+          error: 'Internal Server Error',
+          message: result.error,
+        });
+      }
+
+      return reply.status(200).send({
+        success: true,
+        categories: result.categories,
+        total_revenue: result.total_revenue,
+      });
+    }
+  );
+
+  /**
+   * GET /stores/:storeId/reports/monthly
+   * Сарын нэгдсэн тайлан (owner only — ашгийн мэдээлэл агуулна)
+   */
+  server.get<{
+    Params: { storeId: string };
+    Querystring: MonthlyReportQueryParams;
+    Reply: MonthlyReportResponse | { statusCode: number; error: string; message: string };
+  }>(
+    '/stores/:storeId/reports/monthly',
+    {
+      onRequest: [server.authenticate, authorize(['owner']), requireStore()],
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const params = request.params as { storeId: string };
+      const query = request.query as Record<string, unknown>;
+
+      // Query validation
+      const parseResult = monthlyReportQuerySchema.safeParse(query);
+      if (!parseResult.success) {
+        return reply.status(400).send({
+          statusCode: 400,
+          error: 'Bad Request',
+          message: parseResult.error.errors[0].message,
+        });
+      }
+
+      // Сарын тайлан авах
+      const result = await getMonthlyReport(params.storeId, parseResult.data);
+
+      if (!result.success) {
+        return reply.status(500).send({
+          statusCode: 500,
+          error: 'Internal Server Error',
+          message: result.error,
+        });
+      }
+
+      return reply.status(200).send({
+        success: true,
+        report: result.report,
       });
     }
   );

@@ -57,6 +57,43 @@ final profitReportProvider = AutoDisposeFutureProvider<ProfitReport?>.internal(
 );
 
 typedef ProfitReportRef = AutoDisposeFutureProviderRef<ProfitReport?>;
+String _$monthlyReportHash() => r'13d89526694e9d0ea1db2cdcaaaba0b99d88560b';
+
+/// Сарын нэгдсэн тайлан — бүх KPI нэг дэлгэцэд
+///
+/// Copied from [monthlyReport].
+@ProviderFor(monthlyReport)
+final monthlyReportProvider =
+    AutoDisposeFutureProvider<MonthlyReport?>.internal(
+  monthlyReport,
+  name: r'monthlyReportProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$monthlyReportHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef MonthlyReportRef = AutoDisposeFutureProviderRef<MonthlyReport?>;
+String _$categoryReportHash() => r'dca2af647177b61da2a9899582b1171896431096';
+
+/// Категори аналитик (Tab 4: Категори)
+/// Категори тус бүрийн борлуулалт, ашиг, тоо хэмжээний задаргаа
+///
+/// Copied from [categoryReport].
+@ProviderFor(categoryReport)
+final categoryReportProvider =
+    AutoDisposeFutureProvider<List<CategoryReport>>.internal(
+  categoryReport,
+  name: r'categoryReportProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$categoryReportHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef CategoryReportRef = AutoDisposeFutureProviderRef<List<CategoryReport>>;
 String _$slowMovingProductsHash() =>
     r'c25768914eff5efd9bb45ebfd5acd1133bbb1aae';
 
@@ -97,5 +134,23 @@ final selectedDateRangeProvider = AutoDisposeNotifierProvider<SelectedDateRange,
 
 typedef _$SelectedDateRange = AutoDisposeNotifier<
     ({ReportDateRange range, DateTime from, DateTime to})>;
+String _$selectedMonthHash() => r'482f2a81c8f43e960e22bdf3274acc379ee60552';
+
+/// Сарын тайлангийн сонгогдсон сар (YYYY-MM format)
+///
+/// Copied from [SelectedMonth].
+@ProviderFor(SelectedMonth)
+final selectedMonthProvider =
+    AutoDisposeNotifierProvider<SelectedMonth, String>.internal(
+  SelectedMonth.new,
+  name: r'selectedMonthProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$selectedMonthHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$SelectedMonth = AutoDisposeNotifier<String>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

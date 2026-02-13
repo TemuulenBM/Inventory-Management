@@ -8,6 +8,7 @@ import 'package:retail_control_platform/core/widgets/modals/confirm_dialog.dart'
 import 'package:retail_control_platform/features/auth/presentation/providers/auth_provider.dart';
 import 'package:retail_control_platform/features/employees/presentation/providers/employee_provider.dart';
 import 'package:retail_control_platform/features/employees/presentation/widgets/employee_card.dart';
+import 'package:retail_control_platform/features/store/presentation/providers/current_store_provider.dart';
 
 /// Ажилтнуудын жагсаалт дэлгэц
 /// Owner/Manager: Жагсаалт харах, засах
@@ -19,6 +20,7 @@ class EmployeeListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final employeesAsync = ref.watch(employeeListProvider);
+    final currentStoreAsync = ref.watch(currentStoreProvider);
     final isOwner = user?.role == 'owner';
     final canEdit = isOwner || user?.role == 'manager';
 
@@ -27,13 +29,33 @@ class EmployeeListScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: AppColors.backgroundLight,
         elevation: 0,
-        title: const Text(
-          'Ажилтнууд',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: AppColors.textMainLight,
-          ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Ажилтнууд',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textMainLight,
+              ),
+            ),
+            // Одоогийн дэлгүүрийн нэр — аль дэлгүүрийн ажилтнууд гэдгийг харуулна
+            currentStoreAsync.when(
+              data: (store) => store != null
+                  ? Text(
+                      store.name,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.textSecondaryLight,
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+              loading: () => const SizedBox.shrink(),
+              error: (_, __) => const SizedBox.shrink(),
+            ),
+          ],
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textMainLight),
